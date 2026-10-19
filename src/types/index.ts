@@ -205,6 +205,7 @@ export interface StoreFeatureItem {
   category: 'storefront' | 'checkout' | 'marketing' | 'customer';
   isEnabled: boolean; // مفعل أو معطل بنظام الزر
   isRemoved: boolean; // محذوف بنظام زر الحذف والاستعادة
+  customValue?: string; // قيمة أو نص مخصص للخاصية (زر التعديل)
 }
 
 export type PlatformFeaturesMap = Record<string, boolean>;

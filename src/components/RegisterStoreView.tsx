@@ -181,38 +181,77 @@ export const RegisterStoreView: React.FC<RegisterStoreViewProps> = ({
             </div>
           </div>
 
-          {/* Action Decision Buttons: Store vs Dashboard */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
+          {/* New Seller Feature Highlight Banner: Control Storefront from Homepage */}
+          <div className="p-4 sm:p-5 rounded-2xl bg-gradient-to-r from-emerald-500/15 via-teal-500/10 to-emerald-500/5 border-2 border-emerald-500/30 text-start space-y-3 shadow-sm">
+            <div className="flex items-center gap-2.5">
+              <span className="flex h-3 w-3 relative">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-3 w-3 bg-emerald-500"></span>
+              </span>
+              <span className="text-xs font-black uppercase tracking-wider text-emerald-800 bg-emerald-100 px-2.5 py-0.5 rounded-full border border-emerald-300">
+                {isAr ? '✨ خاصية حصرية مفعلة لمتجرك الجديد' : '✨ Exclusive Feature Activated'}
+              </span>
+            </div>
+            <div>
+              <h4 className="text-sm sm:text-base font-extrabold text-slate-900 flex items-center gap-2">
+                <span>{isAr ? 'التحكم في جميع خصائص متجرك ابتداءً من الصفحة الرئيسية' : 'Control All Store Features Starting From Homepage'}</span>
+              </h4>
+              <p className="text-xs text-slate-600 mt-1 leading-relaxed">
+                {isAr
+                  ? 'بصفتك بائعاً جديداً، يمكنك الآن تخصيص متجرك مباشرة من الصفحة الرئيسية بنظام الأزرار الثلاثة على كل قسم: [زر التفعيل والتعطيل] + أمامه [زر التعديل ✏️ لتغيير النصوص والقيم] + أمامه [زر الحذف 🗑️ لإخفاء أو حذف العنصر].'
+                  : 'As a new merchant, you can control everything directly on the homepage via 3 unified buttons on every section: [Toggle Switch] + [Edit Button ✏️] + [Delete Button 🗑️].'}
+              </p>
+            </div>
+          </div>
+
+          {/* Action Decision Buttons: Homepage Live Control vs Dashboard vs Store */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2">
             
-            {/* 1. Go to Standalone Store directly */}
+            {/* 1. Primary: Start Controlling Store from Homepage */}
             <button
               onClick={() => onRegisterSuccess(createdStore, 'store')}
-              className="p-5 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs flex flex-col items-center justify-center gap-2 shadow-lg shadow-emerald-600/20 transition-all hover:scale-102 active:scale-98 cursor-pointer group"
+              className="p-5 rounded-2xl bg-gradient-to-br from-emerald-600 to-teal-700 hover:from-emerald-700 hover:to-teal-800 text-white font-bold text-xs flex flex-col items-center justify-center gap-2 shadow-lg shadow-emerald-600/25 transition-all hover:scale-102 active:scale-98 cursor-pointer group border-2 border-emerald-400/50"
             >
-              <div className="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center group-hover:scale-110 transition-transform">
-                <ShoppingBag className="w-5 h-5 text-white" />
+              <div className="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center group-hover:scale-110 transition-transform shadow-inner">
+                <Sliders className="w-5 h-5 text-white" />
               </div>
-              <span className="text-sm font-extrabold">
-                {isAr ? 'زيارة المتجر المستقل الآن 🛍️' : 'Visit Independent Store 🛍️'}
+              <span className="text-sm font-extrabold text-center">
+                {isAr ? 'التحكم بالصفحة الرئيسية الآن ⚡' : 'Control Homepage Now ⚡'}
               </span>
-              <span className="text-[11px] text-white/80 font-normal">
-                {isAr ? 'تصفح المتجر كصفحة مستقلة كما يراه الزبائن' : 'Open standalone page as viewed by customers'}
+              <span className="text-[11px] text-white/90 font-normal text-center">
+                {isAr ? 'تعديل وحذف وتفعيل الأقسام مباشرة' : 'Edit, delete & toggle sections live'}
               </span>
             </button>
 
-            {/* 2. Go to Merchant Dashboard */}
+            {/* 2. Visit Store as Normal Buyer */}
+            <button
+              onClick={() => onRegisterSuccess(createdStore, 'store')}
+              className="p-5 rounded-2xl bg-white hover:bg-slate-50 text-slate-800 border-2 border-slate-200 font-bold text-xs flex flex-col items-center justify-center gap-2 shadow-xs transition-all hover:scale-102 active:scale-98 cursor-pointer group"
+            >
+              <div className="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-700 border border-emerald-200 flex items-center justify-center group-hover:scale-110 transition-transform">
+                <ShoppingBag className="w-5 h-5" />
+              </div>
+              <span className="text-sm font-extrabold">
+                {isAr ? 'معاينة المتجر كزبون 🛍️' : 'Customer View 🛍️'}
+              </span>
+              <span className="text-[11px] text-slate-500 font-normal">
+                {isAr ? 'تصفح كصفحة زبائن مستقلة' : 'View as a real customer'}
+              </span>
+            </button>
+
+            {/* 3. Go to Merchant Dashboard */}
             <button
               onClick={() => onRegisterSuccess(createdStore, 'dashboard')}
-              className="p-5 rounded-2xl bg-slate-800 hover:bg-slate-900 text-white font-bold text-xs flex flex-col items-center justify-center gap-2 shadow-lg shadow-slate-900/20 transition-all hover:scale-102 active:scale-98 cursor-pointer group"
+              className="p-5 rounded-2xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs flex flex-col items-center justify-center gap-2 shadow-lg shadow-slate-900/20 transition-all hover:scale-102 active:scale-98 cursor-pointer group"
             >
               <div className="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center group-hover:scale-110 transition-transform">
                 <BarChart2 className="w-5 h-5 text-white" />
               </div>
               <span className="text-sm font-extrabold">
-                {isAr ? 'الدخول للوحة تحكم المتجر ⚙️' : 'Enter Store Dashboard ⚙️'}
+                {isAr ? 'لوحة تحكم التاجر ⚙️' : 'Merchant Dashboard ⚙️'}
               </span>
               <span className="text-[11px] text-white/80 font-normal">
-                {isAr ? 'إدارة المنتجات، الطلبات، والتقارير' : 'Manage products, orders & settings'}
+                {isAr ? 'إدارة الطلبات والشحن والتقارير' : 'Manage orders, couriers & stats'}
               </span>
             </button>
 
@@ -221,8 +260,8 @@ export const RegisterStoreView: React.FC<RegisterStoreViewProps> = ({
           {/* Additional note */}
           <p className="text-[11px] text-slate-400">
             {isAr
-              ? '💡 يمكنك في أي وقت التبديل بين لوحة التحكم والمتجر المستقل أو نسخ الرابط لمشاركته مع زبائنك.'
-              : '💡 You can switch between your merchant dashboard and independent storefront anytime.'}
+              ? '💡 يمكنك في أي وقت التبديل بين وضع التحكم المباشر بالصفحة الرئيسية ولوحة التحكم عبر الشريط العلوي.'
+              : '💡 You can switch between live storefront editing and the dashboard anytime.'}
           </p>
 
         </div>

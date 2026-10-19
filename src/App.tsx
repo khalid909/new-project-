@@ -337,6 +337,18 @@ export default function App() {
     setStoreFeatures((prev) => [newFeature, ...prev]);
   };
 
+  const handleUpdateStoreFeature = (updatedFeature: StoreFeatureItem) => {
+    setStoreFeatures((prev) =>
+      prev.map((f) => (f.id === updatedFeature.id ? updatedFeature : f))
+    );
+  };
+
+  const handleUpdateStoreInfo = (updatedStoreInfo: Partial<Store>) => {
+    setStores((prev) =>
+      prev.map((s) => (s.id === activeStore.id ? { ...s, ...updatedStoreInfo } : s))
+    );
+  };
+
   // Auth Handlers
   const handleLoginSuccess = (user: SellerUser, storeId: string) => {
     setCurrentUser(user);
@@ -505,10 +517,18 @@ export default function App() {
           language={language}
           currency={currency}
           storeFeatures={storeFeatures}
+          currentUser={currentUser}
           isStandalonePage={true}
           onBackToDashboard={() => switchMode('dashboard')}
           onBackToPlatform={() => switchMode('landing')}
           onNewCustomerOrder={handleNewCustomerOrder}
+          onToggleStoreFeature={handleToggleStoreFeature}
+          onRemoveStoreFeature={handleRemoveStoreFeature}
+          onRestoreStoreFeature={handleRestoreStoreFeature}
+          onUpdateStoreFeature={handleUpdateStoreFeature}
+          onUpdateStore={handleUpdateStoreInfo}
+          onResetDefaultStoreFeatures={handleResetDefaultStoreFeatures}
+          onEnableAllStoreFeatures={handleEnableAllStoreFeatures}
           isOnlinePaymentsEnabled={isFeatureActive('onlinePayments')}
         />
       </div>
@@ -760,6 +780,7 @@ export default function App() {
             onEnableAllStoreFeatures={handleEnableAllStoreFeatures}
             onResetDefaultStoreFeatures={handleResetDefaultStoreFeatures}
             onAddStoreFeature={handleAddStoreFeature}
+            onUpdateStoreFeature={handleUpdateStoreFeature}
             onUpdateStoreSettings={handleUpdateStoreSettings}
             onUpdateStorePlan={handleUpdateStorePlan}
             onAddProduct={handleAddProduct}
@@ -1033,8 +1054,16 @@ export default function App() {
           language={language}
           currency={currency}
           storeFeatures={storeFeatures}
+          currentUser={currentUser}
           onClose={() => setPreviewingStore(null)}
           onNewCustomerOrder={handleNewCustomerOrder}
+          onToggleStoreFeature={handleToggleStoreFeature}
+          onRemoveStoreFeature={handleRemoveStoreFeature}
+          onRestoreStoreFeature={handleRestoreStoreFeature}
+          onUpdateStoreFeature={handleUpdateStoreFeature}
+          onUpdateStore={handleUpdateStoreInfo}
+          onResetDefaultStoreFeatures={handleResetDefaultStoreFeatures}
+          onEnableAllStoreFeatures={handleEnableAllStoreFeatures}
           isOnlinePaymentsEnabled={isFeatureActive('onlinePayments')}
         />
       )}

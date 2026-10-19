@@ -693,6 +693,171 @@ export const INITIAL_PLATFORM_FEATURES: PlatformFeatureItem[] = [
 
 export const INITIAL_STORE_FEATURES: StoreFeatureItem[] = [
   {
+    id: 'topAnnouncement',
+    name: 'Top Flash Promo Announcement Bar',
+    nameAr: 'شريط الإعلانات الترويجي العلوي للمتجر',
+    description: 'Customizable top banner highlighting promotions, return guarantees, or free delivery across Algeria.',
+    descriptionAr: 'شريط علوي بارز للإعلان عن العروض الحصرية، التوصيل السريع لـ 58 ولاية، والدفع عند الاستلام.',
+    category: 'storefront',
+    isEnabled: true,
+    isRemoved: false,
+    customValue: '🚚 توصيل سريع لـ 58 ولاية جزائرية + الدفع عند الاستلام بعد معاينة وفحص المنتج!'
+  },
+  {
+    id: 'storeHeader',
+    name: 'Store Header & Brand Identity',
+    nameAr: 'رأس الصفحة وشعار واسم المتجر',
+    description: 'Store logo, brand name, verified badge, and navigation elements.',
+    descriptionAr: 'شعار المتجر، الاسم التجاري، شارة المتجر المعتمد، وأزرار التنقل.',
+    category: 'storefront',
+    isEnabled: true,
+    isRemoved: false,
+    customValue: 'متجر مستقل معتمد - تشغيل مباشر'
+  },
+  {
+    id: 'storeSearch',
+    name: 'Live Product Search Bar',
+    nameAr: 'شريط البحث المباشر في منتجات المتجر',
+    description: 'Enables instant live filtering of products by keyword in the storefront.',
+    descriptionAr: 'يتيح للزبائن البحث الفوري والفلترة بالاسم والتفاصيل داخل المتجر.',
+    category: 'storefront',
+    isEnabled: true,
+    isRemoved: false,
+    customValue: 'ابحث عن منتجك المفضل...'
+  },
+  {
+    id: 'heroBanner',
+    name: 'Hero Welcome Banner & Store Intro',
+    nameAr: 'البانر الرئيسي وقسم الترحيب والتعريف بالمتجر',
+    description: 'Main promotional headline, description, and visual call-to-action on the homepage.',
+    descriptionAr: 'البانر الترحيبي العريض في أعلى الصفحة الرئيسية لتقديم عروض المتجر وأقوى التخفيضات.',
+    category: 'storefront',
+    isEnabled: true,
+    isRemoved: false,
+    customValue: 'أفضل المنتجات الأصلية بأفضل الأسعار مع ضمان الاستبدال السريع'
+  },
+  {
+    id: 'trustBadges',
+    name: 'Trust Badges & COD Guarantees Bar',
+    nameAr: 'شريط مزايا وضمانات التوصيل والدفع عند الاستلام',
+    description: 'Guarantees bar highlighting doorstep delivery, pay-after-inspection, and local courier speed.',
+    descriptionAr: 'شريط المزايا الأربعة: شحن لـ 58 ولاية، فحص قبل الدفع، استرجاع مجاني، ودعم مستمر.',
+    category: 'storefront',
+    isEnabled: true,
+    isRemoved: false,
+    customValue: 'شحن فوري لباب البيت • فحص المنتج قبل الدفع • استبدال خلال 48 ساعة'
+  },
+  {
+    id: 'categoriesBar',
+    name: 'Product Categories Filter Bar',
+    nameAr: 'شريط تصنيفات وفلترة المنتجات',
+    description: 'Horizontal pill buttons allowing shoppers to browse by category.',
+    descriptionAr: 'أزرار التصنيفات الأفقية لتسهيل تصفح المنتجات والتنقل بين الأقسام.',
+    category: 'storefront',
+    isEnabled: true,
+    isRemoved: false,
+    customValue: 'جميع الأقسام'
+  },
+  {
+    id: 'featuredProducts',
+    name: 'Featured Products Grid & Catalog',
+    nameAr: 'شبكة عرض منتجات المتجر والكتالوج',
+    description: 'Interactive grid displaying products with pricing in DZD, discounts, and order buttons.',
+    descriptionAr: 'شبكة المنتجات المعروضة للبيع مع الأسعار بالدينار الجزائري، بطاقات العروض، وزر الشراء.',
+    category: 'storefront',
+    isEnabled: true,
+    isRemoved: false,
+    customValue: 'منتجاتنا المميزة'
+  },
+  {
+    id: 'quantityBundles',
+    name: 'Quantity Discount Bundles (1, 2, or 3 Items)',
+    nameAr: 'عروض الكميات التوفيرية (عرض 2 بخصم وعرض 3 مع توصيل مجاني)',
+    description: 'Display attractive discount tiers to increase average order value (AOV).',
+    descriptionAr: 'عرض حزم توفيرية تشجع الزبون على طلب قطعتين أو ثلاث قطع بخصم مغري.',
+    category: 'storefront',
+    isEnabled: true,
+    isRemoved: false,
+    customValue: 'اشترِ قطعتين واحصل على خصم 15% أو 3 قطع مع توصيل مجاني!'
+  },
+  {
+    id: 'shippingThreshold',
+    name: 'Free Delivery Progress Bar',
+    nameAr: 'شريط تقدم الشحن المجاني للطلبات',
+    description: 'Shows dynamic progress indicator towards free shipping threshold in DZD.',
+    descriptionAr: 'عرض شريط تفاعلي يحفز الزبون على إضافة المزيد من المنتجات للحصول على توصيل مجاني.',
+    category: 'storefront',
+    isEnabled: true,
+    isRemoved: false,
+    customValue: 'أضف منتجات بقيمة 5,000 د.ج للحصول على شحن مجاني!'
+  },
+  {
+    id: 'instantCart',
+    name: 'Instant COD Checkout Drawer',
+    nameAr: 'نموذج الطلب السريع والدفع عند الاستلام (COD)',
+    description: 'High-converting drawer for frictionless cash on delivery submissions.',
+    descriptionAr: 'نافذة سريعة تتيح ملء الاسم ورقم الهاتف والولاية وإتمام الطلب في ثوانٍ معدودة.',
+    category: 'checkout',
+    isEnabled: true,
+    isRemoved: false,
+    customValue: 'الدفع نقداً عند استلام طلبيتك وفحصها'
+  },
+  {
+    id: 'reviewsSection',
+    name: 'Verified Customer Reviews & Testimonials',
+    nameAr: 'قسم تقييمات وآراء وتجارب الزبائن الموثقة',
+    description: 'Social proof section displaying 5-star customer feedback and delivery satisfaction.',
+    descriptionAr: 'عرض تجارب الزبائن وآرائهم وتقييمات التوصيل بالنجوم لبناء الثقة ومضاعفة المبيعات.',
+    category: 'storefront',
+    isEnabled: true,
+    isRemoved: false,
+    customValue: 'أكثر من 2,400+ زبون سعيد في كافة ولايات الجزائر'
+  },
+  {
+    id: 'whatsappChat',
+    name: 'WhatsApp Instant Customer Support Button',
+    nameAr: 'زر التواصل السريع عبر واتساب مع التاجر',
+    description: 'Floating button connecting shoppers directly to merchant via WhatsApp.',
+    descriptionAr: 'زر عائم في أسفل المتجر يتيح للزبون الاستفسار أو تأكيد طلبه مباشرة مع التاجر.',
+    category: 'customer',
+    isEnabled: true,
+    isRemoved: false,
+    customValue: '+213555000000'
+  },
+  {
+    id: 'orderTracking',
+    name: 'Customer Live Order & Waybill Tracking',
+    nameAr: 'تتبع الطلبية ورقم بوليصة الشحن للزبون',
+    description: 'Modal allowing buyers to enter tracking code and view fulfillment progress.',
+    descriptionAr: 'نافذة تمكّن الزبائن من كتابة رقم طلبهم لمعرفة حالة الشحن والتوصيل مع شركة التوصيل.',
+    category: 'customer',
+    isEnabled: true,
+    isRemoved: false,
+    customValue: 'أدخل رقم هاتفك أو رقم التتبع لمتابعة شحنتك فوراً'
+  },
+  {
+    id: 'urgencyTimer',
+    name: 'Stock Counter & Urgency Countdown Timer',
+    nameAr: 'عداد التنازل ومؤشر نفاذ المخزون (تحفيز الشراء)',
+    description: 'Displays limited stock alert and countdown timer to accelerate purchasing decision.',
+    descriptionAr: 'عرض مؤشر القطع المتبقية ومؤقت تنازلي للعرض لرفع سرعة اتخاذ قرار الشراء.',
+    category: 'storefront',
+    isEnabled: true,
+    isRemoved: false,
+    customValue: 'بقي 7 قطع فقط بالمخزن بهذا السعر المخفض!'
+  },
+  {
+    id: 'storeFooterLinks',
+    name: 'Store Legal & Policy Footer',
+    nameAr: 'روابط السياسات وضمان الاسترجاع بأسفل المتجر',
+    description: 'Displays return policy, terms, privacy, and support contact details.',
+    descriptionAr: 'عرض سياسة الاسترجاع والضمان وشروط الشحن والدعم الفني في تذييل المتجر.',
+    category: 'storefront',
+    isEnabled: true,
+    isRemoved: false,
+    customValue: 'جميع الحقوق محفوظة. ضمان استرجاع حقيقي خلال 48 ساعة.'
+  },
+  {
     id: 'dzWilayasDelivery',
     name: 'Algerian 58 Wilayas Selector',
     nameAr: 'اختيار وتحديد الولاية من الـ 58 ولاية جزائرية',
@@ -723,66 +888,6 @@ export const INITIAL_STORE_FEATURES: StoreFeatureItem[] = [
     isRemoved: false
   },
   {
-    id: 'quantityBundles',
-    name: 'Quantity Discount Bundles (1, 2, or 3 Items)',
-    nameAr: 'عروض الكميات التوفيرية (عرض 2 بخصم وعرض 3 مع توصيل مجاني)',
-    description: 'Display attractive discount tiers to increase average order value (AOV).',
-    descriptionAr: 'عرض حزم توفيرية تشجع الزبون على طلب قطعتين أو ثلاث قطع بخصم مغري.',
-    category: 'storefront',
-    isEnabled: true,
-    isRemoved: false
-  },
-  {
-    id: 'storeSearch',
-    name: 'Live Product Search Bar',
-    nameAr: 'شريط البحث المباشر في منتجات المتجر',
-    description: 'Enables instant live filtering of products by keyword in the storefront.',
-    descriptionAr: 'يتيح للزبائن البحث الفوري والفلترة بالاسم والتفاصيل داخل المتجر.',
-    category: 'storefront',
-    isEnabled: true,
-    isRemoved: false
-  },
-  {
-    id: 'instantCart',
-    name: 'Instant COD Checkout Drawer',
-    nameAr: 'نموذج الطلب السريع والدفع عند الاستلام',
-    description: 'High-converting drawer for frictionless cash on delivery submissions.',
-    descriptionAr: 'نافذة سريعة تتيح ملء الاسم ورقم الهاتف والولاية وإتمام الطلب في ثوانٍ معدودة.',
-    category: 'checkout',
-    isEnabled: true,
-    isRemoved: false
-  },
-  {
-    id: 'discountCoupons',
-    name: 'Store Promotional Coupon Application',
-    nameAr: 'حقل تطبيق كوبون الخصم عند الدفع',
-    description: 'Permits buyers to apply promotional codes like WELCOME10 for instant savings.',
-    descriptionAr: 'إتاحة إدخال أكواد الخصم الترويجية للحصول على تخفيض مباشر من الفاتورة.',
-    category: 'checkout',
-    isEnabled: true,
-    isRemoved: false
-  },
-  {
-    id: 'shippingThreshold',
-    name: 'Free Delivery Progress Bar',
-    nameAr: 'شريط تقدم الشحن المجاني للطلبات',
-    description: 'Shows dynamic progress indicator towards free shipping threshold.',
-    descriptionAr: 'عرض شريط يحفز الزبون على إضافة المزيد من المنتجات للحصول على توصيل مجاني.',
-    category: 'storefront',
-    isEnabled: true,
-    isRemoved: false
-  },
-  {
-    id: 'orderTracking',
-    name: 'Customer Live Order & Waybill Tracking',
-    nameAr: 'تتبع الطلبية ورقم بوليصة الشحن للزبون',
-    description: 'Modal allowing buyers to enter tracking code and view fulfillment progress.',
-    descriptionAr: 'نافذة تمكّن الزبائن من كتابة رقم طلبهم لمعرفة حالة الشحن والتوصيل مع شركة التوصيل.',
-    category: 'customer',
-    isEnabled: true,
-    isRemoved: false
-  },
-  {
     id: 'productQuickView',
     name: '1-Click Product Quick View Modal',
     nameAr: 'المعاينة السريعة للمنتج بدون مغادرة الصفحة',
@@ -793,42 +898,12 @@ export const INITIAL_STORE_FEATURES: StoreFeatureItem[] = [
     isRemoved: false
   },
   {
-    id: 'topAnnouncement',
-    name: 'Top Flash Promo Announcement Bar',
-    nameAr: 'شريط الإعلانات الترويجي العلوي للمتجر',
-    description: 'Customizable top banner highlighting promotions, return guarantees, or free delivery.',
-    descriptionAr: 'شريط علوي بارز للإعلان عن العروض الحصرية، ضمان الاسترجاع، والتوصيل السريع.',
-    category: 'storefront',
-    isEnabled: true,
-    isRemoved: false
-  },
-  {
-    id: 'whatsappChat',
-    name: 'WhatsApp Instant Customer Support Button',
-    nameAr: 'زر التواصل السريع عبر واتساب مع التاجر',
-    description: 'Floating button connecting shoppers directly to merchant via WhatsApp.',
-    descriptionAr: 'زر عائم في أسفل المتجر يتيح للزبون الاستفسار أو تأكيد طلبه مباشرة مع التاجر.',
-    category: 'customer',
-    isEnabled: true,
-    isRemoved: false
-  },
-  {
-    id: 'urgencyTimer',
-    name: 'Stock Counter & Urgency Countdown Timer',
-    nameAr: 'عداد التنازل ومؤشر نفاذ المخزون (تحفيز الشراء)',
-    description: 'Displays limited stock alert and countdown timer to accelerate purchasing decision.',
-    descriptionAr: 'عرض مؤشر القطع المتبقية ومؤقت تنازلي للعرض لرفع سرعة اتخاذ قرار الشراء.',
-    category: 'storefront',
-    isEnabled: true,
-    isRemoved: false
-  },
-  {
-    id: 'storeFooterLinks',
-    name: 'Store Legal & Policy Footer',
-    nameAr: 'روابط السياسات وضمان الاسترجاع بأسفل المتجر',
-    description: 'Displays return policy, terms, privacy, and support contact details.',
-    descriptionAr: 'عرض سياسة الاسترجاع والضمان وشروط الشحن والدعم الفني في تذييل المتجر.',
-    category: 'storefront',
+    id: 'discountCoupons',
+    name: 'Store Promotional Coupon Application',
+    nameAr: 'حقل تطبيق كوبون الخصم عند الدفع',
+    description: 'Permits buyers to apply promotional codes like WELCOME10 for instant savings.',
+    descriptionAr: 'إتاحة إدخال أكواد الخصم الترويجية للحصول على تخفيض مباشر من الفاتورة.',
+    category: 'checkout',
     isEnabled: true,
     isRemoved: false
   }

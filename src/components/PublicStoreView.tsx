@@ -6,7 +6,8 @@ import {
   Lock, X, ShieldCheck, Truck, Star, Check, Plus, Minus, Printer, 
   CreditCard, Search, Tag, Copy, ExternalLink, Eye, RotateCcw, 
   ChevronRight, Phone, Mail, HelpCircle, Package, ArrowUpRight, Globe,
-  MessageCircle, AlertTriangle, Link2, Share2
+  MessageCircle, AlertTriangle, Link2, Share2,
+  Edit3, Trash2, Power, Sliders, Sparkles, Layers, CheckSquare, Settings
 } from 'lucide-react';
 
 interface PublicStoreViewProps {
@@ -15,12 +16,21 @@ interface PublicStoreViewProps {
   language: Language;
   currency: Currency;
   storeFeatures?: StoreFeatureItem[];
+  currentUser?: any;
   onClose?: () => void;
   onBackToDashboard?: () => void;
   onBackToPlatform?: () => void;
   onNewCustomerOrder: (order: Order) => void;
+  onToggleStoreFeature?: (id: string) => void;
+  onRemoveStoreFeature?: (id: string) => void;
+  onRestoreStoreFeature?: (id: string) => void;
+  onUpdateStoreFeature?: (updated: StoreFeatureItem) => void;
+  onUpdateStore?: (updated: Partial<Store>) => void;
+  onResetDefaultStoreFeatures?: () => void;
+  onEnableAllStoreFeatures?: () => void;
   isOnlinePaymentsEnabled?: boolean;
   isStandalonePage?: boolean;
+  initialMerchantMode?: boolean;
 }
 
 export const PublicStoreView: React.FC<PublicStoreViewProps> = ({
@@ -29,20 +39,116 @@ export const PublicStoreView: React.FC<PublicStoreViewProps> = ({
   language,
   currency: initialCurrency,
   storeFeatures,
+  currentUser,
   onClose,
   onBackToDashboard,
   onBackToPlatform,
   onNewCustomerOrder,
+  onToggleStoreFeature,
+  onRemoveStoreFeature,
+  onRestoreStoreFeature,
+  onUpdateStoreFeature,
+  onUpdateStore,
+  onResetDefaultStoreFeatures,
+  onEnableAllStoreFeatures,
   isOnlinePaymentsEnabled = true,
-  isStandalonePage = false
+  isStandalonePage = false,
+  initialMerchantMode = true
 }) => {
   const isAr = language === 'ar';
   
+  // Merchant Live Control Mode (Enabled by default for sellers, allows 3-button section control starting from homepage)
+  const [isMerchantMode, setIsMerchantMode] = useState<boolean>(initialMerchantMode);
+  const [toastNotice, setToastNotice] = useState<string | null>(null);
+  const [showRestoreDropdown, setShowRestoreDropdown] = useState<boolean>(false);
+
+  // Edit Feature Form State
+  const [editingFeature, setEditingFeature] = useState<StoreFeatureItem | null>(null);
+  const [editNameAr, setEditNameAr] = useState<string>('');
+  const [editDescAr, setEditDescAr] = useState<string>('');
+  const [editCustomValue, setEditCustomValue] = useState<string>('');
+  const [editIsEnabled, setEditIsEnabled] = useState<boolean>(true);
+
+  const showToast = (msg: string) => {
+    setToastNotice(msg);
+    setTimeout(() => setToastNotice(null), 3000);
+  };
+
   // Helper to check if a specific store-level feature is enabled & not removed
   const isStoreFeatureActive = (id: string) => {
     if (!storeFeatures || storeFeatures.length === 0) return true;
     const feat = storeFeatures.find((f) => f.id === id);
     return feat ? feat.isEnabled && !feat.isRemoved : true;
+  };
+
+  const getFeature = (id: string) => {
+    return (storeFeatures || []).find((f) => f.id === id);
+  };
+
+  const activeFeaturesCount = (storeFeatures || []).filter((f) => f.isEnabled && !f.isRemoved).length;
+  const removedFeatures = (storeFeatures || []).filter((f) => f.isRemoved);
+  const removedFeaturesCount = removedFeatures.length;
+
+  // Actions for Feature Control System
+  const handleToggleFeature = (id: string) => {
+    if (onToggleStoreFeature) {
+      onToggleStoreFeature(id);
+    }
+    const feat = getFeature(id);
+    const newStatus = feat ? !feat.isEnabled : false;
+    showToast(isAr ? `تم ${newStatus ? 'تفعيل' : 'تعطيل'} القسم بنجاح ✓` : `Section ${newStatus ? 'enabled' : 'disabled'} ✓`);
+  };
+
+  const handleRemoveFeature = (id: string) => {
+    const feat = getFeature(id);
+    if (onRemoveStoreFeature) {
+      onRemoveStoreFeature(id);
+    }
+    showToast(isAr ? `تم حذف قسم "${feat?.nameAr || id}" من الصفحة الرئيسية (يمكنك استعادته في أي وقت) 🗑️` : `Section removed from homepage 🗑️`);
+  };
+
+  const handleRestoreFeature = (id: string) => {
+    const feat = getFeature(id);
+    if (onRestoreStoreFeature) {
+      onRestoreStoreFeature(id);
+    }
+    showToast(isAr ? `تمت استعادة قسم "${feat?.nameAr || id}" للصفحة الرئيسية بنجاح ↩️` : `Section restored successfully ↩️`);
+  };
+
+  const handleOpenEditModal = (feat: StoreFeatureItem) => {
+    setEditingFeature(feat);
+    setEditNameAr(feat.nameAr);
+    setEditDescAr(feat.descriptionAr);
+    setEditCustomValue(feat.customValue || '');
+    setEditIsEnabled(feat.isEnabled);
+  };
+
+  const handleSaveFeatureEdit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingFeature) return;
+
+    const updated: StoreFeatureItem = {
+      ...editingFeature,
+      nameAr: editNameAr.trim() || editingFeature.nameAr,
+      descriptionAr: editDescAr.trim() || editingFeature.descriptionAr,
+      customValue: editCustomValue.trim(),
+      isEnabled: editIsEnabled
+    };
+
+    if (onUpdateStoreFeature) {
+      onUpdateStoreFeature(updated);
+    }
+
+    // If editing storeHeader or heroBanner, sync with store info if updated
+    if (editingFeature.id === 'storeHeader' && onUpdateStore) {
+      onUpdateStore({ sloganAr: editDescAr.trim() || store.sloganAr });
+    }
+    if (editingFeature.id === 'heroBanner' && onUpdateStore) {
+      onUpdateStore({ descriptionAr: editDescAr.trim() || store.descriptionAr });
+    }
+
+    setEditingFeature(null);
+    showToast(isAr ? `تم حفظ وتطبيق تعديل قسم "${updated.nameAr}" في الصفحة الرئيسية بنجاح ✓` : `Section updated successfully ✓`);
   };
 
   const [currency, setCurrency] = useState<Currency>(initialCurrency);

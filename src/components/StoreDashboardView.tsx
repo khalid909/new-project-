@@ -45,6 +45,7 @@ interface StoreDashboardViewProps {
   onEnableAllStoreFeatures?: () => void;
   onResetDefaultStoreFeatures?: () => void;
   onAddStoreFeature?: (newFeature: StoreFeatureItem) => void;
+  onUpdateStoreFeature?: (updatedFeature: StoreFeatureItem) => void;
   onUpdateStoreSettings: (updated: Partial<Store['settings']>) => void;
   onUpdateStorePlan: (plan: PlanType) => void;
   onAddProduct: (product: Product) => void;
@@ -85,6 +86,7 @@ export const StoreDashboardView: React.FC<StoreDashboardViewProps> = ({
   onEnableAllStoreFeatures,
   onResetDefaultStoreFeatures,
   onAddStoreFeature,
+  onUpdateStoreFeature,
   onUpdateStoreSettings,
   onUpdateStorePlan,
   onAddProduct,
@@ -1592,17 +1594,46 @@ CREATE POLICY "Public read products" ON public.store_products FOR SELECT USING (
 
       {/* ─── TAB: STORE FEATURES (SELLER TOGGLES & DELETION) ─── */}
       {activeTab === 'storeFeatures' && storeFeatures && (
-        <StoreFeaturesManager
-          storeFeatures={storeFeatures}
-          onToggleStoreFeature={onToggleStoreFeature || (() => {})}
-          onRemoveStoreFeature={onRemoveStoreFeature || (() => {})}
-          onRestoreStoreFeature={onRestoreStoreFeature || (() => {})}
-          onEnableAllStoreFeatures={onEnableAllStoreFeatures || (() => {})}
-          onResetDefaultStoreFeatures={onResetDefaultStoreFeatures || (() => {})}
-          onAddStoreFeature={onAddStoreFeature}
-          language={language}
-          onViewStore={onOpenStandaloneStore || onOpenLivePreview}
-        />
+        <div className="space-y-6">
+          {/* Direct Homepage Control Shortcut Banner */}
+          <div className="p-4 sm:p-5 rounded-2xl bg-gradient-to-r from-emerald-600 via-teal-600 to-slate-900 text-white flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-lg shadow-emerald-600/15">
+            <div className="space-y-1">
+              <span className="text-[10px] font-black uppercase tracking-wider bg-white/20 px-2.5 py-0.5 rounded-full inline-block">
+                {isAr ? '⚡ جديد: التحكم المباشر من الصفحة الرئيسية' : '⚡ Live Homepage Control'}
+              </span>
+              <h4 className="text-sm sm:text-base font-extrabold">
+                {isAr ? 'تحكّم في كل أقسام متجرك مباشرة من الصفحة الرئيسية' : 'Control All Store Sections Directly on Homepage'}
+              </h4>
+              <p className="text-xs text-white/80 max-w-2xl leading-relaxed">
+                {isAr
+                  ? 'يمكنك التعديل والحذف والتفعيل الفوري لأي قسم بالضغط على الزر وأمامه زر التعديل ✏️ وزر الحذف 🗑️ أثناء تصفحك للمتجر.'
+                  : 'Toggle, edit, or delete any section directly on the live homepage via the 3-button control system.'}
+              </p>
+            </div>
+            {(onOpenStandaloneStore || onOpenLivePreview) && (
+              <button
+                onClick={onOpenStandaloneStore || onOpenLivePreview}
+                className="px-4 py-2.5 rounded-xl bg-white text-emerald-800 hover:bg-slate-100 font-extrabold text-xs flex items-center justify-center gap-1.5 shrink-0 shadow-sm transition-all cursor-pointer hover:scale-102"
+              >
+                <Sliders className="w-4 h-4 text-emerald-600" />
+                <span>{isAr ? 'فتح الصفحة الرئيسية للتحكم الآن' : 'Control Homepage Now'}</span>
+              </button>
+            )}
+          </div>
+
+          <StoreFeaturesManager
+            storeFeatures={storeFeatures}
+            onToggleStoreFeature={onToggleStoreFeature || (() => {})}
+            onRemoveStoreFeature={onRemoveStoreFeature || (() => {})}
+            onRestoreStoreFeature={onRestoreStoreFeature || (() => {})}
+            onEnableAllStoreFeatures={onEnableAllStoreFeatures || (() => {})}
+            onResetDefaultStoreFeatures={onResetDefaultStoreFeatures || (() => {})}
+            onAddStoreFeature={onAddStoreFeature}
+            onUpdateStoreFeature={onUpdateStoreFeature}
+            language={language}
+            onViewStore={onOpenStandaloneStore || onOpenLivePreview}
+          />
+        </div>
       )}
 
       {/* ─── MODAL: ADD PRODUCT ─── */}
