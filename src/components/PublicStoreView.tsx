@@ -3,7 +3,7 @@ import { Store, Product, Order, Language, Currency } from '../types';
 import { CURRENCY_RATES } from '../data/initialData';
 import { 
   ShoppingBag, CheckCircle2, ArrowRight, ArrowLeft, 
-  Lock, X, ShieldCheck, Truck, Star, Check 
+  Lock, X, ShieldCheck, Truck, Star, Check, Plus, Minus, Printer, CreditCard
 } from 'lucide-react';
 
 interface PublicStoreViewProps {
@@ -55,7 +55,22 @@ export const PublicStoreView: React.FC<PublicStoreViewProps> = ({
     });
   };
 
+  const handleUpdateQuantity = (productId: string, delta: number) => {
+    setCart((prev) => {
+      return prev
+        .map((item) => {
+          if (item.product.id === productId) {
+            const newQty = item.quantity + delta;
+            return newQty > 0 ? { ...item, quantity: newQty } : null;
+          }
+          return item;
+        })
+        .filter(Boolean) as { product: Product; quantity: number }[];
+    });
+  };
+
   const cartTotal = cart.reduce((sum, item) => sum + item.product.price * item.quantity, 0);
+  const totalItemsCount = cart.reduce((sum, item) => sum + item.quantity, 0);
 
   const handleConfirmOrder = (e: React.FormEvent) => {
     e.preventDefault();
@@ -78,7 +93,7 @@ export const PublicStoreView: React.FC<PublicStoreViewProps> = ({
       currency,
       status: 'processing',
       paymentMethod: 'مدى / Apple Pay',
-      createdAt: new Date().toISOString(),
+      createdAt: new Date().toISOString().split('T')[0],
       trackingNumber: `AVT-TRK-${Math.random().toString(36).substring(2, 8).toUpperCase()}`
     };
 
@@ -88,248 +103,356 @@ export const PublicStoreView: React.FC<PublicStoreViewProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 overflow-y-auto bg-black/90 backdrop-blur-md flex items-center justify-center p-2 sm:p-6 animate-in fade-in duration-200">
+    <div className="fixed inset-0 z-50 overflow-y-auto bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-2 sm:p-6 animate-in fade-in duration-200">
       
       {/* Browser Viewport Simulation */}
-      <div className="relative w-full max-w-5xl bg-[#090D16] border border-slate-700 rounded-3xl shadow-2xl overflow-hidden my-4 flex flex-col max-h-[92vh]">
+      <div className="relative w-full max-w-5xl bg-white border border-slate-300 rounded-2xl shadow-2xl overflow-hidden my-4 flex flex-col max-h-[92vh]">
         
         {/* Top Browser URL Bar */}
-        <div className="bg-slate-950 px-4 py-3 border-b border-slate-800 flex items-center justify-between gap-4 shrink-0">
+        <div className="bg-slate-100 px-4 py-2.5 border-b border-slate-200 flex items-center justify-between gap-4 shrink-0">
           <div className="flex items-center gap-2">
-            <span className="w-3 h-3 rounded-full bg-rose-500/80 inline-block" />
-            <span className="w-3 h-3 rounded-full bg-amber-500/80 inline-block" />
-            <span className="w-3 h-3 rounded-full bg-emerald-500/80 inline-block" />
+            <span className="w-3 h-3 rounded-full bg-rose-400 inline-block" />
+            <span className="w-3 h-3 rounded-full bg-amber-400 inline-block" />
+            <span className="w-3 h-3 rounded-full bg-emerald-400 inline-block" />
           </div>
 
-          <div className="flex-1 max-w-md mx-auto bg-slate-900 border border-slate-800 rounded-lg px-3 py-1 flex items-center justify-center gap-2 text-xs font-mono text-slate-300 truncate">
-            <Lock className="w-3 h-3 text-emerald-400 shrink-0" />
-            <span className="text-slate-500">https://</span>
-            <span className="text-white font-bold">{store.settings.subdomain}</span>
+          <div className="flex-1 max-w-md mx-auto bg-white border border-slate-300 rounded-lg px-3 py-1 flex items-center justify-center gap-2 text-xs font-mono text-slate-700 shadow-2xs truncate">
+            <Lock className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+            <span className="text-slate-400">https://</span>
+            <span className="text-slate-900 font-bold">{store.settings.subdomain}</span>
           </div>
 
           <button
             onClick={onClose}
-            className="p-1 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"
+            className="p-1 rounded-lg text-slate-500 hover:text-slate-900 hover:bg-slate-200 transition-colors cursor-pointer"
+            title={isAr ? 'إغلاق المتجر' : 'Close store'}
           >
             <X className="w-5 h-5" />
           </button>
         </div>
 
         {/* Public Store Content */}
-        <div className="flex-1 overflow-y-auto bg-slate-950 text-slate-100">
+        <div className="flex-1 overflow-y-auto bg-[#FAFAFA] text-slate-800">
           
-          {/* Store Banner */}
-          <div className="border-b border-slate-850 px-6 py-8 bg-gradient-to-b from-slate-900/60 to-slate-950">
-            <div className="max-w-4xl mx-auto flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          {/* Store Brand Header */}
+          <header className="bg-white border-b border-slate-200 px-6 py-6 sticky top-0 z-20 shadow-2xs">
+            <div className="max-w-4xl mx-auto flex items-center justify-between gap-4">
               <div className="flex items-center gap-3">
                 <div
-                  className="w-12 h-12 rounded-2xl flex items-center justify-center text-white font-extrabold text-xl shadow-lg"
-                  style={{ backgroundColor: store.accentColor || '#6366F1' }}
+                  className="w-11 h-11 rounded-xl flex items-center justify-center text-white font-extrabold text-xl shadow-xs"
+                  style={{ backgroundColor: store.accentColor || '#4F46E5' }}
                 >
                   {store.name.charAt(0)}
                 </div>
                 <div>
-                  <h1 className="text-2xl font-black text-white">
+                  <h1 className="text-xl font-extrabold text-slate-900">
                     {isAr ? store.nameAr : store.name}
                   </h1>
-                  <p className="text-xs text-slate-400 mt-0.5">
+                  <p className="text-xs text-slate-500">
                     {isAr ? store.sloganAr : store.slogan}
                   </p>
                 </div>
               </div>
 
-              {/* Shopping Bag Button */}
+              {/* Cart Drawer Trigger */}
               <button
                 onClick={() => setIsCheckoutOpen(true)}
-                className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-slate-900 border border-slate-700 hover:border-slate-600 text-xs text-white"
+                className="relative flex items-center gap-2 px-4 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs shadow-xs transition-all cursor-pointer"
               >
-                <ShoppingBag className="w-4 h-4 text-indigo-400" />
-                <span>{isAr ? 'سلة المشتريات' : 'Bag'}</span>
-                <span className="font-mono bg-indigo-600 px-2 py-0.5 rounded-full text-[10px] font-bold">
-                  {cart.reduce((s, i) => s + i.quantity, 0)}
-                </span>
-                {cartTotal > 0 && (
-                  <span className="font-mono font-bold text-indigo-300 ms-1">
-                    ({formatPrice(cartTotal)})
+                <ShoppingBag className="w-4 h-4" />
+                <span>{isAr ? 'سلة المشتريات' : 'Cart'}</span>
+                {totalItemsCount > 0 && (
+                  <span className="w-5 h-5 rounded-full bg-emerald-500 text-white font-mono font-bold text-[10px] flex items-center justify-center">
+                    {totalItemsCount}
                   </span>
                 )}
               </button>
             </div>
-          </div>
+          </header>
 
-          {/* Store Body */}
-          <div className="max-w-4xl mx-auto px-6 py-8 space-y-8">
+          {/* Store Products Grid */}
+          <main className="max-w-4xl mx-auto px-6 py-8 space-y-6">
             
-            {orderConfirmed ? (
-              <div className="p-8 rounded-2xl bg-slate-900 border border-slate-800 text-center space-y-4">
-                <CheckCircle2 className="w-12 h-12 text-emerald-400 mx-auto" />
-                <h3 className="text-xl font-bold text-white">
-                  {isAr ? 'تم استلام طلب الشراء بنجاح!' : 'Order Placed Successfully!'}
-                </h3>
-                <p className="text-xs text-slate-400 max-w-md mx-auto">
+            {/* Store Announcement */}
+            <div className="p-4 rounded-xl bg-indigo-50 border border-indigo-100 flex items-center justify-between text-xs text-indigo-900">
+              <div className="flex items-center gap-2">
+                <Truck className="w-4 h-4 text-indigo-600 shrink-0" />
+                <span>
                   {isAr
-                    ? `رقم الطلب الخاص بك هو: ${orderConfirmed.orderNumber} — وصل إشعار الطلب للتاجر في لوحة التحكم الخاصة به فوراً.`
-                    : `Order ${orderConfirmed.orderNumber} has been received and notified to the merchant dashboard in real-time.`}
-                </p>
-                <button
-                  onClick={() => {
-                    setOrderConfirmed(null);
-                    setIsCheckoutOpen(false);
-                  }}
-                  className="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold rounded-xl"
-                >
-                  {isAr ? 'العودة لتصفح منتجات المتجر' : 'Continue Shopping'}
-                </button>
+                    ? `شحن مجاني لجميع الطلبات بقيمة أكثر من ${store.settings.freeShippingThreshold} ر.س!`
+                    : `Free shipping on orders above ${store.settings.freeShippingThreshold} SAR!`}
+                </span>
               </div>
-            ) : isCheckoutOpen ? (
-              /* Customer Checkout */
-              <div className="p-6 sm:p-8 rounded-2xl bg-slate-900 border border-slate-800 space-y-6">
-                <div className="flex items-center justify-between border-b border-slate-800 pb-3">
-                  <h3 className="text-base font-bold text-white">
-                    {isAr ? 'إتمام طلب الشراء للزبون' : 'Customer Express Checkout'}
-                  </h3>
-                  <button onClick={() => setIsCheckoutOpen(false)} className="text-xs text-slate-400 hover:underline">
-                    {isAr ? 'الرجوع للمنتجات' : 'Back to Store'}
-                  </button>
-                </div>
+              <span className="font-bold text-emerald-700 bg-white px-2 py-0.5 rounded shadow-2xs">
+                {isAr ? 'متجر معتمد وموثق ✓' : 'Verified Store ✓'}
+              </span>
+            </div>
 
-                {cart.length === 0 ? (
-                  <p className="text-xs text-slate-400 text-center py-6">
-                    {isAr ? 'سلة المشتريات فارغة.' : 'Your bag is empty.'}
-                  </p>
-                ) : (
-                  <form onSubmit={handleConfirmOrder} className="space-y-6 text-xs">
-                    {/* Items review */}
-                    <div className="p-4 rounded-xl bg-slate-950 border border-slate-850 divide-y divide-slate-850">
-                      {cart.map((item) => (
-                        <div key={item.product.id} className="py-2 flex justify-between items-center">
-                          <span className="text-white font-medium">
-                            {item.quantity}x {isAr ? item.product.nameAr : item.product.name}
-                          </span>
-                          <span className="font-mono text-indigo-400 font-bold">
-                            {formatPrice(item.product.price * item.quantity)}
-                          </span>
-                        </div>
-                      ))}
-                      <div className="pt-2 flex justify-between font-bold text-white text-sm">
-                        <span>{isAr ? 'الإجمالي المطلوب' : 'Total Payable'}</span>
-                        <span className="text-emerald-400">{formatPrice(cartTotal + store.settings.shippingRate)}</span>
+            {/* Product Cards Grid */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+              {storeProducts.map((product) => {
+                const inCart = cart.find((c) => c.product.id === product.id);
+
+                return (
+                  <div
+                    key={product.id}
+                    className="bg-white rounded-2xl border border-slate-200/90 shadow-xs hover:shadow-md transition-all p-5 flex flex-col justify-between space-y-4"
+                  >
+                    <div className="space-y-3">
+                      {/* Product Visual Box */}
+                      <div className="w-full h-40 rounded-xl bg-slate-100 flex flex-col items-center justify-center text-slate-400 p-4 border border-slate-200/60 relative overflow-hidden group">
+                        <ShoppingBag className="w-10 h-10 text-slate-300 group-hover:scale-110 transition-transform" />
+                        <span className="text-[11px] font-mono text-slate-500 mt-2 font-medium">
+                          {product.category}
+                        </span>
+                        <span className="absolute top-2.5 end-2.5 text-[10px] bg-white/90 backdrop-blur-xs font-mono font-bold text-slate-700 px-2 py-0.5 rounded shadow-2xs">
+                          {product.stock} {isAr ? 'قطعة' : 'left'}
+                        </span>
+                      </div>
+
+                      <div>
+                        <h3 className="font-bold text-slate-900 text-sm">
+                          {isAr ? product.nameAr : product.name}
+                        </h3>
+                        <p className="text-xs text-slate-500 line-clamp-2 mt-1">
+                          {isAr ? product.descriptionAr : product.description}
+                        </p>
                       </div>
                     </div>
 
-                    {/* Customer Info */}
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div className="pt-3 border-t border-slate-100 flex items-center justify-between">
+                      <div className="font-extrabold text-base text-slate-900 font-mono">
+                        {formatPrice(product.price)}
+                      </div>
+
+                      <button
+                        onClick={() => handleAddToCart(product)}
+                        className={`px-3.5 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
+                          inCart
+                            ? 'bg-emerald-600 text-white'
+                            : 'bg-indigo-600 hover:bg-indigo-700 text-white shadow-xs'
+                        }`}
+                      >
+                        {inCart ? (
+                          <>
+                            <Check className="w-3.5 h-3.5" />
+                            <span>{inCart.quantity} {isAr ? 'بالسلة' : 'in cart'}</span>
+                          </>
+                        ) : (
+                          <>
+                            <Plus className="w-3.5 h-3.5" />
+                            <span>{isAr ? 'إضافة للسلة' : 'Add'}</span>
+                          </>
+                        )}
+                      </button>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+
+          </main>
+
+        </div>
+
+      </div>
+
+      {/* ─── CHECKOUT / CART DRAWER MODAL ─── */}
+      {isCheckoutOpen && (
+        <div className="fixed inset-0 z-60 bg-slate-900/60 backdrop-blur-xs flex justify-end">
+          <div className="w-full max-w-md bg-white h-full shadow-2xl flex flex-col justify-between p-6 overflow-y-auto animate-in slide-in-from-right duration-200">
+            
+            <div className="space-y-6">
+              <div className="flex items-center justify-between border-b border-slate-100 pb-4">
+                <div className="flex items-center gap-2">
+                  <ShoppingBag className="w-5 h-5 text-indigo-600" />
+                  <h3 className="font-bold text-slate-900 text-base">
+                    {isAr ? 'سلة مشتريات الزبون' : 'Customer Shopping Cart'}
+                  </h3>
+                </div>
+                <button
+                  onClick={() => setIsCheckoutOpen(false)}
+                  className="p-1 rounded-lg text-slate-400 hover:text-slate-800 cursor-pointer"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              {cart.length === 0 ? (
+                <div className="text-center py-12 text-slate-400 text-xs">
+                  {isAr ? 'السلة فارغة حالياً. أضف منتجات من المتجر.' : 'Cart is currently empty.'}
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {/* Itemized List */}
+                  <div className="divide-y divide-slate-100">
+                    {cart.map((item) => (
+                      <div key={item.product.id} className="py-3 flex items-center justify-between gap-3 text-xs">
+                        <div>
+                          <div className="font-bold text-slate-900">
+                            {isAr ? item.product.nameAr : item.product.name}
+                          </div>
+                          <div className="text-slate-500 font-mono">
+                            {formatPrice(item.product.price)}
+                          </div>
+                        </div>
+
+                        <div className="flex items-center gap-2">
+                          <button
+                            onClick={() => handleUpdateQuantity(item.product.id, -1)}
+                            className="w-6 h-6 rounded bg-slate-100 text-slate-700 font-bold flex items-center justify-center cursor-pointer"
+                          >
+                            <Minus className="w-3 h-3" />
+                          </button>
+                          <span className="font-bold text-slate-900 font-mono w-4 text-center">
+                            {item.quantity}
+                          </span>
+                          <button
+                            onClick={() => handleUpdateQuantity(item.product.id, 1)}
+                            className="w-6 h-6 rounded bg-slate-100 text-slate-700 font-bold flex items-center justify-center cursor-pointer"
+                          >
+                            <Plus className="w-3 h-3" />
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* Customer Info Form */}
+                  <form onSubmit={handleConfirmOrder} className="pt-4 border-t border-slate-100 space-y-3 text-xs">
+                    <span className="font-bold text-slate-900 block">
+                      {isAr ? 'بيانات الشحن والاستلام:' : 'Shipping Address:'}
+                    </span>
+
+                    <div>
+                      <label className="text-slate-600 block mb-1 font-medium">{isAr ? 'اسم المستلم' : 'Full Name'}</label>
+                      <input
+                        type="text"
+                        required
+                        value={custName}
+                        onChange={(e) => setCustName(e.target.value)}
+                        className="w-full bg-slate-50 border border-slate-200 rounded-lg p-2 text-slate-900 focus:bg-white focus:outline-none focus:border-indigo-600"
+                      />
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-2">
                       <div>
-                        <label className="block text-slate-400 mb-1">{isAr ? 'الاسم الكامل' : 'Full Name'}</label>
+                        <label className="text-slate-600 block mb-1 font-medium">{isAr ? 'رقم الجوال' : 'Phone'}</label>
                         <input
                           type="text"
                           required
-                          value={custName}
-                          onChange={(e) => setCustName(e.target.value)}
-                          className="w-full bg-slate-950 border border-slate-800 rounded-lg p-2.5 text-white"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-slate-400 mb-1">{isAr ? 'رقم الهاتف' : 'Phone'}</label>
-                        <input
-                          type="tel"
-                          required
                           value={custPhone}
                           onChange={(e) => setCustPhone(e.target.value)}
-                          className="w-full bg-slate-950 border border-slate-800 rounded-lg p-2.5 text-white"
+                          className="w-full bg-slate-50 border border-slate-200 rounded-lg p-2 text-slate-900 focus:bg-white focus:outline-none focus:border-indigo-600"
                         />
                       </div>
                       <div>
-                        <label className="block text-slate-400 mb-1">{isAr ? 'المدينة' : 'City'}</label>
+                        <label className="text-slate-600 block mb-1 font-medium">{isAr ? 'المدينة' : 'City'}</label>
                         <input
                           type="text"
                           required
                           value={custCity}
                           onChange={(e) => setCustCity(e.target.value)}
-                          className="w-full bg-slate-950 border border-slate-800 rounded-lg p-2.5 text-white"
+                          className="w-full bg-slate-50 border border-slate-200 rounded-lg p-2 text-slate-900 focus:bg-white focus:outline-none focus:border-indigo-600"
                         />
                       </div>
-                      <div>
-                        <label className="block text-slate-400 mb-1">{isAr ? 'العنوان والحي' : 'Street Address'}</label>
-                        <input
-                          type="text"
-                          required
-                          value={custAddress}
-                          onChange={(e) => setCustAddress(e.target.value)}
-                          className="w-full bg-slate-950 border border-slate-800 rounded-lg p-2.5 text-white"
-                        />
+                    </div>
+
+                    <div>
+                      <label className="text-slate-600 block mb-1 font-medium">{isAr ? 'العنوان التفصيلي' : 'Address'}</label>
+                      <input
+                        type="text"
+                        required
+                        value={custAddress}
+                        onChange={(e) => setCustAddress(e.target.value)}
+                        className="w-full bg-slate-50 border border-slate-200 rounded-lg p-2 text-slate-900 focus:bg-white focus:outline-none focus:border-indigo-600"
+                      />
+                    </div>
+
+                    {/* Cost Breakdown */}
+                    <div className="pt-3 border-t border-slate-100 space-y-1.5 text-xs text-slate-600 font-mono">
+                      <div className="flex justify-between">
+                        <span>{isAr ? 'المجموع الفرعي:' : 'Subtotal:'}</span>
+                        <span>{formatPrice(cartTotal)}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>{isAr ? 'الشحن والتوصيل:' : 'Shipping:'}</span>
+                        <span>{formatPrice(store.settings.shippingRate)}</span>
+                      </div>
+                      <div className="flex justify-between text-slate-900 font-bold text-sm pt-2 border-t border-slate-200">
+                        <span>{isAr ? 'الإجمالي النهائي:' : 'Total:'}</span>
+                        <span className="text-indigo-600">{formatPrice(cartTotal + store.settings.shippingRate)}</span>
                       </div>
                     </div>
 
                     <button
                       type="submit"
-                      className="w-full py-3.5 rounded-xl font-bold text-white text-xs shadow-lg transition-all active:scale-95"
-                      style={{ backgroundColor: store.accentColor || '#6366F1' }}
+                      className="w-full py-3.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs flex items-center justify-center gap-2 cursor-pointer shadow-md shadow-indigo-600/20 transition-all active:scale-98"
                     >
-                      {isAr ? `تأكيد ودفع الطلب (${formatPrice(cartTotal + store.settings.shippingRate)})` : `Place Order (${formatPrice(cartTotal + store.settings.shippingRate)})`}
+                      <CreditCard className="w-4 h-4" />
+                      <span>{isAr ? 'إتمام الطلب وتأكيد الدفع (مدى / Apple Pay)' : 'Confirm & Complete Order'}</span>
                     </button>
                   </form>
-                )}
-              </div>
-            ) : (
-              /* Products Grid */
-              <div className="space-y-6">
-                <div className="flex items-center justify-between">
-                  <h3 className="text-base font-bold text-white">
-                    {isAr ? 'جميع معروضات المتجر' : 'Store Catalog'}
-                  </h3>
-                  <span className="text-xs text-slate-400 font-mono">
-                    {storeProducts.length} {isAr ? 'منتج متاح' : 'items'}
-                  </span>
                 </div>
+              )}
+            </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-5">
-                  {storeProducts.map((p) => (
-                    <div
-                      key={p.id}
-                      className="p-5 rounded-2xl bg-slate-900/60 border border-slate-800 flex flex-col justify-between space-y-4 hover:border-slate-700 transition-colors"
-                    >
-                      {/* Product Visual Card */}
-                      <div className="w-full aspect-video rounded-xl bg-slate-950 border border-slate-850 flex items-center justify-center text-xs font-mono text-indigo-400 font-bold uppercase">
-                        {p.category}
-                      </div>
-
-                      <div>
-                        <span className="text-[10px] uppercase font-mono text-slate-500 block">
-                          SKU: {p.sku}
-                        </span>
-                        <h4 className="text-sm font-bold text-white mt-1">
-                          {isAr ? p.nameAr : p.name}
-                        </h4>
-                        <p className="text-xs text-slate-400 mt-1 line-clamp-2">
-                          {isAr ? p.descriptionAr : p.description}
-                        </p>
-                      </div>
-
-                      <div className="flex items-center justify-between pt-3 border-t border-slate-850">
-                        <span className="text-base font-extrabold font-mono text-white tabular-nums">
-                          {formatPrice(p.price)}
-                        </span>
-
-                        <button
-                          onClick={() => handleAddToCart(p)}
-                          className="px-3 py-1.5 rounded-lg text-xs font-semibold text-white transition-all shadow-sm active:scale-95"
-                          style={{ backgroundColor: store.accentColor || '#6366F1' }}
-                        >
-                          {isAr ? 'إضافة للسلة' : 'Add to Bag'}
-                        </button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
+            <div className="pt-4 border-t border-slate-100 text-center text-[11px] text-slate-400">
+              {isAr ? 'معاملة آمنة ومحمية بتشفير 256-bit' : '256-bit encrypted secure checkout'}
+            </div>
 
           </div>
-
         </div>
+      )}
 
-      </div>
+      {/* ─── ORDER CONFIRMATION MODAL ─── */}
+      {orderConfirmed && (
+        <div className="fixed inset-0 z-70 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="relative w-full max-w-md bg-white border border-slate-200 rounded-2xl shadow-2xl p-6 sm:p-8 space-y-5 text-center">
+            <div className="w-14 h-14 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center mx-auto">
+              <CheckCircle2 className="w-8 h-8" />
+            </div>
+
+            <div>
+              <h3 className="text-xl font-bold text-slate-900">
+                {isAr ? 'تم استلام طلبك بنجاح!' : 'Order Placed Successfully!'}
+              </h3>
+              <p className="text-xs text-slate-500 mt-1">
+                {isAr ? `رقم الطلب: ${orderConfirmed.orderNumber}` : `Order ID: ${orderConfirmed.orderNumber}`}
+              </p>
+            </div>
+
+            <div className="p-4 rounded-xl bg-slate-50 border border-slate-200 text-xs text-start space-y-2">
+              <div className="flex justify-between">
+                <span className="text-slate-500">{isAr ? 'المستلم:' : 'Customer:'}</span>
+                <span className="font-bold text-slate-900">{orderConfirmed.customerName}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-slate-500">{isAr ? 'المبلغ الإجمالي:' : 'Amount:'}</span>
+                <span className="font-mono font-bold text-indigo-600">{formatPrice(orderConfirmed.total)}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-slate-500">{isAr ? 'طريقة الدفع:' : 'Payment:'}</span>
+                <span className="text-slate-800 font-semibold">{orderConfirmed.paymentMethod}</span>
+              </div>
+            </div>
+
+            <p className="text-[11px] text-emerald-700">
+              {isAr ? '✓ تم إرسال إشعار فوري للتاجر وتحديث لوحة تحكم المتجر.' : '✓ Notification sent to merchant and logged in dashboard.'}
+            </p>
+
+            <button
+              onClick={() => {
+                setOrderConfirmed(null);
+                setIsCheckoutOpen(false);
+              }}
+              className="w-full py-3 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs cursor-pointer shadow-sm"
+            >
+              {isAr ? 'العودة للمتجر' : 'Back to Store'}
+            </button>
+          </div>
+        </div>
+      )}
 
     </div>
   );

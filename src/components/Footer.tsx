@@ -1,119 +1,144 @@
 import React from 'react';
 import { Language } from '../types';
-import { ShieldCheck, Database, GitBranch } from 'lucide-react';
+import { ShieldCheck, Database, GitBranch, ArrowRight, ArrowLeft } from 'lucide-react';
 
 interface FooterProps {
   language: Language;
-  onNavigateTab: (tab: 'dashboard' | 'stores' | 'products' | 'orders' | 'plans' | 'settings') => void;
+  onNavigateTab: (tab: 'landing' | 'dashboard' | 'register' | 'pricing') => void;
 }
 
 export const Footer: React.FC<FooterProps> = ({ language, onNavigateTab }) => {
   const isAr = language === 'ar';
 
   return (
-    <footer className="border-t border-slate-900 bg-[#070A12] py-10 text-xs text-slate-400">
+    <footer className="border-t border-slate-200 bg-white py-12 text-xs text-slate-600 transition-colors">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-8 pb-8 border-b border-slate-900">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-8 pb-10 border-b border-slate-100">
           
           {/* Brand Col */}
-          <div className="space-y-3">
-            <div className="flex items-center gap-2">
-              <div className="w-6 h-6 rounded-lg bg-indigo-600 flex items-center justify-center font-bold text-white text-xs">
+          <div className="space-y-3 md:col-span-1">
+            <div className="flex items-center gap-2.5">
+              <div className="w-8 h-8 rounded-lg bg-indigo-600 flex items-center justify-center font-bold text-white text-sm shadow-xs">
                 A
               </div>
-              <span className="font-extrabold text-white text-sm tracking-wider uppercase">
-                AVANTO
-              </span>
+              <div className="flex flex-col">
+                <span className="font-extrabold text-slate-900 text-sm tracking-wider uppercase">
+                  AVANTO
+                </span>
+                <span className="text-[10px] text-indigo-600 font-semibold font-mono">
+                  COMMERCE CLOUD
+                </span>
+              </div>
             </div>
-            <p className="text-slate-500 leading-relaxed text-[11px]">
+            <p className="text-slate-500 leading-relaxed text-xs">
               {isAr
-                ? 'نظام التشغيل السحابي المستقل لتمكين التجار الإلكترونيين من بناء متاجرهم وإدارتها بأعلى كفاءة مع ربط كامل لقواعد بيانات Supabase و GitHub.'
-                : 'The sovereign cloud operating system empowering digital merchants with independent storefronts, fulfillment dispatch, and native Supabase / GitHub sync.'}
+                ? 'المنصة السحابية الاحترافية لتمكين التجار ورواد الأعمال من إطلاق متاجرهم المستقلة، إدارة المبيعات، ومزامنة قواعد البيانات بكل سهولة وأمان.'
+                : 'The premier cloud e-commerce platform empowering independent merchants with dedicated storefronts, order fulfillment, and native Supabase / GitHub sync.'}
             </p>
           </div>
 
-          {/* Merchant Navigation */}
-          <div className="space-y-2">
-            <h4 className="font-semibold text-slate-200 uppercase tracking-wider font-mono text-[11px]">
-              {isAr ? 'إدارة التجارة' : 'Commerce Engine'}
+          {/* Quick Links */}
+          <div className="space-y-3">
+            <h4 className="font-bold text-slate-900 uppercase tracking-wider text-xs">
+              {isAr ? 'روابط المنصة' : 'Platform Links'}
             </h4>
-            <ul className="space-y-1.5 text-slate-400">
+            <ul className="space-y-2 text-slate-500 text-xs">
               <li>
-                <button onClick={() => onNavigateTab('dashboard')} className="hover:text-indigo-400 transition-colors">
-                  {isAr ? 'لوحة القيادة والمبيعات' : 'Command Center'}
+                <button
+                  onClick={() => onNavigateTab('landing')}
+                  className="hover:text-indigo-600 transition-colors"
+                >
+                  {isAr ? 'الصفحة الرئيسية' : 'Homepage'}
                 </button>
               </li>
               <li>
-                <button onClick={() => onNavigateTab('stores')} className="hover:text-indigo-400 transition-colors">
-                  {isAr ? 'المتاجر والنطاقات' : 'Stores & Domains'}
+                <button
+                  onClick={() => onNavigateTab('dashboard')}
+                  className="hover:text-indigo-600 transition-colors"
+                >
+                  {isAr ? 'لوحة تحكم المتجر' : 'Store Dashboard'}
                 </button>
               </li>
               <li>
-                <button onClick={() => onNavigateTab('products')} className="hover:text-indigo-400 transition-colors">
-                  {isAr ? 'الكتالوج والمخزون' : 'Catalog & Margins'}
+                <button
+                  onClick={() => onNavigateTab('register')}
+                  className="hover:text-indigo-600 transition-colors"
+                >
+                  {isAr ? 'إنشاء متجر جديد' : 'Create New Store'}
+                </button>
+              </li>
+              <li>
+                <button
+                  onClick={() => onNavigateTab('pricing')}
+                  className="hover:text-indigo-600 transition-colors"
+                >
+                  {isAr ? 'الباقات والأسعار' : 'Pricing & Plans'}
                 </button>
               </li>
             </ul>
           </div>
 
-          {/* Operations Navigation */}
-          <div className="space-y-2">
-            <h4 className="font-semibold text-slate-200 uppercase tracking-wider font-mono text-[11px]">
-              {isAr ? 'العمليات والعملاء' : 'Operations & CRM'}
+          {/* Features */}
+          <div className="space-y-3">
+            <h4 className="font-bold text-slate-900 uppercase tracking-wider text-xs">
+              {isAr ? 'أدوات التاجر' : 'Merchant Tools'}
             </h4>
-            <ul className="space-y-1.5 text-slate-400">
-              <li>
-                <button onClick={() => onNavigateTab('orders')} className="hover:text-indigo-400 transition-colors">
-                  {isAr ? 'بوليصات الشحن والطلبات' : 'Order Dispatching'}
-                </button>
+            <ul className="space-y-2 text-slate-500 text-xs">
+              <li className="flex items-center gap-1.5">
+                <span className="w-1.5 h-1.5 rounded-full bg-indigo-500" />
+                <span>{isAr ? 'إدارة المنتجات والمخزون' : 'Catalog & Stock'}</span>
               </li>
-              <li>
-                <button onClick={() => onNavigateTab('plans')} className="hover:text-indigo-400 transition-colors">
-                  {isAr ? 'خطط الاشتراك والترقية' : 'Pricing & Plans'}
-                </button>
+              <li className="flex items-center gap-1.5">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                <span>{isAr ? 'تتبع الطلبات والفواتير' : 'Orders & Invoices'}</span>
+              </li>
+              <li className="flex items-center gap-1.5">
+                <span className="w-1.5 h-1.5 rounded-full bg-amber-500" />
+                <span>{isAr ? 'كوبونات الخصم والعروض' : 'Coupons & Promos'}</span>
+              </li>
+              <li className="flex items-center gap-1.5">
+                <span className="w-1.5 h-1.5 rounded-full bg-cyan-500" />
+                <span>{isAr ? 'تكامل Supabase و GitHub' : 'Supabase & GitHub Sync'}</span>
               </li>
             </ul>
           </div>
 
-          {/* Cloud Infra */}
-          <div className="space-y-2">
-            <h4 className="font-semibold text-slate-200 uppercase tracking-wider font-mono text-[11px]">
-              {isAr ? 'البنية التحتية والمطور' : 'Cloud Architecture'}
+          {/* Trust & Guarantee */}
+          <div className="space-y-3">
+            <h4 className="font-bold text-slate-900 uppercase tracking-wider text-xs">
+              {isAr ? 'الأمان والموثوقية' : 'Security & Trust'}
             </h4>
-            <ul className="space-y-1.5 text-slate-400">
-              <li>
-                <button onClick={() => onNavigateTab('settings')} className="hover:text-emerald-400 transition-colors flex items-center gap-1">
-                  <Database className="w-3.5 h-3.5 text-emerald-400" />
-                  <span>Supabase PostgreSQL</span>
-                </button>
-              </li>
-              <li>
-                <button onClick={() => onNavigateTab('settings')} className="hover:text-indigo-400 transition-colors flex items-center gap-1">
-                  <GitBranch className="w-3.5 h-3.5 text-indigo-400" />
-                  <span>GitHub Repository Sync</span>
-                </button>
-              </li>
-            </ul>
+            <div className="p-3 rounded-xl bg-slate-50 border border-slate-200/80 space-y-2">
+              <div className="flex items-center gap-1.5 text-emerald-700 font-bold text-xs">
+                <ShieldCheck className="w-4 h-4" />
+                <span>{isAr ? 'حماية مشفرة 256-bit SSL' : '256-bit SSL Encryption'}</span>
+              </div>
+              <p className="text-[11px] text-slate-500">
+                {isAr
+                  ? 'جميع البيانات والمعاملات المالية محمية وفق أعلى المعايير المصرفية العالمية.'
+                  : 'All transactions and merchant data are protected by strict enterprise security standards.'}
+              </p>
+            </div>
           </div>
 
         </div>
 
-        {/* Bottom bar */}
-        <div className="pt-6 flex flex-col sm:flex-row items-center justify-between gap-4 text-[11px] text-slate-500">
+        {/* Bottom Bar */}
+        <div className="pt-6 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-500">
           <div>
-            © {new Date().getFullYear()} AVANTO Commerce Inc. {isAr ? 'جميع الحقوق محفوظة للتجار المستقلين.' : 'All rights reserved.'}
+            © {new Date().getFullYear()} AVANTO Commerce Inc. {isAr ? 'جميع الحقوق محفوظة.' : 'All rights reserved.'}
           </div>
-
-          <div className="flex items-center gap-4">
-            <div className="flex items-center gap-1 text-slate-400">
-              <ShieldCheck className="w-3.5 h-3.5 text-indigo-400" />
-              <span>{isAr ? 'أمان التشفير والبيانات 256-bit' : '256-Bit Encrypted Data'}</span>
-            </div>
-            <span>·</span>
-            <span>{isAr ? 'شروط التاجر' : 'Merchant Terms'}</span>
-            <span>·</span>
-            <span>{isAr ? 'الخصوصية' : 'Privacy'}</span>
+          <div className="flex items-center gap-6">
+            <span className="hover:text-indigo-600 cursor-pointer">
+              {isAr ? 'سياسة الخصوصية' : 'Privacy Policy'}
+            </span>
+            <span className="hover:text-indigo-600 cursor-pointer">
+              {isAr ? 'شروط الخدمة' : 'Terms of Service'}
+            </span>
+            <span className="hover:text-indigo-600 cursor-pointer">
+              {isAr ? 'الدعم الفني' : 'Support'}
+            </span>
           </div>
         </div>
 

@@ -3,7 +3,7 @@ import { PlanType, Store, Language, Currency } from '../types';
 import { PLANS } from '../data/initialData';
 import { 
   Store as StoreIcon, Sparkles, Check, ArrowRight, ArrowLeft, 
-  ShieldCheck, Globe, Zap, Database, GitBranch, Layers 
+  ShieldCheck, Globe, Zap, Database, GitBranch, Layers, CheckCircle2 
 } from 'lucide-react';
 
 interface RegisterStoreViewProps {
@@ -59,9 +59,9 @@ export const RegisterStoreView: React.FC<RegisterStoreViewProps> = ({
         category,
         categoryAr: category,
         ownerName,
-        ownerEmail: ownerEmail || 'seller@mybrand.com',
+        ownerEmail: ownerEmail || 'merchant@domain.com',
         plan: selectedPlan,
-        accentColor: selectedPlan === 'pro' ? '#6366F1' : '#10B981',
+        accentColor: selectedPlan === 'pro' ? '#4F46E5' : '#059669',
         totalSales: 0,
         ordersCount: 0,
         createdAt: new Date().toISOString().split('T')[0],
@@ -70,7 +70,7 @@ export const RegisterStoreView: React.FC<RegisterStoreViewProps> = ({
         settings: {
           subdomain: `${cleanSlug}.avanto.store`,
           customDomain: selectedPlan === 'pro' ? `www.${cleanSlug}.com` : undefined,
-          themeColor: selectedPlan === 'pro' ? '#6366F1' : '#10B981',
+          themeColor: selectedPlan === 'pro' ? '#4F46E5' : '#059669',
           shippingRate: 20,
           freeShippingThreshold: 350,
           taxRate: 15,
@@ -81,243 +81,223 @@ export const RegisterStoreView: React.FC<RegisterStoreViewProps> = ({
 
       onRegisterSuccess(newStore);
       setIsSubmitting(false);
-    }, 700);
+    }, 500);
   };
 
   return (
-    <div className="min-h-screen py-12 px-4 sm:px-6 lg:px-8 max-w-5xl mx-auto space-y-12">
+    <div className="py-12 px-4 sm:px-6 lg:px-8 max-w-4xl mx-auto space-y-10">
       
       {/* Hero Welcome */}
-      <div className="text-center space-y-4 max-w-3xl mx-auto">
-        <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-indigo-500/10 border border-indigo-500/25 text-indigo-400 text-xs font-mono">
-          <Sparkles className="w-3.5 h-3.5" />
-          <span>{isAr ? 'منصة التجار الإلكترونيين المستقلين' : 'Sovereign Merchant Cloud OS'}</span>
+      <div className="text-center space-y-3 max-w-2xl mx-auto">
+        <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-indigo-50 border border-indigo-100 text-indigo-700 text-xs font-semibold">
+          <Sparkles className="w-3.5 h-3.5 text-indigo-600" />
+          <span>{isAr ? 'إنشاء متجر إلكتروني جديد' : 'New Store Onboarding'}</span>
         </div>
 
-        <h1 className="text-3xl sm:text-5xl font-extrabold text-white tracking-tight leading-tight">
-          {isAr ? (
-            <>
-              أنشئ متجرك الإلكتروني في دقيقة{' '}
-              <span className="bg-gradient-to-r from-indigo-400 via-indigo-300 to-cyan-400 bg-clip-text text-transparent">
-                وابدأ البيع فوراً
-              </span>
-            </>
-          ) : (
-            <>
-              Launch Your Online Store in 1 Minute{' '}
-              <span className="bg-gradient-to-r from-indigo-400 via-indigo-300 to-cyan-400 bg-clip-text text-transparent">
-                and Start Selling Today
-              </span>
-            </>
-          )}
+        <h1 className="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight">
+          {isAr ? 'أطلق متجرك في دقيقة وابدأ البيع' : 'Launch Your Online Store in 60 Seconds'}
         </h1>
 
-        <p className="text-sm sm:text-base text-slate-400 max-w-2xl mx-auto leading-relaxed">
+        <p className="text-sm text-slate-600 leading-relaxed">
           {isAr
-            ? 'سجّل متجرك الجديد، اختر الخطة المناسبة لك (مجانية للبداية أو احترافية للنمو)، وادخل مباشرة للوحة التحكم الخاصة بك لإضافة المنتجات واستقبال طلبات الزبائن.'
-            : 'Register your store, choose a plan (Free Starter or Pro Growth), and jump straight into your dedicated merchant dashboard.'}
+            ? 'أدخل بيانات متجرك الأساسية، اختر خطتك (مجانية للبدء أو احترافية للنمو)، وسنقوم بتهيئة لوحة التحكم الخاصة بك فوراً.'
+            : 'Fill in your store details, select a plan, and get immediate access to your merchant dashboard.'}
         </p>
 
         {/* Existing Store Shortcut */}
-        <div className="pt-2">
+        <div className="pt-1">
           <button
             onClick={onGoToExistingStore}
-            className="text-xs text-indigo-400 hover:text-indigo-300 underline font-medium flex items-center justify-center gap-1.5 mx-auto transition-colors"
+            className="text-xs text-indigo-600 hover:text-indigo-700 font-semibold flex items-center justify-center gap-1.5 mx-auto cursor-pointer"
           >
-            <span>{isAr ? `لديك متجر مسجل مسبقاً (${existingStoreName})؟ الدخول للوحة التحكم مباشرة` : `Already have a store? Enter dashboard`}</span>
+            <span>{isAr ? `لديك متجر مسجل مسبقاً (${existingStoreName})؟ التوجه للوحة التحكم مباشرة` : `Already have a store? Go to dashboard`}</span>
             {isAr ? <ArrowLeft className="w-3.5 h-3.5" /> : <ArrowRight className="w-3.5 h-3.5" />}
           </button>
         </div>
       </div>
 
-      {/* Main Registration Box */}
-      <form onSubmit={handleSubmit} className="p-6 sm:p-10 rounded-3xl bg-slate-900/60 border border-slate-800 shadow-2xl space-y-8">
+      {/* Main Registration Form Card */}
+      <form onSubmit={handleSubmit} className="bg-white rounded-2xl border border-slate-200 shadow-xl p-6 sm:p-10 space-y-8">
         
         {/* Step 1: Store Details */}
         <div className="space-y-4">
-          <div className="flex items-center gap-2 border-b border-slate-800 pb-3">
-            <div className="w-7 h-7 rounded-lg bg-indigo-600 text-white font-bold flex items-center justify-center text-xs">
+          <div className="flex items-center gap-2 border-b border-slate-100 pb-3">
+            <div className="w-7 h-7 rounded-lg bg-indigo-600 text-white font-bold flex items-center justify-center text-xs shadow-xs">
               1
             </div>
-            <h3 className="text-base font-bold text-white">
-              {isAr ? 'بيانات المتجر والمالك' : 'Store & Owner Details'}
+            <h3 className="text-base font-bold text-slate-900">
+              {isAr ? 'بيانات المتجر الأساسية' : 'Store Basic Information'}
             </h3>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
             <div>
-              <label className="block text-slate-300 font-semibold mb-1.5">
-                {isAr ? 'اسم المتجر (English)' : 'Store Name (English)'} *
+              <label className="block text-slate-700 font-bold mb-1.5">
+                {isAr ? 'اسم المتجر بالإنجليزية' : 'Store Name (English)'} *
               </label>
               <input
                 type="text"
                 required
                 value={storeName}
                 onChange={(e) => handleStoreNameChange(e.target.value)}
-                placeholder="e.g. Amber Glow Boutique"
-                className="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-white focus:border-indigo-500 focus:outline-none"
+                placeholder="e.g. Modern Craft"
+                className="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-slate-900 focus:bg-white focus:border-indigo-600 focus:outline-none transition-colors"
               />
             </div>
 
             <div>
-              <label className="block text-slate-300 font-semibold mb-1.5">
-                {isAr ? 'اسم المتجر (بالعربية)' : 'Store Name (Arabic)'}
+              <label className="block text-slate-700 font-bold mb-1.5">
+                {isAr ? 'اسم المتجر بالعربية' : 'Store Name (Arabic)'}
               </label>
               <input
                 type="text"
                 value={storeNameAr}
                 onChange={(e) => setStoreNameAr(e.target.value)}
-                placeholder="مثال: بوتيك وميض العنبر"
-                className="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-white focus:border-indigo-500 focus:outline-none"
+                placeholder="مثال: متجر الحرف العصرية"
+                className="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-slate-900 focus:bg-white focus:border-indigo-600 focus:outline-none transition-colors"
               />
             </div>
 
             <div>
-              <label className="block text-slate-300 font-semibold mb-1.5">
-                {isAr ? 'رابط النطاق الفرعي المجاني' : 'Free Subdomain URL'} *
+              <label className="block text-slate-700 font-bold mb-1.5">
+                {isAr ? 'رابط النطاق الفرعي المجاني' : 'Subdomain Slug'} *
               </label>
               <div className="flex items-center">
                 <input
                   type="text"
                   required
                   value={subdomain}
-                  onChange={(e) => setSubdomain(e.target.value.toLowerCase().replace(/[^a-z0-9]/g, ''))}
-                  placeholder="amberglow"
-                  className="w-full bg-slate-950 border border-slate-800 rounded-s-xl p-3 text-white font-mono focus:border-indigo-500 focus:outline-none"
+                  onChange={(e) => setSubdomain(e.target.value.toLowerCase().replace(/[^a-z0-9]/g, '-'))}
+                  placeholder="modern-craft"
+                  className="w-full bg-slate-50 border border-slate-200 rounded-s-xl p-3 text-slate-900 font-mono focus:bg-white focus:border-indigo-600 focus:outline-none transition-colors"
                 />
-                <span className="bg-slate-800 border border-slate-700 border-s-0 px-3.5 py-3 rounded-e-xl text-slate-400 font-mono text-xs whitespace-nowrap">
+                <span className="bg-slate-100 border border-slate-200 border-s-0 px-3 py-3 rounded-e-xl text-slate-500 font-mono text-[11px] whitespace-nowrap">
                   .avanto.store
                 </span>
               </div>
             </div>
 
             <div>
-              <label className="block text-slate-300 font-semibold mb-1.5">
-                {isAr ? 'تصنيف ونشاط المتجر' : 'Store Category'}
+              <label className="block text-slate-700 font-bold mb-1.5">
+                {isAr ? 'نشاط وتصنيف المتجر' : 'Store Category'}
               </label>
               <select
                 value={category}
                 onChange={(e) => setCategory(e.target.value)}
-                className="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-white focus:border-indigo-500 focus:outline-none"
+                className="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-slate-900 focus:bg-white focus:border-indigo-600 focus:outline-none transition-colors"
               >
-                <option value="Fashion & Apparel">{isAr ? 'الأزياء والملابس' : 'Fashion & Apparel'}</option>
-                <option value="Watches & Jewelry">{isAr ? 'الساعات والمجوهرات' : 'Watches & Jewelry'}</option>
-                <option value="Perfumes & Beauty">{isAr ? 'العطور ومنتجات العناية' : 'Perfumes & Beauty'}</option>
-                <option value="Electronics & Tech">{isAr ? 'الإلكترونيات والتقنية' : 'Electronics & Tech'}</option>
-                <option value="Home & Living">{isAr ? 'الأثاث والديكور المنزلي' : 'Home & Living'}</option>
-                <option value="Food & Coffee">{isAr ? 'القهوة والأغذية المتخصصة' : 'Food & Coffee'}</option>
+                <option value="Fashion & Apparel">{isAr ? 'أزياء وملابس' : 'Fashion & Apparel'}</option>
+                <option value="Watches & Horology">{isAr ? 'ساعات وإكسسوارات' : 'Watches & Horology'}</option>
+                <option value="Perfumes & Fragrances">{isAr ? 'عطور وبخور وتجميل' : 'Perfumes & Beauty'}</option>
+                <option value="Electronics & Tech">{isAr ? 'إلكترونيات وهواتف' : 'Electronics & Tech'}</option>
+                <option value="Home & Interior">{isAr ? 'أثاث وديكور منزلي' : 'Home & Living'}</option>
               </select>
             </div>
+          </div>
+        </div>
 
+        {/* Step 2: Merchant / Owner Information */}
+        <div className="space-y-4">
+          <div className="flex items-center gap-2 border-b border-slate-100 pb-3">
+            <div className="w-7 h-7 rounded-lg bg-indigo-600 text-white font-bold flex items-center justify-center text-xs shadow-xs">
+              2
+            </div>
+            <h3 className="text-base font-bold text-slate-900">
+              {isAr ? 'بيانات مالك المتجر (التاجر)' : 'Merchant Contact Info'}
+            </h3>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
             <div>
-              <label className="block text-slate-300 font-semibold mb-1.5">
-                {isAr ? 'اسم مالك المتجر / التاجر' : 'Owner Full Name'} *
+              <label className="block text-slate-700 font-bold mb-1.5">
+                {isAr ? 'الاسم الكامل للتاجر' : 'Owner Full Name'} *
               </label>
               <input
                 type="text"
                 required
                 value={ownerName}
                 onChange={(e) => setOwnerName(e.target.value)}
-                placeholder={isAr ? 'مثال: محمد الغامدي' : 'e.g. Alex Morgan'}
-                className="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-white focus:border-indigo-500 focus:outline-none"
+                placeholder={isAr ? 'مثال: خالد حسن' : 'e.g. Khalid Hassan'}
+                className="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-slate-900 focus:bg-white focus:border-indigo-600 focus:outline-none transition-colors"
               />
             </div>
 
             <div>
-              <label className="block text-slate-300 font-semibold mb-1.5">
-                {isAr ? 'البريد الإلكتروني للتاجر' : 'Owner Email Address'} *
+              <label className="block text-slate-700 font-bold mb-1.5">
+                {isAr ? 'البريد الإلكتروني للإشعارات وتسجيل الدخول' : 'Owner Email'} *
               </label>
               <input
                 type="email"
                 required
                 value={ownerEmail}
                 onChange={(e) => setOwnerEmail(e.target.value)}
-                placeholder="merchant@mybrand.com"
-                className="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-white focus:border-indigo-500 focus:outline-none"
+                placeholder="merchant@example.com"
+                className="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-slate-900 focus:bg-white focus:border-indigo-600 focus:outline-none transition-colors"
               />
             </div>
           </div>
         </div>
 
-        {/* Step 2: Choose Plan (Free vs Paid Pro) */}
-        <div className="space-y-4 pt-4">
-          <div className="flex items-center justify-between border-b border-slate-800 pb-3">
-            <div className="flex items-center gap-2">
-              <div className="w-7 h-7 rounded-lg bg-indigo-600 text-white font-bold flex items-center justify-center text-xs">
-                2
-              </div>
-              <h3 className="text-base font-bold text-white">
-                {isAr ? 'اختر خطة الاشتراك لمتجرك' : 'Select Seller Subscription Plan'}
-              </h3>
+        {/* Step 3: Choose Plan */}
+        <div className="space-y-4">
+          <div className="flex items-center gap-2 border-b border-slate-100 pb-3">
+            <div className="w-7 h-7 rounded-lg bg-indigo-600 text-white font-bold flex items-center justify-center text-xs shadow-xs">
+              3
             </div>
-            <span className="text-xs text-slate-400 font-mono">
-              {isAr ? 'يمكنك الترقية أو التبديل في أي وقت' : 'Switch anytime from dashboard'}
-            </span>
+            <div className="flex items-center justify-between flex-1">
+              <h3 className="text-base font-bold text-slate-900">
+                {isAr ? 'اختر خطة الاشتراك المناسبة' : 'Select Initial Store Plan'}
+              </h3>
+              <span className="text-xs text-slate-500">
+                {isAr ? 'يمكنك الترقية أو التبديل لاحقاً بنقرة واحدة' : 'You can change anytime'}
+              </span>
+            </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {PLANS.map((plan) => {
               const isSelected = selectedPlan === plan.id;
+              const isPro = plan.id === 'pro';
 
               return (
                 <div
                   key={plan.id}
                   onClick={() => setSelectedPlan(plan.id)}
-                  className={`p-6 rounded-2xl border transition-all cursor-pointer relative flex flex-col justify-between ${
+                  className={`p-5 rounded-xl border cursor-pointer transition-all ${
                     isSelected
-                      ? 'bg-indigo-950/30 border-indigo-500 shadow-xl shadow-indigo-500/10'
-                      : 'bg-slate-950 border-slate-800 hover:border-slate-700'
+                      ? 'bg-indigo-50/50 border-indigo-600 ring-2 ring-indigo-600/15 shadow-sm'
+                      : 'bg-white border-slate-200 hover:border-slate-300'
                   }`}
                 >
-                  {plan.isPopular && (
-                    <span className="absolute -top-3 end-4 px-2.5 py-0.5 rounded-full text-[10px] font-bold tracking-wider font-mono uppercase bg-indigo-500 text-white shadow-md">
-                      {isAr ? 'الأكثر اختياراً للتوسع' : 'Most Popular'}
-                    </span>
-                  )}
-
-                  <div className="space-y-3">
-                    <div className="flex items-center justify-between">
-                      <h4 className="text-lg font-bold text-white">
-                        {isAr ? plan.nameAr : plan.name}
-                      </h4>
-                      <div className={`w-5 h-5 rounded-full border flex items-center justify-center ${
-                        isSelected ? 'border-indigo-400 bg-indigo-500 text-white' : 'border-slate-700'
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="flex items-center gap-2">
+                      <div className={`w-4 h-4 rounded-full border flex items-center justify-center ${
+                        isSelected ? 'border-indigo-600 bg-indigo-600 text-white' : 'border-slate-300'
                       }`}>
-                        {isSelected && <Check className="w-3.5 h-3.5 stroke-[3]" />}
+                        {isSelected && <Check className="w-2.5 h-2.5 stroke-[3]" />}
                       </div>
-                    </div>
-
-                    <p className="text-xs text-slate-400">
-                      {isAr ? plan.descriptionAr : plan.description}
-                    </p>
-
-                    <div className="flex items-baseline gap-2 pt-2">
-                      <span className="text-3xl font-extrabold text-white font-mono tabular-nums">
-                        {plan.id === 'free' ? (isAr ? 'مجاناً' : 'Free') : `99 ر.س`}
-                      </span>
-                      <span className="text-xs text-slate-400 font-mono">
-                        {plan.id === 'free' ? '' : isAr ? '/ شهرياً ($29/mo)' : '/ month'}
+                      <span className="font-bold text-slate-900 text-sm">
+                        {isAr ? plan.nameAr : plan.name}
                       </span>
                     </div>
 
-                    {/* Features checklist */}
-                    <div className="pt-4 border-t border-slate-850 space-y-2 text-xs">
-                      {(isAr ? plan.featuresAr : plan.features).map((feat, idx) => (
-                        <div key={idx} className="flex items-start gap-2 text-slate-300">
-                          <Check className="w-3.5 h-3.5 text-indigo-400 shrink-0 mt-0.5" />
-                          <span>{feat}</span>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-
-                  <div className="mt-6 pt-3 border-t border-slate-850 flex items-center justify-between text-[11px] text-slate-400 font-mono">
-                    <span>{isAr ? 'عمولة المنصة:' : 'Transaction Fee:'}</span>
-                    <span className={plan.id === 'free' ? 'text-amber-400' : 'text-emerald-400 font-bold'}>
-                      {plan.transactionFee}
+                    <span className="font-extrabold text-slate-900 text-sm">
+                      {plan.priceSar === 0 ? (isAr ? '0 ر.س (مجاناً)' : 'Free') : `${plan.priceSar} ${isAr ? 'ر.س/شهر' : 'SAR/mo'}`}
                     </span>
                   </div>
 
+                  <p className="text-xs text-slate-600 mb-3">
+                    {isAr ? plan.descriptionAr : plan.description}
+                  </p>
+
+                  <ul className="space-y-1.5 text-xs text-slate-600 border-t border-slate-100 pt-3">
+                    {(isAr ? plan.featuresAr : plan.features).slice(0, 3).map((feat, i) => (
+                      <li key={i} className="flex items-center gap-2">
+                        <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                        <span>{feat}</span>
+                      </li>
+                    ))}
+                  </ul>
                 </div>
               );
             })}
@@ -325,26 +305,22 @@ export const RegisterStoreView: React.FC<RegisterStoreViewProps> = ({
         </div>
 
         {/* Submit Button */}
-        <div className="pt-4 border-t border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-4">
-          <div className="flex items-center gap-2 text-xs text-slate-400">
-            <ShieldCheck className="w-4 h-4 text-emerald-400" />
-            <span>
-              {isAr
-                ? 'تفعيل فوري لمتجرك مع دعم مزامنة Supabase و GitHub'
-                : 'Instant setup with native Supabase & GitHub sync'}
-            </span>
+        <div className="pt-4 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-4">
+          <div className="flex items-center gap-2 text-xs text-slate-500">
+            <ShieldCheck className="w-4 h-4 text-emerald-600" />
+            <span>{isAr ? 'إنشاء فوري بدون بطاقة ائتمانية' : 'Instant launch, no credit card required'}</span>
           </div>
 
           <button
             type="submit"
             disabled={isSubmitting}
-            className="w-full sm:w-auto px-8 py-3.5 rounded-xl text-sm font-bold text-white bg-gradient-to-r from-indigo-500 via-indigo-600 to-violet-600 hover:from-indigo-600 hover:to-violet-700 shadow-xl shadow-indigo-500/25 transition-all duration-200 active:scale-95 disabled:opacity-50 flex items-center justify-center gap-2"
+            className="w-full sm:w-auto px-8 py-3.5 rounded-xl font-bold text-white bg-indigo-600 hover:bg-indigo-700 shadow-md shadow-indigo-600/20 text-xs flex items-center justify-center gap-2 transition-all active:scale-98 disabled:opacity-50 cursor-pointer"
           >
             {isSubmitting ? (
-              <span>{isAr ? 'جارٍ تهيئة المتجر ولوحة التحكم...' : 'Provisioning Store & Dashboard...'}</span>
+              <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
             ) : (
               <>
-                <span>{isAr ? 'إنشاء المتجر والدخول للوحة التحكم' : 'Launch Store & Enter Dashboard'}</span>
+                <span>{isAr ? 'إطلاق المتجر والدخول للوحة التحكم 🚀' : 'Launch Store & Open Dashboard 🚀'}</span>
                 {isAr ? <ArrowLeft className="w-4 h-4" /> : <ArrowRight className="w-4 h-4" />}
               </>
             )}
