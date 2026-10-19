@@ -137,3 +137,28 @@ export interface GitHubConfig {
   branch: string;
   connected: boolean;
 }
+
+export interface PlatformFeatureItem {
+  id: string;
+  name: string;
+  nameAr: string;
+  description: string;
+  descriptionAr: string;
+  category: 'store' | 'marketing' | 'tech' | 'checkout';
+  isEnabled: boolean; // Active vs Deactivated (مفعل أو معطل)
+  isRemoved: boolean; // Deleted / Removed from UI (محذوف أو مستبعد)
+}
+
+export interface StoreFeatureItem {
+  id: string;
+  name: string;
+  nameAr: string;
+  description: string;
+  descriptionAr: string;
+  category: 'storefront' | 'checkout' | 'marketing' | 'customer';
+  isEnabled: boolean; // مفعل أو معطل بنظام الزر
+  isRemoved: boolean; // محذوف بنظام زر الحذف والاستعادة
+}
+
+export type PlatformFeaturesMap = Record<string, boolean>;
+

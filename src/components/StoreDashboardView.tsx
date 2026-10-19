@@ -1,17 +1,19 @@
 import React, { useState } from 'react';
 import { 
   Store, Product, Order, Customer, Coupon, PlanType, 
-  Currency, Language, SupabaseConfig, GitHubConfig, SellerUser 
+  Currency, Language, SupabaseConfig, GitHubConfig, SellerUser, 
+  PlatformFeatureItem, StoreFeatureItem 
 } from '../types';
 import { CURRENCY_RATES, PLANS } from '../data/initialData';
 import { PlansPricingView } from './PlansPricingView';
+import { StoreFeaturesManager } from './StoreFeaturesManager';
 import { 
   Store as StoreIcon, Package, ShoppingCart, Settings, 
   ExternalLink, Plus, CheckCircle2, Clock, Trash2, 
   TrendingUp, ShieldCheck, Database, GitBranch, Globe, 
   Check, ArrowRight, ArrowLeft, AlertCircle, Copy, Terminal, 
   Edit3, Users, Tag, DollarSign, Printer, Lock, LogOut, Sparkles,
-  BarChart3, RefreshCw, Eye
+  BarChart3, RefreshCw, Eye, Sliders, RotateCcw, ShoppingBag
 } from 'lucide-react';
 
 interface StoreDashboardViewProps {
@@ -25,6 +27,18 @@ interface StoreDashboardViewProps {
   language: Language;
   supabaseConfig: SupabaseConfig;
   gitHubConfig: GitHubConfig;
+  features: PlatformFeatureItem[];
+  storeFeatures?: StoreFeatureItem[];
+  onToggleFeature: (featureId: string) => void;
+  onRemoveFeature: (featureId: string) => void;
+  onRestoreFeature: (featureId: string) => void;
+  onOpenFeaturesModal: () => void;
+  onToggleStoreFeature?: (featureId: string) => void;
+  onRemoveStoreFeature?: (featureId: string) => void;
+  onRestoreStoreFeature?: (featureId: string) => void;
+  onEnableAllStoreFeatures?: () => void;
+  onResetDefaultStoreFeatures?: () => void;
+  onAddStoreFeature?: (newFeature: StoreFeatureItem) => void;
   onUpdateStoreSettings: (updated: Partial<Store['settings']>) => void;
   onUpdateStorePlan: (plan: PlanType) => void;
   onAddProduct: (product: Product) => void;
@@ -34,7 +48,9 @@ interface StoreDashboardViewProps {
   onAddCoupon: (coupon: Coupon) => void;
   onToggleCoupon: (couponId: string) => void;
   onOpenLivePreview: () => void;
+  onOpenStandaloneStore?: () => void;
   onOpenCreateNewStore: () => void;
+  onBackToPlatform?: () => void;
   onLogout: () => void;
 }
 
@@ -49,6 +65,18 @@ export const StoreDashboardView: React.FC<StoreDashboardViewProps> = ({
   language,
   supabaseConfig,
   gitHubConfig,
+  features,
+  storeFeatures,
+  onToggleFeature,
+  onRemoveFeature,
+  onRestoreFeature,
+  onOpenFeaturesModal,
+  onToggleStoreFeature,
+  onRemoveStoreFeature,
+  onRestoreStoreFeature,
+  onEnableAllStoreFeatures,
+  onResetDefaultStoreFeatures,
+  onAddStoreFeature,
   onUpdateStoreSettings,
   onUpdateStorePlan,
   onAddProduct,
@@ -58,11 +86,21 @@ export const StoreDashboardView: React.FC<StoreDashboardViewProps> = ({
   onAddCoupon,
   onToggleCoupon,
   onOpenLivePreview,
+  onOpenStandaloneStore,
   onOpenCreateNewStore,
+  onBackToPlatform,
   onLogout
 }) => {
   const isAr = language === 'ar';
-  const [activeTab, setActiveTab] = useState<'overview' | 'products' | 'orders' | 'customers' | 'coupons' | 'plans' | 'settings' | 'developer'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'products' | 'orders' | 'customers' | 'coupons' | 'plans' | 'storeFeatures' | 'settings' | 'developer' | 'features'>('overview');
+  
+  // Feature Helper
+  const isFeatureActive = (id: string) => {
+    const feat = features?.find((f) => f.id === id);
+    return feat ? feat.isEnabled && !feat.isRemoved : true;
+  };
+  const activeFeaturesCount = (features || []).filter((f) => f.isEnabled && !f.isRemoved).length;
+  const activeStoreFeaturesCount = (storeFeatures || []).filter((f) => f.isEnabled && !f.isRemoved).length;
   
   // Modals
   const [showAddProductModal, setShowAddProductModal] = useState<boolean>(false);
@@ -254,13 +292,71 @@ CREATE POLICY "Public read products" ON public.store_products FOR SELECT USING (
 
         {/* Quick Action Buttons */}
         <div className="flex flex-wrap items-center gap-2.5">
+          {/* Back to SaaS Platform */}
+          {onBackToPlatform && (
+            <button
+              onClick={onBackToPlatform}
+              className="flex items-center gap-1.5 px-3.5 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition-all cursor-pointer shadow-2xs"
+              title={isAr ? 'العودة لصفحة المنصة السحابية الرئيسية' : 'Return to main platform'}
+            >
+              <Globe className="w-3.5 h-3.5 text-indigo-600" />
+              <span>{isAr ? 'المنصة الرئيسية' : 'Platform'}</span>
+            </button>
+          )}
+
+          {/* Visit Standalone Independent Store */}
           <button
-            onClick={onOpenLivePreview}
-            className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 text-xs font-bold shadow-xs transition-all cursor-pointer"
+            onClick={onOpenStandaloneStore || onOpenLivePreview}
+            className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-sm shadow-emerald-600/20 transition-all cursor-pointer"
+            title={isAr ? 'فتح المتجر كصفحة مستقلة بالكامل بدون أي عناصر للمنصة' : 'Open 100% independent standalone store page'}
           >
-            <Eye className="w-4 h-4 text-indigo-600" />
-            <span>{isAr ? 'معاينة المتجر الحي' : 'View Live Store'}</span>
-            <ExternalLink className="w-3 h-3 text-slate-400" />
+            <ShoppingBag className="w-4 h-4 text-white" />
+            <span>{isAr ? 'زيارة المتجر المستقل 🛍️' : 'Visit Independent Store 🛍️'}</span>
+          </button>
+
+          {/* Store Features Button (Direct shortcut to the seller's toggle/delete system) */}
+          <button
+            onClick={() => setActiveTab('storeFeatures')}
+            className={`flex items-center gap-1.5 px-3.5 py-2.5 rounded-xl border text-xs font-bold transition-all cursor-pointer shadow-2xs ${
+              activeTab === 'storeFeatures'
+                ? 'bg-indigo-600 text-white border-indigo-600'
+                : 'bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border-indigo-200'
+            }`}
+            title={isAr ? 'التحكم في خصائص متجرك بنظام الزر والحذف' : 'Manage store features & modules'}
+          >
+            <Sliders className="w-3.5 h-3.5" />
+            <span>{isAr ? 'خصائص المتجر' : 'Store Features'}</span>
+            <span className={`w-5 h-5 rounded-full font-mono text-[10px] font-bold flex items-center justify-center ${
+              activeTab === 'storeFeatures' ? 'bg-white text-indigo-700' : 'bg-indigo-600 text-white'
+            }`}>
+              {activeStoreFeaturesCount}
+            </span>
+          </button>
+
+          {/* Copy Public Store URL */}
+          <button
+            onClick={() => {
+              navigator.clipboard?.writeText(`https://${store.settings.subdomain}`);
+              alert(isAr ? `تم نسخ رابط متجرك المستقل:\nhttps://${store.settings.subdomain}` : 'Independent store link copied!');
+            }}
+            className="flex items-center gap-1.5 px-3 py-2.5 rounded-xl bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 text-xs font-bold shadow-2xs transition-all cursor-pointer"
+            title={isAr ? 'نسخ رابط المتجر المستقل المخصص للزبائن' : 'Copy independent store URL'}
+          >
+            <Copy className="w-3.5 h-3.5 text-slate-500" />
+            <span className="hidden sm:inline">{isAr ? 'نسخ الرابط' : 'Copy Link'}</span>
+          </button>
+
+          {/* Platform Features Control Modal Trigger */}
+          <button
+            onClick={onOpenFeaturesModal}
+            className="flex items-center gap-1.5 px-3.5 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200 text-xs font-bold transition-all cursor-pointer shadow-2xs"
+            title={isAr ? 'التحكم في خصائص المنصة الأم' : 'Platform Features'}
+          >
+            <Sliders className="w-4 h-4 text-slate-500" />
+            <span className="hidden sm:inline">{isAr ? 'خصائص المنصة' : 'Platform Features'}</span>
+            <span className="w-5 h-5 rounded-full bg-slate-600 text-white font-mono text-[10px] font-bold flex items-center justify-center">
+              {activeFeaturesCount}
+            </span>
           </button>
 
           <button
@@ -287,15 +383,17 @@ CREATE POLICY "Public read products" ON public.store_products FOR SELECT USING (
       {/* 2. DASHBOARD NAVIGATION TABS */}
       <div className="flex items-center gap-1 overflow-x-auto border-b border-slate-200 pb-px scrollbar-none">
         {[
-          { id: 'overview', label: isAr ? 'نظرة عامة والتقارير' : 'Overview & Stats', icon: BarChart3 },
-          { id: 'products', label: isAr ? `المنتجات (${storeProducts.length})` : `Products (${storeProducts.length})`, icon: Package },
-          { id: 'orders', label: isAr ? `الطلبات (${storeOrders.length})` : `Orders (${storeOrders.length})`, icon: ShoppingCart },
-          { id: 'customers', label: isAr ? `العملاء (${storeCustomers.length})` : `Customers (${storeCustomers.length})`, icon: Users },
-          { id: 'coupons', label: isAr ? `الكوبونات (${storeCoupons.length})` : `Coupons (${storeCoupons.length})`, icon: Tag },
-          { id: 'plans', label: isAr ? 'الباقات والترقية' : 'Plans & Upgrades', icon: Sparkles },
-          { id: 'settings', label: isAr ? 'إعدادات المتجر' : 'Store Settings', icon: Settings },
-          { id: 'developer', label: isAr ? 'الربط (Supabase & GitHub)' : 'Integrations', icon: Database }
-        ].map((tab) => {
+          { id: 'overview', label: isAr ? 'نظرة عامة والتقارير' : 'Overview & Stats', icon: BarChart3, show: true },
+          { id: 'products', label: isAr ? `المنتجات (${storeProducts.length})` : `Products (${storeProducts.length})`, icon: Package, show: true },
+          { id: 'orders', label: isAr ? `الطلبات (${storeOrders.length})` : `Orders (${storeOrders.length})`, icon: ShoppingCart, show: true },
+          { id: 'customers', label: isAr ? `العملاء (${storeCustomers.length})` : `Customers (${storeCustomers.length})`, icon: Users, show: isFeatureActive('customersCRM') },
+          { id: 'coupons', label: isAr ? `الكوبونات (${storeCoupons.length})` : `Coupons (${storeCoupons.length})`, icon: Tag, show: isFeatureActive('coupons') },
+          { id: 'plans', label: isAr ? 'الباقات والترقية' : 'Plans & Upgrades', icon: Sparkles, show: isFeatureActive('plansAndUpgrades') },
+          { id: 'storeFeatures', label: isAr ? `خصائص وإعدادات المتجر (${activeStoreFeaturesCount})` : `Store Features & Settings (${activeStoreFeaturesCount})`, icon: Sliders, show: true },
+          { id: 'settings', label: isAr ? 'إعدادات المتجر' : 'Store Settings', icon: Settings, show: true },
+          { id: 'developer', label: isAr ? 'الربط (Supabase & GitHub)' : 'Integrations', icon: Database, show: isFeatureActive('developerIntegrations') },
+          { id: 'features', label: isAr ? `خصائص المنصة (${activeFeaturesCount})` : `Platform Features (${activeFeaturesCount})`, icon: Sliders, show: true }
+        ].filter(t => t.show).map((tab) => {
           const Icon = tab.icon;
           const isActive = activeTab === tab.id;
           return (
@@ -321,6 +419,49 @@ CREATE POLICY "Public read products" ON public.store_products FOR SELECT USING (
       {activeTab === 'overview' && (
         <div className="space-y-8">
           
+          {/* Independent Storefront Live Status Banner */}
+          <div className="p-5 rounded-2xl bg-gradient-to-r from-emerald-500/10 via-indigo-500/10 to-transparent border border-emerald-200/80 bg-white flex flex-col md:flex-row md:items-center justify-between gap-4 shadow-2xs">
+            <div className="flex items-center gap-3.5">
+              <div className="w-11 h-11 rounded-xl bg-emerald-600 text-white flex items-center justify-center shadow-xs shrink-0">
+                <Globe className="w-6 h-6" />
+              </div>
+              <div>
+                <div className="flex items-center gap-2">
+                  <h3 className="font-extrabold text-slate-900 text-sm">
+                    {isAr ? 'متجرك الإلكتروني المستقل مفصول ويعمل أونلاين' : 'Your Independent Store is Live & Standalone'}
+                  </h3>
+                  <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800">
+                    {isAr ? 'مستقل 100%' : '100% Standalone'}
+                  </span>
+                </div>
+                <p className="text-xs text-slate-600 mt-0.5 font-mono">
+                  https://{store.settings.subdomain}
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => {
+                  navigator.clipboard?.writeText(`https://${store.settings.subdomain}`);
+                  alert(isAr ? `تم نسخ الرابط المستقل للعملاء:\nhttps://${store.settings.subdomain}` : 'Independent store link copied!');
+                }}
+                className="px-3.5 py-2 rounded-xl bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 text-xs font-bold transition-all cursor-pointer shadow-2xs flex items-center gap-1.5"
+              >
+                <Copy className="w-3.5 h-3.5 text-slate-500" />
+                <span>{isAr ? 'نسخ رابط الزبائن' : 'Copy Link'}</span>
+              </button>
+
+              <button
+                onClick={onOpenStandaloneStore || onOpenLivePreview}
+                className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition-all cursor-pointer shadow-sm shadow-emerald-600/20 flex items-center gap-1.5"
+              >
+                <ShoppingBag className="w-4 h-4" />
+                <span>{isAr ? 'زيارة المتجر المستقل 🛍️' : 'Visit Independent Store 🛍️'}</span>
+              </button>
+            </div>
+          </div>
+
           {/* Key Metrics Grid */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             
@@ -572,21 +713,25 @@ CREATE POLICY "Public read products" ON public.store_products FOR SELECT USING (
                         {prod.costPrice ? formatPrice(prod.costPrice) : '—'}
                       </td>
                       <td className="py-3">
-                        <div className="flex items-center gap-2">
-                          <button
-                            onClick={() => onUpdateProductStock(prod.id, Math.max(0, prod.stock - 1))}
-                            className="w-6 h-6 rounded bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold flex items-center justify-center cursor-pointer"
-                          >
-                            -
-                          </button>
-                          <span className="font-mono font-bold text-slate-900 w-8 text-center">{prod.stock}</span>
-                          <button
-                            onClick={() => onUpdateProductStock(prod.id, prod.stock + 1)}
-                            className="w-6 h-6 rounded bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold flex items-center justify-center cursor-pointer"
-                          >
-                            +
-                          </button>
-                        </div>
+                        {isFeatureActive('stockAdjuster') ? (
+                          <div className="flex items-center gap-2">
+                            <button
+                              onClick={() => onUpdateProductStock(prod.id, Math.max(0, prod.stock - 1))}
+                              className="w-6 h-6 rounded bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold flex items-center justify-center cursor-pointer"
+                            >
+                              -
+                            </button>
+                            <span className="font-mono font-bold text-slate-900 w-8 text-center">{prod.stock}</span>
+                            <button
+                              onClick={() => onUpdateProductStock(prod.id, prod.stock + 1)}
+                              className="w-6 h-6 rounded bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold flex items-center justify-center cursor-pointer"
+                            >
+                              +
+                            </button>
+                          </div>
+                        ) : (
+                          <span className="font-mono font-bold text-slate-900">{prod.stock}</span>
+                        )}
                       </td>
                       <td className="py-3">
                         <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${
@@ -682,13 +827,17 @@ CREATE POLICY "Public read products" ON public.store_products FOR SELECT USING (
                         </select>
                       </td>
                       <td className="py-3 text-end">
-                        <button
-                          onClick={() => setSelectedInvoiceOrder(order)}
-                          className="px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold inline-flex items-center gap-1 cursor-pointer"
-                        >
-                          <Printer className="w-3.5 h-3.5" />
-                          <span>{isAr ? 'طباعة' : 'Print'}</span>
-                        </button>
+                        {isFeatureActive('invoicing') ? (
+                          <button
+                            onClick={() => setSelectedInvoiceOrder(order)}
+                            className="px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold inline-flex items-center gap-1 cursor-pointer"
+                          >
+                            <Printer className="w-3.5 h-3.5" />
+                            <span>{isAr ? 'طباعة' : 'Print'}</span>
+                          </button>
+                        ) : (
+                          <span className="text-slate-400 font-mono text-[11px]">—</span>
+                        )}
                       </td>
                     </tr>
                   ))}
@@ -844,12 +993,32 @@ CREATE POLICY "Public read products" ON public.store_products FOR SELECT USING (
             </p>
           </div>
 
-          {saveSettingsSuccess && (
-            <div className="p-3.5 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-semibold flex items-center gap-2">
-              <Check className="w-4 h-4 text-emerald-600" />
-              <span>{isAr ? 'تم حفظ التعديلات بنجاح!' : 'Settings updated successfully!'}</span>
+          {/* Quick Features & Settings Switcher Banner */}
+          <div className="p-4 rounded-2xl bg-gradient-to-r from-indigo-500/10 via-purple-500/10 to-transparent border border-indigo-200/80 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-indigo-600 text-white flex items-center justify-center shadow-xs shrink-0">
+                <Sliders className="w-5 h-5" />
+              </div>
+              <div>
+                <h4 className="font-bold text-slate-900 text-xs sm:text-sm">
+                  {isAr ? 'نظام التحكم في إعدادات وخصائص المتجر (الأزرار والحذف)' : 'Store Features & Settings Button / Delete System'}
+                </h4>
+                <p className="text-[11px] text-slate-600 mt-0.5">
+                  {isAr
+                    ? `لديك ${activeStoreFeaturesCount} خاصية وإعداد نشط في المتجر. يمكنك تفعيل، إلغاء تنشيط، أو حذف أي ميزة بنقرة زر واحدة.`
+                    : `${activeStoreFeaturesCount} active features & settings. Toggle or delete modules with instant live update.`}
+                </p>
+              </div>
             </div>
-          )}
+
+            <button
+              onClick={() => setActiveTab('storeFeatures')}
+              className="px-4 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold transition-all cursor-pointer shadow-xs whitespace-nowrap flex items-center gap-1.5 self-start sm:self-auto"
+            >
+              <Sliders className="w-3.5 h-3.5" />
+              <span>{isAr ? 'فتح لوحة الأزرار والحذف 🎛️' : 'Open Button & Delete Panel 🎛️'}</span>
+            </button>
+          </div>
 
           <form onSubmit={handleSaveSettings} className="space-y-6 text-xs max-w-2xl">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -1004,6 +1173,173 @@ CREATE POLICY "Public read products" ON public.store_products FOR SELECT USING (
 
           </div>
         </div>
+      )}
+
+      {/* ─── TAB: FEATURES MANAGEMENT ─── */}
+      {activeTab === 'features' && (
+        <div className="bg-white rounded-2xl border border-slate-200/90 shadow-xs p-6 space-y-6">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 pb-4">
+            <div>
+              <div className="flex items-center gap-2">
+                <h3 className="text-base font-bold text-slate-900">
+                  {isAr ? 'التحكم في خصائص المنصة (تفعيل / إلغاء تنشيط / حذف)' : 'Platform Feature & Module Flags'}
+                </h3>
+                <span className="text-xs font-mono font-bold bg-indigo-50 border border-indigo-200 text-indigo-700 px-2 py-0.5 rounded-full">
+                  {activeFeaturesCount} / {features.length} {isAr ? 'نشط' : 'Active'}
+                </span>
+              </div>
+              <p className="text-xs text-slate-500 mt-0.5">
+                {isAr
+                  ? 'يمكنك تفعيل أو إيقاف أو حذف أي ميزة في المنصة بنقرة زر واحدة دون الحاجة لتعديل برمجي.'
+                  : 'Toggle, deactivate, or remove any core platform feature with instant live reactivity.'}
+              </p>
+            </div>
+
+            <button
+              onClick={onOpenFeaturesModal}
+              className="px-4 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs flex items-center justify-center gap-2 shadow-xs cursor-pointer"
+            >
+              <Sliders className="w-4 h-4" />
+              <span>{isAr ? 'فتح النافذة الشاملة للخصائص' : 'Open Full Feature Manager'}</span>
+            </button>
+          </div>
+
+          {/* Quick Notice */}
+          <div className="p-3.5 rounded-xl bg-indigo-50/70 border border-indigo-100 text-xs text-indigo-900 flex items-center justify-between gap-3">
+            <div className="flex items-center gap-2">
+              <CheckCircle2 className="w-4 h-4 text-indigo-600 shrink-0" />
+              <span>
+                {isAr
+                  ? 'التغييرات تطبق فوراً: إلغاء تنشيط خاصية يخفي تبويبها وأزرارها من المتجر، ويمكنك استعادتها في أي وقت.'
+                  : 'Changes take effect immediately across all interfaces, live store, and customer checkout.'}
+              </span>
+            </div>
+          </div>
+
+          {/* Features Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {features.map((feat) => {
+              const isEnabled = feat.isEnabled && !feat.isRemoved;
+
+              return (
+                <div
+                  key={feat.id}
+                  className={`p-4 rounded-xl border transition-all flex flex-col justify-between gap-3 ${
+                    feat.isRemoved
+                      ? 'bg-rose-50/30 border-rose-200 opacity-75'
+                      : isEnabled
+                      ? 'bg-white border-slate-200 shadow-2xs hover:border-slate-300'
+                      : 'bg-slate-50 border-slate-200 opacity-80'
+                  }`}
+                >
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="space-y-1">
+                      <div className="flex items-center gap-2">
+                        <span className="font-bold text-slate-900 text-sm">
+                          {isAr ? feat.nameAr : feat.name}
+                        </span>
+
+                        {feat.isRemoved ? (
+                          <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-rose-100 text-rose-800">
+                            {isAr ? 'محذوفة' : 'Removed'}
+                          </span>
+                        ) : isEnabled ? (
+                          <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800">
+                            {isAr ? 'نشطة ✓' : 'Active'}
+                          </span>
+                        ) : (
+                          <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-slate-200 text-slate-700">
+                            {isAr ? 'معطلة' : 'Disabled'}
+                          </span>
+                        )}
+                      </div>
+
+                      <p className="text-xs text-slate-500 leading-relaxed">
+                        {isAr ? feat.descriptionAr : feat.description}
+                      </p>
+                    </div>
+
+                    {/* Switch Toggle */}
+                    {!feat.isRemoved && (
+                      <button
+                        onClick={() => onToggleFeature(feat.id)}
+                        className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
+                          feat.isEnabled ? 'bg-indigo-600' : 'bg-slate-300'
+                        }`}
+                        role="switch"
+                        aria-checked={feat.isEnabled}
+                        title={feat.isEnabled ? (isAr ? 'إلغاء التنشيط' : 'Disable') : (isAr ? 'تفعيل' : 'Enable')}
+                      >
+                        <span
+                          aria-hidden="true"
+                          className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow-sm ring-0 transition duration-200 ease-in-out ${
+                            feat.isEnabled
+                              ? (isAr ? '-translate-x-5' : 'translate-x-5')
+                              : 'translate-x-0'
+                          }`}
+                        />
+                      </button>
+                    )}
+                  </div>
+
+                  {/* Bottom Action Strip */}
+                  <div className="pt-2 border-t border-slate-100 flex items-center justify-between text-xs">
+                    <span className="text-[11px] font-mono text-slate-400">
+                      ID: {feat.id}
+                    </span>
+
+                    {feat.isRemoved ? (
+                      <button
+                        onClick={() => onRestoreFeature(feat.id)}
+                        className="px-3 py-1 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs flex items-center gap-1 cursor-pointer"
+                      >
+                        <RotateCcw className="w-3 h-3" />
+                        <span>{isAr ? 'استعادة الخاصية' : 'Restore'}</span>
+                      </button>
+                    ) : (
+                      <div className="flex items-center gap-2">
+                        <button
+                          onClick={() => onToggleFeature(feat.id)}
+                          className={`px-2.5 py-1 rounded-lg font-bold text-[11px] cursor-pointer transition-colors ${
+                            feat.isEnabled
+                              ? 'bg-amber-50 text-amber-700 hover:bg-amber-100'
+                              : 'bg-emerald-50 text-emerald-700 hover:bg-emerald-100'
+                          }`}
+                        >
+                          {feat.isEnabled ? (isAr ? 'إلغاء التنشيط' : 'Deactivate') : (isAr ? 'تفعيل الخاصية' : 'Activate')}
+                        </button>
+
+                        <button
+                          onClick={() => onRemoveFeature(feat.id)}
+                          className="px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-rose-50 hover:text-rose-600 text-slate-500 font-bold text-[11px] flex items-center gap-1 cursor-pointer transition-colors"
+                          title={isAr ? 'حذف أو استبعاد من المنصة' : 'Remove from view'}
+                        >
+                          <Trash2 className="w-3 h-3" />
+                          <span>{isAr ? 'حذف' : 'Remove'}</span>
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* ─── TAB: STORE FEATURES (SELLER TOGGLES & DELETION) ─── */}
+      {activeTab === 'storeFeatures' && storeFeatures && (
+        <StoreFeaturesManager
+          storeFeatures={storeFeatures}
+          onToggleStoreFeature={onToggleStoreFeature || (() => {})}
+          onRemoveStoreFeature={onRemoveStoreFeature || (() => {})}
+          onRestoreStoreFeature={onRestoreStoreFeature || (() => {})}
+          onEnableAllStoreFeatures={onEnableAllStoreFeatures || (() => {})}
+          onResetDefaultStoreFeatures={onResetDefaultStoreFeatures || (() => {})}
+          onAddStoreFeature={onAddStoreFeature}
+          language={language}
+          onViewStore={onOpenStandaloneStore || onOpenLivePreview}
+        />
       )}
 
       {/* ─── MODAL: ADD PRODUCT ─── */}

@@ -12,6 +12,7 @@ interface SellerLoginModalProps {
   stores: Store[];
   onLoginSuccess: (user: SellerUser, storeId: string) => void;
   onSwitchToRegister: () => void;
+  isDemoLoginEnabled?: boolean;
 }
 
 export const SellerLoginModal: React.FC<SellerLoginModalProps> = ({
@@ -20,7 +21,8 @@ export const SellerLoginModal: React.FC<SellerLoginModalProps> = ({
   language,
   stores,
   onLoginSuccess,
-  onSwitchToRegister
+  onSwitchToRegister,
+  isDemoLoginEnabled = true
 }) => {
   if (!isOpen) return null;
 
@@ -112,31 +114,33 @@ export const SellerLoginModal: React.FC<SellerLoginModalProps> = ({
         </div>
 
         {/* Quick Demo Login Preset Button */}
-        <div className="p-3.5 rounded-xl bg-indigo-50 border border-indigo-100 space-y-2.5">
-          <div className="flex items-center justify-between text-xs">
-            <span className="text-indigo-900 font-bold flex items-center gap-1.5">
-              <Sparkles className="w-4 h-4 text-indigo-600" />
-              <span>{isAr ? 'حساب تجريبي فوري للتجربة' : 'Instant Demo Account'}</span>
-            </span>
-            <span className="text-[10px] bg-indigo-200/60 text-indigo-800 font-bold px-2 py-0.5 rounded-full">
-              1-Click
-            </span>
+        {isDemoLoginEnabled && (
+          <div className="p-3.5 rounded-xl bg-indigo-50 border border-indigo-100 space-y-2.5">
+            <div className="flex items-center justify-between text-xs">
+              <span className="text-indigo-900 font-bold flex items-center gap-1.5">
+                <Sparkles className="w-4 h-4 text-indigo-600" />
+                <span>{isAr ? 'حساب تجريبي فوري للتجربة' : 'Instant Demo Account'}</span>
+              </span>
+              <span className="text-[10px] bg-indigo-200/60 text-indigo-800 font-bold px-2 py-0.5 rounded-full">
+                1-Click
+              </span>
+            </div>
+
+            <p className="text-[11px] text-slate-600">
+              {isAr
+                ? `المتجر النشط: ${stores[0]?.nameAr || stores[0]?.name} (خطة ${stores[0]?.plan === 'pro' ? 'احترافية' : 'مجانية'})`
+                : `Active Store: ${stores[0]?.name} (${stores[0]?.plan.toUpperCase()} Plan)`}
+            </p>
+
+            <button
+              type="button"
+              onClick={() => handleQuickDemoLogin(stores[0])}
+              className="w-full py-2.5 px-3 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs flex items-center justify-center gap-2 transition-all active:scale-98 shadow-sm cursor-pointer"
+            >
+              <span>{isAr ? 'دخول فوري بحساب التاجر التجريبي ⚡' : 'Sign In as Demo Merchant ⚡'}</span>
+            </button>
           </div>
-
-          <p className="text-[11px] text-slate-600">
-            {isAr
-              ? `المتجر النشط: ${stores[0]?.nameAr || stores[0]?.name} (خطة ${stores[0]?.plan === 'pro' ? 'احترافية' : 'مجانية'})`
-              : `Active Store: ${stores[0]?.name} (${stores[0]?.plan.toUpperCase()} Plan)`}
-          </p>
-
-          <button
-            type="button"
-            onClick={() => handleQuickDemoLogin(stores[0])}
-            className="w-full py-2.5 px-3 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs flex items-center justify-center gap-2 transition-all active:scale-98 shadow-sm cursor-pointer"
-          >
-            <span>{isAr ? 'دخول فوري بحساب التاجر التجريبي ⚡' : 'Sign In as Demo Merchant ⚡'}</span>
-          </button>
-        </div>
+        )}
 
         {/* Traditional Form */}
         <form onSubmit={handleLoginSubmit} className="space-y-4 text-xs">

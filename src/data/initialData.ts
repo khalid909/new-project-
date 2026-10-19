@@ -1,6 +1,6 @@
 import { 
   PlanDetails, Store, Product, Order, Customer, Coupon, 
-  SellerUser, SupabaseConfig, GitHubConfig, Currency 
+  SellerUser, SupabaseConfig, GitHubConfig, Currency, PlatformFeatureItem, StoreFeatureItem 
 } from '../types';
 
 export const PLANS: PlanDetails[] = [
@@ -304,3 +304,331 @@ export const CURRENCY_RATES: Record<Currency, { rate: number; symbol: string; sy
   AED: { rate: 0.98, symbol: 'AED', symbolAr: 'د.إ' },
   EUR: { rate: 0.25, symbol: '€', symbolAr: '€' }
 };
+
+export const INITIAL_PLATFORM_FEATURES: PlatformFeatureItem[] = [
+  {
+    id: 'coupons',
+    name: 'Coupons & Promo Codes',
+    nameAr: 'نظام الكوبونات والخصومات',
+    description: 'Allow merchants to create, activate, and manage percentage and fixed discount codes.',
+    descriptionAr: 'تمكين التجار من إنشاء وإدارة أكواد التخفيض والعروض الترويجية لزيادة المبيعات.',
+    category: 'marketing',
+    isEnabled: true,
+    isRemoved: false
+  },
+  {
+    id: 'customersCRM',
+    name: 'Customer Directory CRM',
+    nameAr: 'إدارة وسجل العملاء',
+    description: 'Track customer profiles, contact numbers, order counts, and lifetime purchase values.',
+    descriptionAr: 'عرض وتتبع بيانات الزبائن ومشترياتهم السابقة وتكرار الطلب في المتجر.',
+    category: 'store',
+    isEnabled: true,
+    isRemoved: false
+  },
+  {
+    id: 'onlinePayments',
+    name: 'Online Payment Gateways (Mada & Apple Pay)',
+    nameAr: 'بوابات الدفع الإلكتروني (مدى و Apple Pay)',
+    description: 'Enable digital payments via Mada, Apple Pay, and credit cards during checkout.',
+    descriptionAr: 'تفعيل الدفع الإلكتروني المباشر بمدى و Apple Pay والبطاقات البنكية عند الشراء.',
+    category: 'checkout',
+    isEnabled: true,
+    isRemoved: false
+  },
+  {
+    id: 'invoicing',
+    name: 'Official Tax Invoicing',
+    nameAr: 'طباعة الفواتير الضريبية',
+    description: 'Generate and print detailed PDF/paper commercial invoices for fulfilled orders.',
+    descriptionAr: 'إصدار وطباعة الفواتير الرسمية وبوالص الطلبات لزبائن المتجر بضغطة زر.',
+    category: 'store',
+    isEnabled: true,
+    isRemoved: false
+  },
+  {
+    id: 'developerIntegrations',
+    name: 'Supabase & GitHub Developer Hub',
+    nameAr: 'تكامل Supabase و GitHub للمطورين',
+    description: 'Direct SQL schema export, live database sync, and repository branch management.',
+    descriptionAr: 'الربط المباشر لقواعد البيانات وتصدير كود SQL ومزامنة مستودع GitHub.',
+    category: 'tech',
+    isEnabled: true,
+    isRemoved: false
+  },
+  {
+    id: 'plansAndUpgrades',
+    name: 'Pro Subscription & Upgrades',
+    nameAr: 'ترقية الباقات والاشتراكات',
+    description: 'Allow merchants to switch between the Free Starter tier and the Pro Growth tier.',
+    descriptionAr: 'إتاحة التبديل والترقية بين الخطة المجانية والخطة الاحترافية للتجار.',
+    category: 'marketing',
+    isEnabled: true,
+    isRemoved: false
+  },
+  {
+    id: 'multiCurrency',
+    name: 'Multi-Currency Selector (SAR, USD, AED, EUR)',
+    nameAr: 'محدد وتعدد العملات',
+    description: 'Provide live conversion between Saudi Riyal, US Dollar, UAE Dirham, and Euro.',
+    descriptionAr: 'إتاحة التسعير والتحويل بين الريال السعودي والدولار والدرهم الإماراتي واليورو.',
+    category: 'checkout',
+    isEnabled: true,
+    isRemoved: false
+  },
+  {
+    id: 'shippingSettings',
+    name: 'Automated Shipping Engine',
+    nameAr: 'إعدادات الشحن والتوصيل التلقائي',
+    description: 'Customize flat shipping rates and automated free delivery thresholds.',
+    descriptionAr: 'التحكم بتكلفة الشحن الثابتة وسياسات الشحن المجاني التلقائي للطلبات.',
+    category: 'store',
+    isEnabled: true,
+    isRemoved: false
+  },
+  {
+    id: 'demoLogin',
+    name: '1-Click Quick Demo Login',
+    nameAr: 'زر الدخول التجريبي السريع',
+    description: 'Instant one-tap login for testing merchant dashboard without typing credentials.',
+    descriptionAr: 'إتاحة تسجيل الدخول الفوري للتاجر التجريبي بنقرة واحدة لتجربة المنصة فوراً.',
+    category: 'tech',
+    isEnabled: true,
+    isRemoved: false
+  },
+  {
+    id: 'stockAdjuster',
+    name: 'Quick Stock Stepper (+ / -)',
+    nameAr: 'التعديل السريع لكميات المخزون (+ / -)',
+    description: 'Instant plus/minus buttons to adjust available inventory units directly from tables.',
+    descriptionAr: 'أزرار الزيادة والنقصان الفورية لكميات المنتجات مباشرة من جدول المخزون.',
+    category: 'store',
+    isEnabled: true,
+    isRemoved: false
+  }
+];
+
+export const INITIAL_STORE_FEATURES: StoreFeatureItem[] = [
+  {
+    id: 'storeSearch',
+    name: 'Live Product Search Bar',
+    nameAr: 'شريط البحث المباشر في منتجات المتجر',
+    description: 'Enables instant live filtering of products by keyword in the storefront.',
+    descriptionAr: 'يتيح للزبائن البحث الفوري والفلترة بالاسم والتفاصيل داخل المتجر.',
+    category: 'storefront',
+    isEnabled: true,
+    isRemoved: false
+  },
+  {
+    id: 'cartAndCheckout',
+    name: 'Customer Cart & Instant Checkout Drawer',
+    nameAr: 'سلة المشتريات وإتمام الطلب للزبائن',
+    description: 'Floating cart button, item counters, address collection, and checkout workflow.',
+    descriptionAr: 'زر السلة العائم، عداد المنتجات، وتجميع عنوان الشحن وإتمام الشراء.',
+    category: 'checkout',
+    isEnabled: true,
+    isRemoved: false
+  },
+  {
+    id: 'discountCoupons',
+    name: 'Discount Coupon Applicator',
+    nameAr: 'كوبونات وقسائم الخصم في السلة',
+    description: 'Input box in checkout allowing customers to apply promotional codes.',
+    descriptionAr: 'حقل إدخال أكواد الخصم الترويجية لحساب التخفيضات بالسلة.',
+    category: 'marketing',
+    isEnabled: true,
+    isRemoved: false
+  },
+  {
+    id: 'customerReviews',
+    name: 'Customer Reviews & Star Ratings',
+    nameAr: 'تقييمات ومراجعات الزبائن (النجوم)',
+    description: 'Display 4.9-star ratings and customer trust reviews on product cards.',
+    descriptionAr: 'إظهار النجوم الذهبية وتجارب الزبائن الموثوقة على بطاقات المنتجات.',
+    category: 'customer',
+    isEnabled: true,
+    isRemoved: false
+  },
+  {
+    id: 'topAnnouncement',
+    name: 'Top Store Promotional Announcement Bar',
+    nameAr: 'شريط الإعلانات الترويجي العلوي في المتجر',
+    description: 'Sticky announcement banner highlighting discounts, store guarantees, and updates.',
+    descriptionAr: 'شريط ملون بأعلى المتجر يبرز العروض الحصرية وضمانات المتجر.',
+    category: 'storefront',
+    isEnabled: true,
+    isRemoved: false
+  },
+  {
+    id: 'orderTracking',
+    name: 'Customer Order Tracking System',
+    nameAr: 'نظام تتبع حالة الطلبات والشحنات',
+    description: 'Interactive tracking modal for customers to query live fulfillment status.',
+    descriptionAr: 'نافذة تتبع فورية للزبائن للتحقق من خط سير وتجهيز شحناتهم.',
+    category: 'customer',
+    isEnabled: true,
+    isRemoved: false
+  },
+  {
+    id: 'shippingThreshold',
+    name: 'Free Shipping Incentive Indicator',
+    nameAr: 'حافز الشحن المجاني التلقائي',
+    description: 'Automatic free shipping calculation when cart reaches the threshold.',
+    descriptionAr: 'حساب وتطبيق الشحن المجاني التلقائي عندما يتجاوز الطلب الحد الأدنى.',
+    category: 'checkout',
+    isEnabled: true,
+    isRemoved: false
+  },
+  {
+    id: 'onlinePayments',
+    name: 'Digital Payment Gateways (Mada & Apple Pay)',
+    nameAr: 'بوابات الدفع الإلكتروني (مدى و Apple Pay)',
+    description: 'Accept instant payments via Apple Pay, Mada, and bank cards.',
+    descriptionAr: 'قبول الدفع الرقمي الفوري عبر بطاقات مدى و Apple Pay والفيزا.',
+    category: 'checkout',
+    isEnabled: true,
+    isRemoved: false
+  },
+  {
+    id: 'cashOnDelivery',
+    name: 'Cash on Delivery (COD)',
+    nameAr: 'خيار الدفع عند الاستلام',
+    description: 'Allow customers to pay cash directly upon receiving the package.',
+    descriptionAr: 'إتاحة خيار دفع المبلغ نقداً لشركة الشحن عند تسليم الطرد للزبون.',
+    category: 'checkout',
+    isEnabled: true,
+    isRemoved: false
+  },
+  {
+    id: 'stockIndicator',
+    name: 'Remaining Stock Counter Badge',
+    nameAr: 'عرض كمية المخزون المتبقية على المنتجات',
+    description: 'Displays remaining stock badge (e.g. 5 in stock) to drive urgency.',
+    descriptionAr: 'إظهار عدد القطع المتبقية بالمنتج لخلق دافع الشراء السريع.',
+    category: 'storefront',
+    isEnabled: true,
+    isRemoved: false
+  },
+  {
+    id: 'quickView',
+    name: 'Product Quick View Modal',
+    nameAr: 'المعاينة السريعة للمنتج (Quick View)',
+    description: 'Popup preview modal allowing customers to inspect product details without leaving.',
+    descriptionAr: 'نافذة عرض تفاصيل المنتج السريعة والصور بضغطة زر دون مغادرة الصفحة.',
+    category: 'storefront',
+    isEnabled: true,
+    isRemoved: false
+  },
+  {
+    id: 'returnGuarantee',
+    name: '14-Day Return Guarantee Badge',
+    nameAr: 'شارة ضمان الاسترجاع والاستبدال 14 يوماً',
+    description: 'Displays easy return & buyer protection guarantees on the storefront.',
+    descriptionAr: 'إبراز شارة سياسة الاسترجاع السهلة لتعزيز ثقة المشتري.',
+    category: 'storefront',
+    isEnabled: true,
+    isRemoved: false
+  },
+  {
+    id: 'invoicePrinting',
+    name: 'Commercial Invoice Printing',
+    nameAr: 'إصدار وطباعة الفاتورة التجارية للزبائن',
+    description: 'Printable receipt and order confirmation slip upon placing the order.',
+    descriptionAr: 'إصدار وطباعة فاتورة الشراء التفصيلية بعد إتمام الطلب مباشرة.',
+    category: 'customer',
+    isEnabled: true,
+    isRemoved: false
+  },
+  {
+    id: 'buyerCurrency',
+    name: 'Buyer Currency Selector',
+    nameAr: 'مبدّل عملة الشراء للزبائن (SAR, USD, AED, EUR)',
+    description: 'Allows international customers to view prices in their preferred currency.',
+    descriptionAr: 'تمكين الزبائن من تحويل أسعار المتجر لعملتهم المفضلة.',
+    category: 'checkout',
+    isEnabled: true,
+    isRemoved: false
+  },
+  {
+    id: 'storeFooterLinks',
+    name: 'Store Legal & Policy Footer',
+    nameAr: 'روابط السياسات والرقم الضريبي بأسفل المتجر',
+    description: 'Displays return policy, terms, privacy, tax registration, and support contact.',
+    descriptionAr: 'عرض الرقم الضريبي، سياسة الخصوصية، وشروط الاسترجاع بأسفل صفحة المتجر.',
+    category: 'storefront',
+    isEnabled: true,
+    isRemoved: false
+  },
+  {
+    id: 'shippingFlat',
+    name: 'Flat Rate Delivery Calculation',
+    nameAr: 'تكلفة الشحن الثابتة للطلبات',
+    description: 'Applies standard flat shipping fee at checkout when free shipping threshold is not met.',
+    descriptionAr: 'حساب وإضافة تكلفة التوصيل الثابتة عند إتمام الطلب في حال لم يبلغ الحد الأدنى.',
+    category: 'checkout',
+    isEnabled: true,
+    isRemoved: false
+  },
+  {
+    id: 'taxCalculation',
+    name: 'VAT / Tax Calculation (15%)',
+    nameAr: 'حساب ضريبة القيمة المضافة (15%)',
+    description: 'Calculates and displays official VAT breakdown on the shopping cart and checkout invoice.',
+    descriptionAr: 'حساب وتفصيل نسبة ضريبة القيمة المضافة في ملخص سلة الشراء والفاتورة.',
+    category: 'checkout',
+    isEnabled: true,
+    isRemoved: false
+  },
+  {
+    id: 'bankPayouts',
+    name: 'Bank IBAN Account Payouts',
+    nameAr: 'الحساب البنكي ورقم الآيبان (IBAN)',
+    description: 'Direct IBAN account configuration for merchant revenue payouts and bank deposits.',
+    descriptionAr: 'تفعيل إعدادات الحساب البنكي والآيبان لإيداع إيرادات مبيعات المتجر.',
+    category: 'checkout',
+    isEnabled: true,
+    isRemoved: false
+  },
+  {
+    id: 'whatsappChat',
+    name: 'WhatsApp Direct Customer Support Button',
+    nameAr: 'زر محادثة الواتساب المباشرة للزبائن',
+    description: 'Floating WhatsApp quick action button enabling shoppers to chat directly with store support.',
+    descriptionAr: 'زر واتساب عائم يتيح لزبائن المتجر بدء محادثة فورية مع خدمة العملاء.',
+    category: 'customer',
+    isEnabled: true,
+    isRemoved: false
+  },
+  {
+    id: 'maintenanceMode',
+    name: 'Store Maintenance Mode',
+    nameAr: 'وضع الصيانة المؤقت للمتجر',
+    description: 'Temporarily pauses storefront sales with a friendly maintenance banner while updating inventory.',
+    descriptionAr: 'إيقاف استقبال طلبات الشراء مؤقتاً وعرض لافتة تحديث المخزون للزبائن.',
+    category: 'storefront',
+    isEnabled: false, // Default disabled (store is active)
+    isRemoved: false
+  },
+  {
+    id: 'welcomeDiscount',
+    name: 'New Shopper Welcome Discount Card',
+    nameAr: 'بطاقة الخصم الترحيبي للزبائن الجدد',
+    description: 'Displays a prominent promo box in the store hero offering coupon code WELCOME10.',
+    descriptionAr: 'إظهار بطاقة كود الخصم الترحيبي (WELCOME10) ببانر المتجر لجذب الزوار.',
+    category: 'marketing',
+    isEnabled: true,
+    isRemoved: false
+  },
+  {
+    id: 'instantOrderSms',
+    name: 'Instant Order Confirmation & Receipt',
+    nameAr: 'إشعار تأكيد الطلب الفوري وتفاصيل الشحنة',
+    description: 'Instant on-screen invoice summary and SMS receipt alert after completing payment.',
+    descriptionAr: 'إظهار شاشة تأكيد فورية للطلب مع رقم التتبع وتفاصيل الشحن والفاتورة.',
+    category: 'customer',
+    isEnabled: true,
+    isRemoved: false
+  }
+];
+
+

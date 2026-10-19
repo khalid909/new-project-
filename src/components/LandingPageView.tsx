@@ -115,6 +115,12 @@ export const LandingPageView: React.FC<LandingPageViewProps> = ({
         : '0% sales commissions! 100% of your earnings go straight to your registered payout account.'
     },
     {
+      q: isAr ? 'هل المتجر الذي أنشئه يكون مستقلاً ومنفصلاً عن المنصة؟' : 'Is my store completely independent of the platform?',
+      a: isAr
+        ? 'نعم، 100%! بمجرد تسجيل متجرك، يتم فصله بالكامل عن المنصة. يحصل متجرك على نطاق مستقل (subdomain أو دومين مخصص) وهوية بصرية وعربة تسوق خاصة به، ولن تظهر للزبائن أي عناصر من منصة أفانتو.'
+        : 'Yes, 100%! Your store is completely separated from the platform with its own domain, branding, catalog, and checkout. Customers interact only with your independent store.'
+    },
+    {
       q: isAr ? 'كيف يتم الربط مع Supabase و GitHub؟' : 'How does Supabase & GitHub integration work?',
       a: isAr
         ? 'توفر لوحة التحكم قسماً خاصاً للمطورين يتيح لك فحص الاتصال الحي وتصدير مخطط قاعدة البيانات (PostgreSQL SQL Schema) ومزامنة الفروع مع GitHub بنقرة واحدة.'
@@ -180,10 +186,12 @@ export const LandingPageView: React.FC<LandingPageViewProps> = ({
 
           <button
             onClick={onOpenLivePreview}
-            className="px-6 py-3.5 rounded-xl font-bold text-slate-700 bg-slate-100 hover:bg-slate-200 text-xs sm:text-sm transition-all cursor-pointer flex items-center gap-2"
+            className="px-6 py-3.5 rounded-xl font-bold text-emerald-800 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 text-xs sm:text-sm transition-all cursor-pointer flex items-center gap-2 shadow-2xs"
+            title={isAr ? 'فتح المتجر المستقل كصفحة منفصلة بالكامل عن المنصة' : 'Open independent store page'}
           >
-            <ExternalLink className="w-4 h-4 text-slate-500" />
-            <span>{isAr ? 'معاينة متجر تجريبي' : 'Live Store Demo'}</span>
+            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+            <span>{isAr ? 'زيارة المتجر المستقل (مفصول 100%)' : 'Visit Independent Store'}</span>
+            <ExternalLink className="w-3.5 h-3.5 text-emerald-600" />
           </button>
         </div>
 

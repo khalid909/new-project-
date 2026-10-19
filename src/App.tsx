@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { 
   Currency, Language, Store, Product, Order, Customer, Coupon, 
-  PlanType, SupabaseConfig, GitHubConfig, SellerUser 
+  PlanType, SupabaseConfig, GitHubConfig, SellerUser, PlatformFeatureItem, StoreFeatureItem 
 } from './types';
 import { 
   INITIAL_STORE, INITIAL_PRODUCTS, INITIAL_ORDERS, 
   INITIAL_CUSTOMERS, INITIAL_COUPONS, INITIAL_SELLER_USER, 
-  INITIAL_SUPABASE_CONFIG, INITIAL_GITHUB_CONFIG, PLANS 
+  INITIAL_SUPABASE_CONFIG, INITIAL_GITHUB_CONFIG, PLANS, 
+  INITIAL_PLATFORM_FEATURES, INITIAL_STORE_FEATURES 
 } from './data/initialData';
 import { LandingPageView } from './components/LandingPageView';
 import { RegisterStoreView } from './components/RegisterStoreView';
@@ -14,35 +15,126 @@ import { StoreDashboardView } from './components/StoreDashboardView';
 import { PlansPricingView } from './components/PlansPricingView';
 import { SellerLoginModal } from './components/SellerLoginModal';
 import { PublicStoreView } from './components/PublicStoreView';
+import { PlatformFeaturesModal } from './components/PlatformFeaturesModal';
 import { Footer } from './components/Footer';
 import { 
   Store as StoreIcon, Plus, ExternalLink, Globe, 
   Layers, ShieldCheck, ChevronDown, Check, LogIn, LogOut, User,
-  BarChart2, Sparkles
+  BarChart2, Sparkles, Sliders, ShoppingBag, Copy, ArrowRight, ArrowLeft
 } from 'lucide-react';
 
 export default function App() {
   const [language, setLanguage] = useState<Language>('ar');
   const [currency, setCurrency] = useState<Currency>('SAR');
   
-  // Navigation mode: 'landing' (Normal Website Homepage) | 'dashboard' | 'register' | 'pricing'
-  const [appMode, setAppMode] = useState<'landing' | 'dashboard' | 'register' | 'pricing'>('landing');
+  // Navigation mode: 
+  // 'landing' (SaaS Platform Homepage) 
+  // 'dashboard' (Seller Merchant Admin) 
+  // 'register' (Register New Store) 
+  // 'pricing' (SaaS Platform Plans)
+  // 'store' (100% Independent Standalone Storefront, completely separated from the platform)
+  const [appMode, setAppMode] = useState<'landing' | 'dashboard' | 'register' | 'pricing' | 'store'>('landing');
   
   // Auth State
-  const [currentUser, setCurrentUser] = useState<SellerUser | null>(INITIAL_SELLER_USER);
+  const [currentUser, setCurrentUser] = useState<SellerUser | null>(() => {
+    try {
+      const saved = localStorage.getItem('avanto_current_user');
+      if (saved) return JSON.parse(saved);
+    } catch (e) {}
+    return INITIAL_SELLER_USER;
+  });
   const [isLoginModalOpen, setIsLoginModalOpen] = useState<boolean>(false);
 
+  // Platform Modular Features State (Active / Inactive / Removed)
+  const [features, setFeatures] = useState<PlatformFeatureItem[]>(() => {
+    try {
+      const saved = localStorage.getItem('avanto_platform_features');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      }
+    } catch (e) {}
+    return INITIAL_PLATFORM_FEATURES;
+  });
+  const [isFeaturesModalOpen, setIsFeaturesModalOpen] = useState<boolean>(false);
+
+  // Seller Store Features & Settings State (Active / Inactive / Removed / Custom)
+  const [storeFeatures, setStoreFeatures] = useState<StoreFeatureItem[]>(() => {
+    try {
+      const saved = localStorage.getItem('avanto_store_features');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      }
+    } catch (e) {}
+    return INITIAL_STORE_FEATURES;
+  });
+
   // Stores State
-  const [stores, setStores] = useState<Store[]>([INITIAL_STORE]);
-  const [activeStoreId, setActiveStoreId] = useState<string>(INITIAL_STORE.id);
+  const [stores, setStores] = useState<Store[]>(() => {
+    try {
+      const saved = localStorage.getItem('avanto_stores');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      }
+    } catch (e) {}
+    return [INITIAL_STORE];
+  });
+  const [activeStoreId, setActiveStoreId] = useState<string>(() => {
+    try {
+      const saved = localStorage.getItem('avanto_active_store_id');
+      if (saved) return saved;
+    } catch (e) {}
+    return INITIAL_STORE.id;
+  });
   
   // Products, Orders, Customers, Coupons
-  const [products, setProducts] = useState<Product[]>(INITIAL_PRODUCTS);
-  const [orders, setOrders] = useState<Order[]>(INITIAL_ORDERS);
-  const [customers, setCustomers] = useState<Customer[]>(INITIAL_CUSTOMERS);
-  const [coupons, setCoupons] = useState<Coupon[]>(INITIAL_COUPONS);
+  const [products, setProducts] = useState<Product[]>(() => {
+    try {
+      const saved = localStorage.getItem('avanto_products');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      }
+    } catch (e) {}
+    return INITIAL_PRODUCTS;
+  });
 
-  // Live Customer Store Preview Modal
+  const [orders, setOrders] = useState<Order[]>(() => {
+    try {
+      const saved = localStorage.getItem('avanto_orders');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      }
+    } catch (e) {}
+    return INITIAL_ORDERS;
+  });
+
+  const [customers, setCustomers] = useState<Customer[]>(() => {
+    try {
+      const saved = localStorage.getItem('avanto_customers');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      }
+    } catch (e) {}
+    return INITIAL_CUSTOMERS;
+  });
+
+  const [coupons, setCoupons] = useState<Coupon[]>(() => {
+    try {
+      const saved = localStorage.getItem('avanto_coupons');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      }
+    } catch (e) {}
+    return INITIAL_COUPONS;
+  });
+
+  // Live Customer Store Preview Modal (Dialog Mode)
   const [previewingStore, setPreviewingStore] = useState<Store | null>(null);
 
   // Supabase & GitHub State
@@ -50,7 +142,60 @@ export default function App() {
   const [gitHubConfig, setGitHubConfig] = useState<GitHubConfig>(INITIAL_GITHUB_CONFIG);
 
   const isAr = language === 'ar';
-  const activeStore = stores.find((s) => s.id === activeStoreId) || stores[0];
+  const activeStore = stores.find((s) => s.id === activeStoreId) || stores[0] || INITIAL_STORE;
+
+  // ─── LocalStorage Synchronization ───
+  useEffect(() => {
+    try {
+      localStorage.setItem('avanto_stores', JSON.stringify(stores));
+    } catch (e) {}
+  }, [stores]);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem('avanto_active_store_id', activeStoreId);
+    } catch (e) {}
+  }, [activeStoreId]);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem('avanto_platform_features', JSON.stringify(features));
+    } catch (e) {}
+  }, [features]);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem('avanto_store_features', JSON.stringify(storeFeatures));
+    } catch (e) {}
+  }, [storeFeatures]);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem('avanto_products', JSON.stringify(products));
+    } catch (e) {}
+  }, [products]);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem('avanto_orders', JSON.stringify(orders));
+    } catch (e) {}
+  }, [orders]);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem('avanto_coupons', JSON.stringify(coupons));
+    } catch (e) {}
+  }, [coupons]);
+
+  useEffect(() => {
+    try {
+      if (currentUser) {
+        localStorage.setItem('avanto_current_user', JSON.stringify(currentUser));
+      } else {
+        localStorage.removeItem('avanto_current_user');
+      }
+    } catch (e) {}
+  }, [currentUser]);
 
   // Sync HTML dir and lang
   useEffect(() => {
@@ -58,11 +203,128 @@ export default function App() {
     document.documentElement.lang = language;
   }, [language]);
 
+  // Check URL parameters for cross-browser direct navigation (?mode=store, ?mode=dashboard, ?mode=landing, ?store=slug)
+  useEffect(() => {
+    try {
+      const urlParams = new URLSearchParams(window.location.search);
+      const modeParam = urlParams.get('mode') || urlParams.get('view');
+      const storeSlug = urlParams.get('store');
+
+      if (modeParam === 'store' || window.location.hash === '#store') {
+        setAppMode('store');
+      } else if (modeParam === 'dashboard' || window.location.hash === '#dashboard') {
+        setAppMode('dashboard');
+      } else if (modeParam === 'register' || window.location.hash === '#register') {
+        setAppMode('register');
+      } else if (modeParam === 'pricing' || window.location.hash === '#pricing') {
+        setAppMode('pricing');
+      } else if (modeParam === 'landing' || modeParam === 'platform') {
+        setAppMode('landing');
+      }
+
+      if (storeSlug) {
+        const found = stores.find((s) => s.slug === storeSlug || s.settings.subdomain.startsWith(storeSlug));
+        if (found) {
+          setActiveStoreId(found.id);
+          setAppMode('store');
+        } else if (stores.length > 0) {
+          setActiveStoreId(stores[0].id);
+          setAppMode('store');
+        }
+      }
+    } catch (e) {
+      // safe fallback for iframes and cross-origin environments
+    }
+  }, [stores]);
+
+  // Mode Switcher that keeps URL query in sync
+  const switchMode = (newMode: 'landing' | 'dashboard' | 'register' | 'pricing' | 'store') => {
+    setAppMode(newMode);
+    try {
+      const url = new URL(window.location.href);
+      if (newMode === 'landing') {
+        url.searchParams.delete('mode');
+        url.searchParams.delete('store');
+      } else if (newMode === 'store') {
+        url.searchParams.set('mode', 'store');
+        if (activeStore?.slug) url.searchParams.set('store', activeStore.slug);
+      } else {
+        url.searchParams.set('mode', newMode);
+        url.searchParams.delete('store');
+      }
+      window.history.replaceState({}, '', url.toString());
+    } catch (e) {}
+  };
+
+  // ─── Platform Feature Helpers ───
+  const isFeatureActive = (id: string) => {
+    const feat = features.find((f) => f.id === id);
+    return feat ? feat.isEnabled && !feat.isRemoved : true;
+  };
+  const activeFeaturesCount = features.filter((f) => f.isEnabled && !f.isRemoved).length;
+
+  const handleToggleFeature = (featureId: string) => {
+    setFeatures((prev) =>
+      prev.map((f) => (f.id === featureId ? { ...f, isEnabled: !f.isEnabled } : f))
+    );
+  };
+
+  const handleRemoveFeature = (featureId: string) => {
+    setFeatures((prev) =>
+      prev.map((f) => (f.id === featureId ? { ...f, isRemoved: true, isEnabled: false } : f))
+    );
+  };
+
+  const handleRestoreFeature = (featureId: string) => {
+    setFeatures((prev) =>
+      prev.map((f) => (f.id === featureId ? { ...f, isRemoved: false, isEnabled: true } : f))
+    );
+  };
+
+  const handleEnableAllFeatures = () => {
+    setFeatures((prev) => prev.map((f) => ({ ...f, isEnabled: true, isRemoved: false })));
+  };
+
+  const handleResetDefaultFeatures = () => {
+    setFeatures(INITIAL_PLATFORM_FEATURES);
+  };
+
+  // ─── Seller Store Features & Settings Handlers ───
+  const handleToggleStoreFeature = (featureId: string) => {
+    setStoreFeatures((prev) =>
+      prev.map((f) => (f.id === featureId ? { ...f, isEnabled: !f.isEnabled } : f))
+    );
+  };
+
+  const handleRemoveStoreFeature = (featureId: string) => {
+    setStoreFeatures((prev) =>
+      prev.map((f) => (f.id === featureId ? { ...f, isRemoved: true, isEnabled: false } : f))
+    );
+  };
+
+  const handleRestoreStoreFeature = (featureId: string) => {
+    setStoreFeatures((prev) =>
+      prev.map((f) => (f.id === featureId ? { ...f, isRemoved: false, isEnabled: true } : f))
+    );
+  };
+
+  const handleEnableAllStoreFeatures = () => {
+    setStoreFeatures((prev) => prev.map((f) => ({ ...f, isEnabled: true, isRemoved: false })));
+  };
+
+  const handleResetDefaultStoreFeatures = () => {
+    setStoreFeatures(INITIAL_STORE_FEATURES);
+  };
+
+  const handleAddStoreFeature = (newFeature: StoreFeatureItem) => {
+    setStoreFeatures((prev) => [newFeature, ...prev]);
+  };
+
   // Auth Handlers
   const handleLoginSuccess = (user: SellerUser, storeId: string) => {
     setCurrentUser(user);
     setActiveStoreId(storeId);
-    setAppMode('dashboard');
+    switchMode('dashboard');
   };
 
   const handleLogout = () => {
@@ -71,7 +333,7 @@ export default function App() {
   };
 
   // Handler: Register New Store
-  const handleRegisterSuccess = (newStore: Store) => {
+  const handleRegisterSuccess = (newStore: Store, targetMode: 'store' | 'dashboard' = 'store') => {
     setStores((prev) => [newStore, ...prev]);
     setActiveStoreId(newStore.id);
     const seller: SellerUser = {
@@ -81,7 +343,7 @@ export default function App() {
       storeId: newStore.id
     };
     setCurrentUser(seller);
-    setAppMode('dashboard');
+    switchMode(targetMode);
   };
 
   // Handler: Update Store Settings
@@ -187,6 +449,31 @@ export default function App() {
     });
   };
 
+  // ══════════════════════════════════════════════════════════════════════
+  // 100% INDEPENDENT STANDALONE STORE MODE:
+  // When in 'store' mode, the store is completely isolated from the platform!
+  // No Avanto Navbar, no Avanto Footer, pure merchant storefront!
+  // Has a prominent top switcher button to return to the SaaS platform anytime.
+  // ══════════════════════════════════════════════════════════════════════
+  if (appMode === 'store') {
+    return (
+      <div className="min-h-screen">
+        <PublicStoreView
+          store={activeStore}
+          products={products}
+          language={language}
+          currency={currency}
+          storeFeatures={storeFeatures}
+          isStandalonePage={true}
+          onBackToDashboard={() => switchMode('dashboard')}
+          onBackToPlatform={() => switchMode('landing')}
+          onNewCustomerOrder={handleNewCustomerOrder}
+          isOnlinePaymentsEnabled={isFeatureActive('onlinePayments')}
+        />
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen flex flex-col bg-[#F8FAFC] text-slate-800 selection:bg-indigo-100 selection:text-indigo-900 transition-colors">
       
@@ -200,7 +487,7 @@ export default function App() {
               
               {/* Brand Logo */}
               <button
-                onClick={() => setAppMode('landing')}
+                onClick={() => switchMode('landing')}
                 className="flex items-center gap-3 text-start group focus:outline-none cursor-pointer"
               >
                 <div className="w-10 h-10 rounded-xl bg-indigo-600 flex items-center justify-center shadow-sm shadow-indigo-600/25 group-hover:scale-105 transition-all text-white font-extrabold text-xl">
@@ -224,7 +511,7 @@ export default function App() {
               {/* Normal Website Navigation Links */}
               <nav className="hidden md:flex items-center gap-1 text-xs font-bold text-slate-600">
                 <button
-                  onClick={() => setAppMode('landing')}
+                  onClick={() => switchMode('landing')}
                   className={`px-3 py-2 rounded-lg transition-colors cursor-pointer ${
                     appMode === 'landing' ? 'text-indigo-600 bg-indigo-50/70 font-extrabold' : 'hover:text-slate-900 hover:bg-slate-50'
                   }`}
@@ -233,7 +520,7 @@ export default function App() {
                 </button>
 
                 <button
-                  onClick={() => setAppMode('dashboard')}
+                  onClick={() => switchMode('dashboard')}
                   className={`px-3 py-2 rounded-lg transition-colors cursor-pointer ${
                     appMode === 'dashboard' ? 'text-indigo-600 bg-indigo-50/70 font-extrabold' : 'hover:text-slate-900 hover:bg-slate-50'
                   }`}
@@ -241,125 +528,159 @@ export default function App() {
                   {isAr ? 'لوحة تحكم المتجر' : 'Dashboard'}
                 </button>
 
-                <button
-                  onClick={() => setAppMode('pricing')}
-                  className={`px-3 py-2 rounded-lg transition-colors cursor-pointer ${
-                    appMode === 'pricing' ? 'text-indigo-600 bg-indigo-50/70 font-extrabold' : 'hover:text-slate-900 hover:bg-slate-50'
-                  }`}
-                >
-                  {isAr ? 'الباقات والأسعار' : 'Pricing'}
-                </button>
+                {isFeatureActive('plansAndUpgrades') && (
+                  <button
+                    onClick={() => switchMode('pricing')}
+                    className={`px-3 py-2 rounded-lg transition-colors cursor-pointer ${
+                      appMode === 'pricing' ? 'text-indigo-600 bg-indigo-50/70 font-extrabold' : 'hover:text-slate-900 hover:bg-slate-50'
+                    }`}
+                  >
+                    {isAr ? 'الباقات والأسعار' : 'Pricing'}
+                  </button>
+                )}
 
+                {/* Independent Standalone Store Direct Access Button */}
                 <button
-                  onClick={() => setPreviewingStore(activeStore)}
-                  className="px-3 py-2 rounded-lg text-slate-600 hover:text-indigo-600 hover:bg-slate-50 transition-colors flex items-center gap-1 cursor-pointer"
+                  onClick={() => switchMode('store')}
+                  className="px-3 py-2 rounded-lg text-emerald-700 bg-emerald-50 hover:bg-emerald-100/80 border border-emerald-200/80 transition-colors flex items-center gap-1.5 cursor-pointer font-bold shadow-2xs"
+                  title={isAr ? 'فتح المتجر المستقل كصفحة مستقلة بالكامل بدون عناصر المنصة' : 'Open 100% independent standalone store'}
                 >
-                  <span>{isAr ? 'متجر تجريبي حي' : 'Demo Store'}</span>
-                  <ExternalLink className="w-3 h-3 text-slate-400" />
+                  <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                  <span>{isAr ? 'المتجر المستقل' : 'Independent Store'}</span>
+                  <ExternalLink className="w-3 h-3 text-emerald-600" />
                 </button>
               </nav>
 
             </div>
 
-            {/* Right: Currency, Language & CTA Actions */}
-            <div className="flex items-center gap-2.5">
+            {/* Right: Feature Manager Trigger, Currency, Language & CTA Actions */}
+            <div className="flex items-center gap-2.5 sm:gap-3">
               
-              {/* Currency Selector */}
-              <select
-                value={currency}
-                onChange={(e) => setCurrency(e.target.value as Currency)}
-                className="bg-slate-50 border border-slate-200 text-xs font-bold rounded-lg px-2.5 py-2 text-slate-700 hover:border-slate-300 focus:outline-none focus:border-indigo-600 cursor-pointer"
-                aria-label="Currency"
+              {/* Feature Manager Trigger Button (Controlled by button in header) */}
+              <button
+                onClick={() => setIsFeaturesModalOpen(true)}
+                className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200/90 text-xs font-bold transition-all cursor-pointer shadow-2xs"
+                title={isAr ? 'التحكم في تفعيل أو حذف خصائص المنصة عبر زر' : 'Platform Features Manager'}
               >
-                <option value="SAR">SAR (ر.س)</option>
-                <option value="USD">USD ($)</option>
-                <option value="AED">AED (د.إ)</option>
-                <option value="EUR">EUR (€)</option>
-              </select>
+                <Sliders className="w-3.5 h-3.5 text-indigo-600" />
+                <span className="hidden lg:inline">{isAr ? 'خصائص المنصة' : 'Features'}</span>
+                <span className="w-5 h-5 rounded-full bg-indigo-600 text-white font-mono text-[10px] font-bold flex items-center justify-center">
+                  {activeFeaturesCount}
+                </span>
+              </button>
+
+              {/* Currency Selector */}
+              <div className="relative">
+                <select
+                  value={currency}
+                  onChange={(e) => setCurrency(e.target.value as Currency)}
+                  className="bg-slate-100 hover:bg-slate-200/80 border border-slate-200 text-xs font-bold rounded-xl px-2.5 py-2 text-slate-700 focus:outline-none focus:border-indigo-600 cursor-pointer transition-colors"
+                  aria-label="Currency"
+                >
+                  <option value="SAR">ر.س (SAR)</option>
+                  <option value="USD">$ (USD)</option>
+                  <option value="AED">د.إ (AED)</option>
+                  <option value="EUR">€ (EUR)</option>
+                </select>
+              </div>
 
               {/* Language Switcher */}
               <button
                 onClick={() => setLanguage(language === 'ar' ? 'en' : 'ar')}
-                className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-slate-50 border border-slate-200 text-xs font-bold text-slate-700 hover:text-indigo-600 hover:border-slate-300 transition-colors cursor-pointer"
-                title="Toggle language"
+                className="px-2.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200/80 border border-slate-200 text-xs font-bold text-slate-700 transition-colors cursor-pointer"
+                title={isAr ? 'Switch to English' : 'التحويل إلى العربية'}
               >
-                <Globe className="w-3.5 h-3.5 text-slate-500" />
-                <span>{language === 'ar' ? 'English' : 'عربي'}</span>
+                {language === 'ar' ? 'EN' : 'العربية'}
               </button>
 
-              {/* Active Store Switcher (if in dashboard) */}
-              {appMode === 'dashboard' && currentUser && (
-                <div className="hidden lg:flex items-center gap-1.5 ps-2 border-s border-slate-200">
-                  <select
-                    value={activeStoreId}
-                    onChange={(e) => setActiveStoreId(e.target.value)}
-                    className="bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-2 text-xs font-bold text-slate-800 focus:outline-none focus:border-indigo-600 cursor-pointer max-w-[170px] truncate"
-                    aria-label="Switch active store"
-                  >
-                    {stores.map((s) => (
-                      <option key={s.id} value={s.id}>
-                        {isAr ? s.nameAr : s.name} ({s.plan.toUpperCase()})
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              )}
-
-              {/* User / Action Buttons */}
+              {/* Auth or Dashboard CTA */}
               {currentUser ? (
                 <div className="flex items-center gap-2">
                   <button
-                    onClick={() => setAppMode('dashboard')}
-                    className="hidden sm:flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-slate-100 hover:bg-slate-200 text-xs font-bold text-slate-800 transition-colors cursor-pointer"
+                    onClick={() => switchMode('dashboard')}
+                    className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-bold transition-all cursor-pointer border border-slate-200"
                   >
-                    <BarChart2 className="w-3.5 h-3.5 text-indigo-600" />
-                    <span>{isAr ? 'لوحة التحكم' : 'Dashboard'}</span>
+                    <User className="w-3.5 h-3.5 text-indigo-600" />
+                    <span className="hidden sm:inline">{currentUser.name.split(' ')[0]}</span>
                   </button>
-
                   <button
-                    onClick={() => setAppMode('register')}
-                    className="flex items-center gap-1.5 px-4 py-2 text-xs font-bold text-white bg-indigo-600 hover:bg-indigo-700 rounded-lg shadow-sm shadow-indigo-600/20 transition-all active:scale-98 cursor-pointer"
+                    onClick={handleLogout}
+                    className="p-2 rounded-xl bg-slate-100 hover:bg-rose-50 hover:text-rose-600 text-slate-500 transition-colors cursor-pointer"
+                    title={isAr ? 'تسجيل الخروج' : 'Logout'}
                   >
-                    <Plus className="w-3.5 h-3.5" />
-                    <span>{isAr ? 'متجر جديد' : 'New Store'}</span>
+                    <LogOut className="w-3.5 h-3.5" />
                   </button>
                 </div>
               ) : (
-                <div className="flex items-center gap-2">
-                  <button
-                    onClick={() => setIsLoginModalOpen(true)}
-                    className="flex items-center gap-1.5 px-3.5 py-2 text-xs font-bold text-slate-700 bg-white hover:bg-slate-50 border border-slate-200 rounded-lg shadow-2xs transition-colors cursor-pointer"
-                  >
-                    <LogIn className="w-3.5 h-3.5 text-indigo-600" />
-                    <span>{isAr ? 'تسجيل الدخول' : 'Sign In'}</span>
-                  </button>
-
-                  <button
-                    onClick={() => setAppMode('register')}
-                    className="flex items-center gap-1.5 px-4 py-2 text-xs font-bold text-white bg-indigo-600 hover:bg-indigo-700 rounded-lg shadow-sm shadow-indigo-600/20 transition-all active:scale-98 cursor-pointer"
-                  >
-                    <Plus className="w-3.5 h-3.5" />
-                    <span>{isAr ? 'ابدأ مجاناً' : 'Start Free'}</span>
-                  </button>
-                </div>
+                <button
+                  onClick={() => setIsLoginModalOpen(true)}
+                  className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-bold transition-all cursor-pointer"
+                >
+                  <LogIn className="w-3.5 h-3.5" />
+                  <span className="hidden sm:inline">{isAr ? 'دخول التاجر' : 'Login'}</span>
+                </button>
               )}
+
+              {/* Start New Store CTA */}
+              <button
+                onClick={() => switchMode('register')}
+                className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold shadow-sm shadow-indigo-600/20 transition-all cursor-pointer"
+              >
+                <Plus className="w-3.5 h-3.5" />
+                <span className="hidden sm:inline">{isAr ? 'إنشاء متجر جديد' : 'Create Store'}</span>
+                <span className="sm:hidden">{isAr ? 'متجر' : 'Store'}</span>
+              </button>
 
             </div>
 
           </div>
         </div>
+
+        {/* Mobile Navigation Strip */}
+        <div className="md:hidden border-t border-slate-100 px-4 py-2 flex items-center justify-between text-xs font-bold overflow-x-auto scrollbar-none gap-2 bg-slate-50/50">
+          <button
+            onClick={() => switchMode('landing')}
+            className={`px-2.5 py-1.5 rounded-lg whitespace-nowrap cursor-pointer ${
+              appMode === 'landing' ? 'bg-white text-indigo-600 shadow-2xs font-extrabold' : 'text-slate-600'
+            }`}
+          >
+            {isAr ? 'الرئيسية' : 'Home'}
+          </button>
+          <button
+            onClick={() => switchMode('dashboard')}
+            className={`px-2.5 py-1.5 rounded-lg whitespace-nowrap cursor-pointer ${
+              appMode === 'dashboard' ? 'bg-white text-indigo-600 shadow-2xs font-extrabold' : 'text-slate-600'
+            }`}
+          >
+            {isAr ? 'لوحة التحكم' : 'Dashboard'}
+          </button>
+          <button
+            onClick={() => switchMode('store')}
+            className="px-2.5 py-1.5 rounded-lg whitespace-nowrap text-emerald-700 bg-emerald-50 border border-emerald-200 cursor-pointer flex items-center gap-1"
+          >
+            <span>{isAr ? 'المتجر المستقل 🛍️' : 'Store 🛍️'}</span>
+          </button>
+          <button
+            onClick={() => switchMode('pricing')}
+            className={`px-2.5 py-1.5 rounded-lg whitespace-nowrap cursor-pointer ${
+              appMode === 'pricing' ? 'bg-white text-indigo-600 shadow-2xs font-extrabold' : 'text-slate-600'
+            }`}
+          >
+            {isAr ? 'الباقات' : 'Pricing'}
+          </button>
+        </div>
       </header>
 
-      {/* ─── MAIN CONTENT AREA ─── */}
+      {/* ─── MAIN CONTENT VIEW SWITCHER ─── */}
       <main className="flex-1">
         {appMode === 'landing' && (
           <LandingPageView
             language={language}
             currency={currency}
-            onRegisterSuccess={handleRegisterSuccess}
+            onRegisterSuccess={(store) => handleRegisterSuccess(store, 'store')}
             onOpenLogin={() => setIsLoginModalOpen(true)}
-            onGoToDashboard={() => setAppMode('dashboard')}
-            onOpenLivePreview={() => setPreviewingStore(activeStore)}
+            onGoToDashboard={() => switchMode('dashboard')}
+            onOpenLivePreview={() => switchMode('store')}
             existingStore={activeStore}
           />
         )}
@@ -376,6 +697,18 @@ export default function App() {
             language={language}
             supabaseConfig={supabaseConfig}
             gitHubConfig={gitHubConfig}
+            features={features}
+            storeFeatures={storeFeatures}
+            onToggleFeature={handleToggleFeature}
+            onRemoveFeature={handleRemoveFeature}
+            onRestoreFeature={handleRestoreFeature}
+            onOpenFeaturesModal={() => setIsFeaturesModalOpen(true)}
+            onToggleStoreFeature={handleToggleStoreFeature}
+            onRemoveStoreFeature={handleRemoveStoreFeature}
+            onRestoreStoreFeature={handleRestoreStoreFeature}
+            onEnableAllStoreFeatures={handleEnableAllStoreFeatures}
+            onResetDefaultStoreFeatures={handleResetDefaultStoreFeatures}
+            onAddStoreFeature={handleAddStoreFeature}
             onUpdateStoreSettings={handleUpdateStoreSettings}
             onUpdateStorePlan={handleUpdateStorePlan}
             onAddProduct={handleAddProduct}
@@ -385,7 +718,9 @@ export default function App() {
             onAddCoupon={handleAddCoupon}
             onToggleCoupon={handleToggleCoupon}
             onOpenLivePreview={() => setPreviewingStore(activeStore)}
-            onOpenCreateNewStore={() => setAppMode('register')}
+            onOpenStandaloneStore={() => switchMode('store')}
+            onOpenCreateNewStore={() => switchMode('register')}
+            onBackToPlatform={() => switchMode('landing')}
             onLogout={handleLogout}
           />
         )}
@@ -395,7 +730,7 @@ export default function App() {
             language={language}
             currency={currency}
             onRegisterSuccess={handleRegisterSuccess}
-            onGoToExistingStore={() => setAppMode('dashboard')}
+            onGoToExistingStore={() => switchMode('dashboard')}
             existingStoreName={isAr ? activeStore.nameAr : activeStore.name}
           />
         )}
@@ -409,7 +744,7 @@ export default function App() {
               currency={currency}
               onSelectRegisterPlan={(planId) => {
                 handleUpdateStorePlan(planId);
-                setAppMode('register');
+                switchMode('register');
               }}
             />
           </div>
@@ -419,7 +754,7 @@ export default function App() {
       {/* ─── FOOTER ─── */}
       <Footer
         language={language}
-        onNavigateTab={(tab) => setAppMode(tab)}
+        onNavigateTab={(tab) => switchMode(tab)}
       />
 
       {/* ─── SELLER LOGIN MODAL ─── */}
@@ -431,19 +766,35 @@ export default function App() {
         onLoginSuccess={handleLoginSuccess}
         onSwitchToRegister={() => {
           setIsLoginModalOpen(false);
-          setAppMode('register');
+          switchMode('register');
         }}
+        isDemoLoginEnabled={isFeatureActive('demoLogin')}
       />
 
-      {/* ─── CUSTOMER LIVE STOREFRONT SIMULATION ─── */}
+      {/* ─── PLATFORM MODULAR FEATURES MODAL ─── */}
+      <PlatformFeaturesModal
+        isOpen={isFeaturesModalOpen}
+        onClose={() => setIsFeaturesModalOpen(false)}
+        features={features}
+        onToggleFeature={handleToggleFeature}
+        onRemoveFeature={handleRemoveFeature}
+        onRestoreFeature={handleRestoreFeature}
+        onEnableAll={handleEnableAllFeatures}
+        onResetDefaults={handleResetDefaultFeatures}
+        language={language}
+      />
+
+      {/* ─── CUSTOMER LIVE STOREFRONT SIMULATION (MODAL MODE) ─── */}
       {previewingStore && (
         <PublicStoreView
           store={previewingStore}
           products={products}
           language={language}
           currency={currency}
+          storeFeatures={storeFeatures}
           onClose={() => setPreviewingStore(null)}
           onNewCustomerOrder={handleNewCustomerOrder}
+          isOnlinePaymentsEnabled={isFeatureActive('onlinePayments')}
         />
       )}
 
