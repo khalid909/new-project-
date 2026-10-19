@@ -1,47 +1,43 @@
 import React, { useState, useEffect } from 'react';
 import { 
-  Currency, Language, Store, Product, Order, CartItem, 
+  Currency, Language, Store, Product, Order, PlanType, 
   SupabaseConfig, GitHubConfig 
 } from './types';
 import { 
-  INITIAL_STORES, INITIAL_PRODUCTS, INITIAL_ORDERS, 
-  INITIAL_SUPABASE_CONFIG, INITIAL_GITHUB_CONFIG 
+  INITIAL_STORE, INITIAL_PRODUCTS, INITIAL_ORDERS, 
+  INITIAL_SUPABASE_CONFIG, INITIAL_GITHUB_CONFIG, PLANS 
 } from './data/initialData';
-import { Navbar } from './components/Navbar';
-import { HeroSection } from './components/HeroSection';
-import { MarketplaceView } from './components/MarketplaceView';
-import { BoutiquesShowcase } from './components/BoutiquesShowcase';
-import { MerchantStudio } from './components/MerchantStudio';
-import { SupabaseGitHubSync } from './components/SupabaseGitHubSyncModal';
-import { ProductDetailModal } from './components/ProductDetailModal';
-import { CartDrawer } from './components/CartDrawer';
-import { CheckoutModal } from './components/CheckoutModal';
+import { RegisterStoreView } from './components/RegisterStoreView';
+import { StoreDashboardView } from './components/StoreDashboardView';
+import { PublicStoreView } from './components/PublicStoreView';
 import { Footer } from './components/Footer';
+import { 
+  Store as StoreIcon, Plus, ExternalLink, Globe, 
+  Layers, ShieldCheck, ChevronDown, Check 
+} from 'lucide-react';
 
 export default function App() {
   const [language, setLanguage] = useState<Language>('ar');
   const [currency, setCurrency] = useState<Currency>('SAR');
-  const [currentTab, setCurrentTab] = useState<'marketplace' | 'boutiques' | 'merchant' | 'sync'>('marketplace');
+  const [appMode, setAppMode] = useState<'dashboard' | 'register'>('dashboard');
   
-  // Data State
-  const [stores, setStores] = useState<Store[]>(INITIAL_STORES);
+  // Stores State
+  const [stores, setStores] = useState<Store[]>([INITIAL_STORE]);
+  const [activeStoreId, setActiveStoreId] = useState<string>(INITIAL_STORE.id);
+  
+  // Products & Orders State
   const [products, setProducts] = useState<Product[]>(INITIAL_PRODUCTS);
   const [orders, setOrders] = useState<Order[]>(INITIAL_ORDERS);
-  const [cartItems, setCartItems] = useState<CartItem[]>([]);
-  
-  // Search & Navigation State
-  const [searchQuery, setSearchQuery] = useState<string>('');
-  const [activeMerchantStoreId, setActiveMerchantStoreId] = useState<string>(INITIAL_STORES[0].id);
-  
-  // Modals & Drawers
-  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
-  const [isCartOpen, setIsCartOpen] = useState<boolean>(false);
-  const [isCheckoutOpen, setIsCheckoutOpen] = useState<boolean>(false);
-  const [activeDiscountPercent, setActiveDiscountPercent] = useState<number>(0);
 
-  // Supabase & GitHub Sync State
+  // Live Customer Store Preview Modal
+  const [previewingStore, setPreviewingStore] = useState<Store | null>(null);
+
+  // Supabase & GitHub State
   const [supabaseConfig, setSupabaseConfig] = useState<SupabaseConfig>(INITIAL_SUPABASE_CONFIG);
   const [gitHubConfig, setGitHubConfig] = useState<GitHubConfig>(INITIAL_GITHUB_CONFIG);
+
+  const isAr = language === 'ar';
+  const activeStore = stores.find((s) => s.id === activeStoreId) || stores[0];
 
   // Sync HTML dir and lang
   useEffect(() => {
@@ -49,208 +45,201 @@ export default function App() {
     document.documentElement.lang = language;
   }, [language]);
 
-  // Cart operations
-  const handleAddToCart = (product: Product, quantity = 1, selectedVariants?: Record<string, string>) => {
-    setCartItems((prev) => {
-      const existingIndex = prev.findIndex(
-        (item) => item.product.id === product.id && JSON.stringify(item.selectedVariants) === JSON.stringify(selectedVariants)
-      );
-
-      if (existingIndex > -1) {
-        const copy = [...prev];
-        copy[existingIndex].quantity += quantity;
-        return copy;
-      }
-
-      return [
-        ...prev,
-        {
-          id: `cart_${Date.now()}_${Math.random()}`,
-          product,
-          quantity,
-          selectedVariants
-        }
-      ];
-    });
+  // Handler: Register New Store
+  const handleRegisterSuccess = (newStore: Store) => {
+    setStores((prev) => [newStore, ...prev]);
+    setActiveStoreId(newStore.id);
+    setAppMode('dashboard');
   };
 
-  const handleUpdateCartQuantity = (itemId: string, newQty: number) => {
-    if (newQty <= 0) {
-      handleRemoveFromCart(itemId);
-      return;
-    }
-    setCartItems((prev) =>
-      prev.map((item) => (item.id === itemId ? { ...item, quantity: newQty } : item))
-    );
-  };
-
-  const handleRemoveFromCart = (itemId: string) => {
-    setCartItems((prev) => prev.filter((item) => item.id !== itemId));
-  };
-
-  const handleInstantCheckout = (product: Product, quantity = 1, selectedVariants?: Record<string, string>) => {
-    setSelectedProduct(null);
-    setCartItems([
-      {
-        id: `cart_instant_${Date.now()}`,
-        product,
-        quantity,
-        selectedVariants
-      }
-    ]);
-    setIsCheckoutOpen(true);
-  };
-
-  const handleProceedToCheckout = (discountPercent: number) => {
-    setActiveDiscountPercent(discountPercent);
-    setIsCheckoutOpen(true);
-  };
-
-  const handleOrderCompleted = (newOrder: Order) => {
-    setOrders((prev) => [newOrder, ...prev]);
-    setCartItems([]);
-    
-    // Update Supabase tables synced count
-    setSupabaseConfig((prev) => ({
-      ...prev,
-      lastSyncTime: new Date().toISOString(),
-      tablesSynced: {
-        ...prev.tablesSynced,
-        orders: prev.tablesSynced.orders + 1
-      }
-    }));
-  };
-
-  // Merchant operations
-  const handleAddProduct = (newProduct: Product) => {
-    setProducts((prev) => [newProduct, ...prev]);
-    // update store inventory count
+  // Handler: Update Store Settings
+  const handleUpdateStoreSettings = (updated: Partial<Store['settings']>) => {
     setStores((prev) =>
       prev.map((s) =>
-        s.id === newProduct.storeId ? { ...s, inventoryCount: s.inventoryCount + 1 } : s
+        s.id === activeStore.id
+          ? { ...s, settings: { ...s.settings, ...updated } }
+          : s
       )
     );
-    // update Supabase tables count
-    setSupabaseConfig((prev) => ({
-      ...prev,
-      lastSyncTime: new Date().toISOString(),
-      tablesSynced: {
-        ...prev.tablesSynced,
-        products: prev.tablesSynced.products + 1
-      }
-    }));
   };
 
+  // Handler: Change Store Plan (Free vs Pro)
+  const handleUpdateStorePlan = (newPlan: PlanType) => {
+    setStores((prev) =>
+      prev.map((s) =>
+        s.id === activeStore.id ? { ...s, plan: newPlan } : s
+      )
+    );
+  };
+
+  // Handler: Add Product
+  const handleAddProduct = (newProduct: Product) => {
+    setProducts((prev) => [newProduct, ...prev]);
+  };
+
+  // Handler: Delete Product
   const handleDeleteProduct = (productId: string) => {
     setProducts((prev) => prev.filter((p) => p.id !== productId));
   };
 
+  // Handler: Update Stock
+  const handleUpdateProductStock = (productId: string, stock: number) => {
+    setProducts((prev) =>
+      prev.map((p) => (p.id === productId ? { ...p, stock } : p))
+    );
+  };
+
+  // Handler: Update Order Status
   const handleUpdateOrderStatus = (orderId: string, status: Order['status']) => {
     setOrders((prev) =>
       prev.map((o) => (o.id === orderId ? { ...o, status } : o))
     );
   };
 
-  const handleCreateStore = (newStore: Store) => {
-    setStores((prev) => [...prev, newStore]);
-    setSupabaseConfig((prev) => ({
-      ...prev,
-      lastSyncTime: new Date().toISOString(),
-      tablesSynced: {
-        ...prev.tablesSynced,
-        stores: prev.tablesSynced.stores + 1
-      }
-    }));
+  // Handler: Customer Order from Public Store
+  const handleNewCustomerOrder = (newOrder: Order) => {
+    setOrders((prev) => [newOrder, ...prev]);
+    // Increment store stats
+    setStores((prev) =>
+      prev.map((s) =>
+        s.id === newOrder.storeId
+          ? {
+              ...s,
+              ordersCount: s.ordersCount + 1,
+              totalSales: s.totalSales + newOrder.total
+            }
+          : s
+      )
+    );
   };
-
-  const handleSelectStoreFromShowcase = (store: Store) => {
-    setSearchQuery(language === 'ar' ? store.nameAr : store.name);
-    setCurrentTab('marketplace');
-  };
-
-  const handleManageStoreFromShowcase = (store: Store) => {
-    setActiveMerchantStoreId(store.id);
-    setCurrentTab('merchant');
-  };
-
-  const totalCartCount = cartItems.reduce((sum, item) => sum + item.quantity, 0);
 
   return (
-    <div className="min-h-screen flex flex-col bg-neutral-950 text-neutral-100 selection:bg-amber-500/20 selection:text-amber-300">
+    <div className="min-h-screen flex flex-col bg-[#080C15] text-slate-100 selection:bg-indigo-500/30 selection:text-indigo-200">
       
-      {/* Top Bar Navigation */}
-      <Navbar
-        currentTab={currentTab}
-        setCurrentTab={setCurrentTab}
-        currency={currency}
-        setCurrency={setCurrency}
-        language={language}
-        setLanguage={setLanguage}
-        cartCount={totalCartCount}
-        openCart={() => setIsCartOpen(true)}
-        searchQuery={searchQuery}
-        setSearchQuery={setSearchQuery}
-        activeStoreName={stores.find((s) => s.id === activeMerchantStoreId)?.name}
-      />
+      {/* Top Application Header */}
+      <header className="sticky top-0 z-40 bg-[#080C15]/90 backdrop-blur-xl border-b border-slate-800 transition-colors">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between gap-4 h-20">
+            
+            {/* Brand Logo & Tag */}
+            <div className="flex items-center gap-3">
+              <button
+                onClick={() => setAppMode('dashboard')}
+                className="flex items-center gap-3 text-start group focus:outline-none"
+              >
+                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500 via-indigo-600 to-violet-700 flex items-center justify-center shadow-lg shadow-indigo-500/20 group-hover:scale-105 transition-all">
+                  <span className="font-sans font-black text-white text-xl">A</span>
+                </div>
+                <div className="flex flex-col">
+                  <div className="flex items-center gap-2">
+                    <span className="text-xl font-extrabold tracking-wider text-white uppercase">
+                      AVANTO
+                    </span>
+                    <span className="text-[10px] bg-indigo-500/10 border border-indigo-500/30 text-indigo-400 font-mono px-1.5 py-0.5 rounded">
+                      COMMERCE
+                    </span>
+                  </div>
+                  <span className="text-[10px] text-slate-400 font-mono">
+                    {isAr ? 'منصة المتاجر السحابية للتجار' : 'MERCHANT PLATFORM'}
+                  </span>
+                </div>
+              </button>
 
-      {/* Main View Router */}
+              {/* Store Switcher (in dashboard mode) */}
+              {appMode === 'dashboard' && (
+                <div className="hidden sm:flex items-center gap-2 ps-4 border-s border-slate-800">
+                  <select
+                    value={activeStoreId}
+                    onChange={(e) => setActiveStoreId(e.target.value)}
+                    className="bg-slate-900 border border-slate-800 rounded-lg px-2.5 py-1.5 text-xs text-slate-200 focus:outline-none focus:border-indigo-500 cursor-pointer max-w-[180px] truncate"
+                    aria-label="Switch active store"
+                  >
+                    {stores.map((s) => (
+                      <option key={s.id} value={s.id} className="bg-[#0B0F19]">
+                        {isAr ? s.nameAr : s.name} ({s.plan.toUpperCase()})
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              )}
+            </div>
+
+            {/* Top Bar Actions */}
+            <div className="flex items-center gap-2.5">
+              {/* Currency Selector */}
+              <select
+                value={currency}
+                onChange={(e) => setCurrency(e.target.value as Currency)}
+                className="bg-slate-900 border border-slate-800 text-xs font-mono rounded-lg px-2.5 py-2 text-slate-300 hover:border-slate-700 focus:outline-none cursor-pointer"
+                aria-label="Currency"
+              >
+                <option value="SAR">SAR (ر.س)</option>
+                <option value="USD">USD ($)</option>
+                <option value="AED">AED (د.إ)</option>
+                <option value="EUR">EUR (€)</option>
+              </select>
+
+              {/* Language Switcher */}
+              <button
+                onClick={() => setLanguage(language === 'ar' ? 'en' : 'ar')}
+                className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-slate-900 border border-slate-800 text-xs text-slate-300 hover:text-indigo-400 hover:border-slate-700 transition-colors"
+                title="Toggle language"
+              >
+                <Globe className="w-3.5 h-3.5 text-slate-400" />
+                <span className="font-semibold">{language === 'ar' ? 'EN' : 'عربي'}</span>
+              </button>
+
+              {/* App Mode Switcher Button */}
+              {appMode === 'dashboard' ? (
+                <button
+                  onClick={() => setAppMode('register')}
+                  className="flex items-center gap-1.5 px-3.5 py-2 text-xs font-bold text-white bg-indigo-600 hover:bg-indigo-500 rounded-lg shadow-md transition-all active:scale-95"
+                >
+                  <Plus className="w-3.5 h-3.5" />
+                  <span>{isAr ? 'تسجيل متجر جديد' : 'New Store'}</span>
+                </button>
+              ) : (
+                <button
+                  onClick={() => setAppMode('dashboard')}
+                  className="flex items-center gap-1.5 px-3.5 py-2 text-xs font-bold text-slate-200 bg-slate-900 hover:bg-slate-800 border border-slate-700 rounded-lg transition-all"
+                >
+                  <Layers className="w-3.5 h-3.5 text-indigo-400" />
+                  <span>{isAr ? 'الدخول للوحة التحكم' : 'Dashboard'}</span>
+                </button>
+              )}
+            </div>
+
+          </div>
+        </div>
+      </header>
+
+      {/* Main Content Area */}
       <main className="flex-1">
-        {currentTab === 'marketplace' && (
-          <>
-            <HeroSection
-              language={language}
-              currency={currency}
-              searchQuery={searchQuery}
-              setSearchQuery={setSearchQuery}
-              onExploreBoutiques={() => setCurrentTab('boutiques')}
-              onOpenSync={() => setCurrentTab('sync')}
-            />
-            <MarketplaceView
-              products={products}
-              stores={stores}
-              currency={currency}
-              language={language}
-              onSelectProduct={(p) => setSelectedProduct(p)}
-              onAddToCart={handleAddToCart}
-              onSelectStore={handleSelectStoreFromShowcase}
-              searchQuery={searchQuery}
-            />
-          </>
-        )}
-
-        {currentTab === 'boutiques' && (
-          <BoutiquesShowcase
-            stores={stores}
+        {appMode === 'register' ? (
+          <RegisterStoreView
             language={language}
             currency={currency}
-            onSelectStore={handleSelectStoreFromShowcase}
-            onManageStore={handleManageStoreFromShowcase}
+            onRegisterSuccess={handleRegisterSuccess}
+            onGoToExistingStore={() => setAppMode('dashboard')}
+            existingStoreName={isAr ? activeStore.nameAr : activeStore.name}
           />
-        )}
-
-        {currentTab === 'merchant' && (
-          <MerchantStudio
-            stores={stores}
+        ) : (
+          <StoreDashboardView
+            store={activeStore}
             products={products}
             orders={orders}
-            activeStoreId={activeMerchantStoreId}
-            setActiveStoreId={setActiveMerchantStoreId}
             currency={currency}
             language={language}
+            supabaseConfig={supabaseConfig}
+            gitHubConfig={gitHubConfig}
+            onUpdateStoreSettings={handleUpdateStoreSettings}
+            onUpdateStorePlan={handleUpdateStorePlan}
             onAddProduct={handleAddProduct}
             onDeleteProduct={handleDeleteProduct}
+            onUpdateProductStock={handleUpdateProductStock}
             onUpdateOrderStatus={handleUpdateOrderStatus}
-            onCreateStore={handleCreateStore}
-          />
-        )}
-
-        {currentTab === 'sync' && (
-          <SupabaseGitHubSync
-            supabaseConfig={supabaseConfig}
-            setSupabaseConfig={setSupabaseConfig}
-            gitHubConfig={gitHubConfig}
-            setGitHubConfig={setGitHubConfig}
-            language={language}
+            onOpenLivePreview={() => setPreviewingStore(activeStore)}
+            onOpenCreateNewStore={() => setAppMode('register')}
           />
         )}
       </main>
@@ -258,44 +247,26 @@ export default function App() {
       {/* Footer */}
       <Footer
         language={language}
-        onNavigateTab={setCurrentTab}
-      />
-
-      {/* Product Detail Modal (PDP) */}
-      <ProductDetailModal
-        product={selectedProduct}
-        store={stores.find((s) => s.id === selectedProduct?.storeId)}
-        currency={currency}
-        language={language}
-        onClose={() => setSelectedProduct(null)}
-        onAddToCart={(p, qty, variants) => {
-          handleAddToCart(p, qty, variants);
+        onNavigateTab={(tab) => {
+          if (tab === 'stores') {
+            setAppMode('register');
+          } else {
+            setAppMode('dashboard');
+          }
         }}
-        onInstantCheckout={handleInstantCheckout}
       />
 
-      {/* Slide-over Cart Drawer */}
-      <CartDrawer
-        isOpen={isCartOpen}
-        onClose={() => setIsCartOpen(false)}
-        items={cartItems}
-        currency={currency}
-        language={language}
-        onUpdateQuantity={handleUpdateCartQuantity}
-        onRemoveItem={handleRemoveFromCart}
-        onProceedToCheckout={handleProceedToCheckout}
-      />
-
-      {/* Checkout Modal */}
-      <CheckoutModal
-        isOpen={isCheckoutOpen}
-        onClose={() => setIsCheckoutOpen(false)}
-        items={cartItems}
-        currency={currency}
-        language={language}
-        discountPercent={activeDiscountPercent}
-        onOrderCompleted={handleOrderCompleted}
-      />
+      {/* Customer Live Storefront Simulation */}
+      {previewingStore && (
+        <PublicStoreView
+          store={previewingStore}
+          products={products}
+          language={language}
+          currency={currency}
+          onClose={() => setPreviewingStore(null)}
+          onNewCustomerOrder={handleNewCustomerOrder}
+        />
+      )}
 
     </div>
   );

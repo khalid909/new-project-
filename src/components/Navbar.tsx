@@ -1,19 +1,22 @@
 import React from 'react';
-import { Currency, Language } from '../types';
-import { ShoppingBag, Store as StoreIcon, Database, GitBranch, Globe, SlidersHorizontal, Search } from 'lucide-react';
+import { Currency, Language, Store } from '../types';
+import { 
+  Layers, Store as StoreIcon, Package, ShoppingCart, 
+  Users, Database, Globe, ExternalLink, Plus, ChevronDown 
+} from 'lucide-react';
 
 interface NavbarProps {
-  currentTab: 'marketplace' | 'boutiques' | 'merchant' | 'sync';
-  setCurrentTab: (tab: 'marketplace' | 'boutiques' | 'merchant' | 'sync') => void;
+  currentTab: 'dashboard' | 'stores' | 'products' | 'orders' | 'customers' | 'sync';
+  setCurrentTab: (tab: 'dashboard' | 'stores' | 'products' | 'orders' | 'customers' | 'sync') => void;
   currency: Currency;
   setCurrency: (c: Currency) => void;
   language: Language;
   setLanguage: (lang: Language) => void;
-  cartCount: number;
-  openCart: () => void;
-  searchQuery: string;
-  setSearchQuery: (q: string) => void;
-  activeStoreName?: string;
+  stores: Store[];
+  activeStoreId: string;
+  setActiveStoreId: (id: string) => void;
+  onOpenStorePreview: () => void;
+  onOpenCreateStore: () => void;
 }
 
 export const Navbar: React.FC<NavbarProps> = ({
@@ -23,106 +26,168 @@ export const Navbar: React.FC<NavbarProps> = ({
   setCurrency,
   language,
   setLanguage,
-  cartCount,
-  openCart,
-  searchQuery,
-  setSearchQuery,
-  activeStoreName
+  stores,
+  activeStoreId,
+  setActiveStoreId,
+  onOpenStorePreview,
+  onOpenCreateStore
 }) => {
   const isAr = language === 'ar';
+  const activeStore = stores.find((s) => s.id === activeStoreId) || stores[0];
 
   return (
-    <header className="sticky top-0 z-40 bg-neutral-950/85 backdrop-blur-xl border-b border-neutral-800/80 transition-colors">
+    <header className="sticky top-0 z-40 bg-[#080C15]/90 backdrop-blur-xl border-b border-slate-800/80 transition-colors">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between gap-8 h-20">
+        <div className="flex items-center justify-between gap-6 h-20">
           
-          {/* Zone 1: Single Element Brand Wordmark */}
-          <button
-            onClick={() => setCurrentTab('marketplace')}
-            className="flex items-center gap-3 text-start shrink-0 group focus:outline-none"
-          >
-            <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-amber-400 via-amber-600 to-amber-700 flex items-center justify-center shadow-[0_0_20px_rgba(217,119,6,0.3)] transition-transform duration-300 group-hover:scale-105">
-              <span className="font-serif font-bold text-neutral-950 text-xl tracking-tight">S</span>
-            </div>
-            <div className="flex flex-col">
-              <span className="text-xl font-extrabold tracking-wider text-neutral-100 group-hover:text-amber-400 transition-colors uppercase">
-                {isAr ? 'سُوقِفاي' : 'SOUQIFY'}
-              </span>
-              <span className="text-[10px] uppercase tracking-widest text-neutral-400 font-mono">
-                {isAr ? 'منصة المتاجر السحابية' : 'LUXURY CLOUD COMMERCE'}
-              </span>
-            </div>
-          </button>
-
-          {/* Zone 2: Navigation Links */}
-          <nav className="hidden lg:flex items-center gap-7 text-sm font-medium">
+          {/* Zone 1: AVANTO Brand Lockup */}
+          <div className="flex items-center gap-4 shrink-0">
             <button
-              onClick={() => setCurrentTab('marketplace')}
-              className={`whitespace-nowrap transition-colors pb-1 relative ${
-                currentTab === 'marketplace'
-                  ? 'text-amber-400 font-semibold'
-                  : 'text-neutral-400 hover:text-neutral-200'
+              onClick={() => setCurrentTab('dashboard')}
+              className="flex items-center gap-3 text-start group focus:outline-none"
+            >
+              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500 via-indigo-600 to-violet-700 flex items-center justify-center shadow-lg shadow-indigo-500/20 group-hover:shadow-indigo-500/30 transition-all duration-300 group-hover:scale-105">
+                <span className="font-sans font-black text-white text-xl tracking-tighter">A</span>
+              </div>
+              <div className="flex flex-col">
+                <div className="flex items-center gap-2">
+                  <span className="text-xl font-extrabold tracking-wider text-white group-hover:text-indigo-400 transition-colors uppercase">
+                    AVANTO
+                  </span>
+                  <span className="text-[10px] bg-indigo-500/10 border border-indigo-500/30 text-indigo-400 font-mono px-1.5 py-0.5 rounded">
+                    OS
+                  </span>
+                </div>
+                <span className="text-[10px] uppercase tracking-widest text-slate-400 font-mono">
+                  {isAr ? 'نظام إدارة المتاجر السحابية' : 'MERCHANT CLOUD OS'}
+                </span>
+              </div>
+            </button>
+
+            {/* Active Store Quick Switcher Dropdown */}
+            <div className="hidden xl:flex items-center gap-2 ps-4 border-s border-slate-800">
+              <div className="flex items-center gap-2 bg-slate-900/80 border border-slate-800 hover:border-slate-700 rounded-lg px-2.5 py-1.5 transition-colors">
+                <span
+                  className="w-2.5 h-2.5 rounded-full shrink-0"
+                  style={{ backgroundColor: activeStore?.accentColor || '#6366F1' }}
+                />
+                <select
+                  value={activeStoreId}
+                  onChange={(e) => setActiveStoreId(e.target.value)}
+                  className="bg-transparent text-xs font-semibold text-slate-200 focus:outline-none cursor-pointer max-w-[150px] truncate"
+                  aria-label="Active store switcher"
+                >
+                  {stores.map((s) => (
+                    <option key={s.id} value={s.id} className="bg-[#0B0F19] text-slate-200">
+                      {isAr ? s.nameAr : s.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+          </div>
+
+          {/* Zone 2: Pure Merchant Navigation Links */}
+          <nav className="hidden lg:flex items-center gap-6 text-xs font-medium">
+            <button
+              onClick={() => setCurrentTab('dashboard')}
+              className={`flex items-center gap-1.5 whitespace-nowrap transition-colors pb-1 relative ${
+                currentTab === 'dashboard'
+                  ? 'text-indigo-400 font-bold'
+                  : 'text-slate-400 hover:text-slate-200'
               }`}
             >
-              {isAr ? 'السوق الشامل' : 'Marketplace'}
-              {currentTab === 'marketplace' && (
-                <span className="absolute bottom-0 inset-x-0 h-0.5 bg-amber-400 rounded-full" />
+              <Layers className="w-4 h-4" />
+              <span>{isAr ? 'لوحة التحكم' : 'Dashboard'}</span>
+              {currentTab === 'dashboard' && (
+                <span className="absolute bottom-0 inset-x-0 h-0.5 bg-indigo-500 rounded-full" />
               )}
             </button>
 
             <button
-              onClick={() => setCurrentTab('boutiques')}
-              className={`whitespace-nowrap transition-colors pb-1 relative ${
-                currentTab === 'boutiques'
-                  ? 'text-amber-400 font-semibold'
-                  : 'text-neutral-400 hover:text-neutral-200'
+              onClick={() => setCurrentTab('stores')}
+              className={`flex items-center gap-1.5 whitespace-nowrap transition-colors pb-1 relative ${
+                currentTab === 'stores'
+                  ? 'text-indigo-400 font-bold'
+                  : 'text-slate-400 hover:text-slate-200'
               }`}
             >
-              {isAr ? 'المتاجر والماركات' : 'Brand Boutiques'}
-              {currentTab === 'boutiques' && (
-                <span className="absolute bottom-0 inset-x-0 h-0.5 bg-amber-400 rounded-full" />
+              <StoreIcon className="w-4 h-4" />
+              <span>{isAr ? `متاجري (${stores.length})` : `My Stores (${stores.length})`}</span>
+              {currentTab === 'stores' && (
+                <span className="absolute bottom-0 inset-x-0 h-0.5 bg-indigo-500 rounded-full" />
               )}
             </button>
 
             <button
-              onClick={() => setCurrentTab('merchant')}
-              className={`flex items-center gap-2 whitespace-nowrap transition-colors pb-1 relative ${
-                currentTab === 'merchant'
-                  ? 'text-amber-400 font-semibold'
-                  : 'text-neutral-400 hover:text-neutral-200'
+              onClick={() => setCurrentTab('products')}
+              className={`flex items-center gap-1.5 whitespace-nowrap transition-colors pb-1 relative ${
+                currentTab === 'products'
+                  ? 'text-indigo-400 font-bold'
+                  : 'text-slate-400 hover:text-slate-200'
               }`}
             >
-              <StoreIcon className="w-4 h-4 text-amber-500" />
-              <span>{isAr ? 'استوديو التاجر (Shopify)' : 'Merchant Studio'}</span>
-              {currentTab === 'merchant' && (
-                <span className="absolute bottom-0 inset-x-0 h-0.5 bg-amber-400 rounded-full" />
+              <Package className="w-4 h-4" />
+              <span>{isAr ? 'المنتجات والمخزون' : 'Products & Inventory'}</span>
+              {currentTab === 'products' && (
+                <span className="absolute bottom-0 inset-x-0 h-0.5 bg-indigo-500 rounded-full" />
+              )}
+            </button>
+
+            <button
+              onClick={() => setCurrentTab('orders')}
+              className={`flex items-center gap-1.5 whitespace-nowrap transition-colors pb-1 relative ${
+                currentTab === 'orders'
+                  ? 'text-indigo-400 font-bold'
+                  : 'text-slate-400 hover:text-slate-200'
+              }`}
+            >
+              <ShoppingCart className="w-4 h-4" />
+              <span>{isAr ? 'الطلبات والشحن' : 'Orders & Dispatch'}</span>
+              {currentTab === 'orders' && (
+                <span className="absolute bottom-0 inset-x-0 h-0.5 bg-indigo-500 rounded-full" />
+              )}
+            </button>
+
+            <button
+              onClick={() => setCurrentTab('customers')}
+              className={`flex items-center gap-1.5 whitespace-nowrap transition-colors pb-1 relative ${
+                currentTab === 'customers'
+                  ? 'text-indigo-400 font-bold'
+                  : 'text-slate-400 hover:text-slate-200'
+              }`}
+            >
+              <Users className="w-4 h-4" />
+              <span>{isAr ? 'العملاء (CRM)' : 'Customers CRM'}</span>
+              {currentTab === 'customers' && (
+                <span className="absolute bottom-0 inset-x-0 h-0.5 bg-indigo-500 rounded-full" />
               )}
             </button>
 
             <button
               onClick={() => setCurrentTab('sync')}
-              className={`flex items-center gap-2 whitespace-nowrap transition-colors pb-1 relative ${
+              className={`flex items-center gap-1.5 whitespace-nowrap transition-colors pb-1 relative ${
                 currentTab === 'sync'
-                  ? 'text-amber-400 font-semibold'
-                  : 'text-neutral-400 hover:text-neutral-200'
+                  ? 'text-emerald-400 font-bold'
+                  : 'text-slate-400 hover:text-slate-200'
               }`}
             >
               <Database className="w-4 h-4 text-emerald-400" />
-              <span>{isAr ? 'Supabase & GitHub' : 'Supabase & GitHub'}</span>
+              <span>Supabase & GitHub</span>
               {currentTab === 'sync' && (
-                <span className="absolute bottom-0 inset-x-0 h-0.5 bg-amber-400 rounded-full" />
+                <span className="absolute bottom-0 inset-x-0 h-0.5 bg-emerald-400 rounded-full" />
               )}
             </button>
           </nav>
 
-          {/* Zone 3: Controls, Currency, Language & Cart */}
+          {/* Zone 3: Actions, Currency, Language, & Live Storefront Preview */}
           <div className="flex items-center gap-3 shrink-0">
             {/* Currency Selector */}
             <select
               value={currency}
               onChange={(e) => setCurrency(e.target.value as Currency)}
-              className="bg-neutral-900 border border-neutral-800 text-xs font-mono rounded-lg px-2.5 py-2 text-neutral-300 hover:border-neutral-700 focus:outline-none focus:border-amber-500 transition-colors cursor-pointer"
-              aria-label="Select currency"
+              className="bg-slate-900 border border-slate-800 text-xs font-mono rounded-lg px-2.5 py-2 text-slate-300 hover:border-slate-700 focus:outline-none focus:border-indigo-500 transition-colors cursor-pointer"
+              aria-label="Currency"
             >
               <option value="SAR">SAR (ر.س)</option>
               <option value="USD">USD ($)</option>
@@ -133,62 +198,72 @@ export const Navbar: React.FC<NavbarProps> = ({
             {/* Language Switcher */}
             <button
               onClick={() => setLanguage(language === 'ar' ? 'en' : 'ar')}
-              className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-neutral-900 border border-neutral-800 text-xs text-neutral-300 hover:text-amber-400 hover:border-neutral-700 transition-colors"
+              className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-slate-900 border border-slate-800 text-xs text-slate-300 hover:text-indigo-400 hover:border-slate-700 transition-colors"
               title="Toggle language"
             >
-              <Globe className="w-3.5 h-3.5 text-neutral-400" />
-              <span className="font-medium">{language === 'ar' ? 'EN' : 'عربي'}</span>
+              <Globe className="w-3.5 h-3.5 text-slate-400" />
+              <span className="font-semibold">{language === 'ar' ? 'EN' : 'عربي'}</span>
             </button>
 
-            {/* Cart Trigger Button */}
+            {/* Live Customer Storefront Preview CTA */}
             <button
-              onClick={openCart}
-              className="relative flex items-center justify-center p-2.5 rounded-lg bg-neutral-900 border border-neutral-800 text-neutral-200 hover:text-amber-400 hover:border-amber-500/40 transition-colors"
-              aria-label="Open Shopping Bag"
+              onClick={onOpenStorePreview}
+              className="flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-xs font-semibold text-slate-200 bg-slate-900 border border-indigo-500/30 hover:border-indigo-400 hover:text-white transition-all shadow-sm active:scale-95"
+              title={isAr ? 'معاينة واجهة متجر العميل' : 'Preview Live Storefront'}
             >
-              <ShoppingBag className="w-5 h-5" />
-              {cartCount > 0 && (
-                <span className="absolute -top-1.5 -right-1.5 bg-amber-500 text-neutral-950 text-[11px] font-bold font-mono w-5 h-5 rounded-full flex items-center justify-center shadow-md animate-pulse">
-                  {cartCount}
-                </span>
-              )}
+              <ExternalLink className="w-3.5 h-3.5 text-indigo-400" />
+              <span className="hidden sm:inline">
+                {isAr ? 'معاينة متجر العميل' : 'Live Storefront'}
+              </span>
             </button>
 
-            {/* Merchant Quick Portal CTA */}
+            {/* New Store Button */}
             <button
-              onClick={() => setCurrentTab('merchant')}
-              className="hidden sm:inline-flex items-center gap-2 px-4 py-2 text-xs font-semibold text-neutral-950 bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-300 hover:to-amber-400 rounded-lg shadow-sm transition-all duration-200 active:scale-95"
+              onClick={onOpenCreateStore}
+              className="hidden md:inline-flex items-center gap-1.5 px-4 py-2 text-xs font-bold text-white bg-gradient-to-r from-indigo-500 to-indigo-600 hover:from-indigo-600 hover:to-indigo-700 rounded-lg shadow-md shadow-indigo-500/20 transition-all active:scale-95"
             >
-              <StoreIcon className="w-3.5 h-3.5" />
-              <span>{isAr ? 'لوحة التحكم' : 'Merchant Portal'}</span>
+              <Plus className="w-3.5 h-3.5" />
+              <span>{isAr ? 'إطلاق متجر' : 'New Store'}</span>
             </button>
           </div>
 
         </div>
 
-        {/* Mobile Sub-Navigation Bar */}
-        <div className="flex lg:hidden items-center justify-around py-2.5 border-t border-neutral-900 text-xs text-neutral-400">
+        {/* Mobile Navigation bar */}
+        <div className="flex lg:hidden items-center justify-around py-2.5 border-t border-slate-900 text-xs text-slate-400 overflow-x-auto">
           <button
-            onClick={() => setCurrentTab('marketplace')}
-            className={`px-2 py-1 ${currentTab === 'marketplace' ? 'text-amber-400 font-bold' : ''}`}
+            onClick={() => setCurrentTab('dashboard')}
+            className={`px-2 py-1 whitespace-nowrap ${currentTab === 'dashboard' ? 'text-indigo-400 font-bold' : ''}`}
           >
-            {isAr ? 'السوق' : 'Market'}
+            {isAr ? 'الرئيسية' : 'Home'}
           </button>
           <button
-            onClick={() => setCurrentTab('boutiques')}
-            className={`px-2 py-1 ${currentTab === 'boutiques' ? 'text-amber-400 font-bold' : ''}`}
+            onClick={() => setCurrentTab('stores')}
+            className={`px-2 py-1 whitespace-nowrap ${currentTab === 'stores' ? 'text-indigo-400 font-bold' : ''}`}
           >
-            {isAr ? 'المتاجر' : 'Boutiques'}
+            {isAr ? 'المتاجر' : 'Stores'}
           </button>
           <button
-            onClick={() => setCurrentTab('merchant')}
-            className={`px-2 py-1 ${currentTab === 'merchant' ? 'text-amber-400 font-bold' : ''}`}
+            onClick={() => setCurrentTab('products')}
+            className={`px-2 py-1 whitespace-nowrap ${currentTab === 'products' ? 'text-indigo-400 font-bold' : ''}`}
           >
-            {isAr ? 'التاجر' : 'Merchant'}
+            {isAr ? 'المنتجات' : 'Products'}
+          </button>
+          <button
+            onClick={() => setCurrentTab('orders')}
+            className={`px-2 py-1 whitespace-nowrap ${currentTab === 'orders' ? 'text-indigo-400 font-bold' : ''}`}
+          >
+            {isAr ? 'الطلبات' : 'Orders'}
+          </button>
+          <button
+            onClick={() => setCurrentTab('customers')}
+            className={`px-2 py-1 whitespace-nowrap ${currentTab === 'customers' ? 'text-indigo-400 font-bold' : ''}`}
+          >
+            {isAr ? 'العملاء' : 'CRM'}
           </button>
           <button
             onClick={() => setCurrentTab('sync')}
-            className={`px-2 py-1 ${currentTab === 'sync' ? 'text-emerald-400 font-bold' : ''}`}
+            className={`px-2 py-1 whitespace-nowrap ${currentTab === 'sync' ? 'text-emerald-400 font-bold' : ''}`}
           >
             Supabase/Git
           </button>
