@@ -1,4 +1,7 @@
-import { PlanDetails, Store, Product, Order, SupabaseConfig, GitHubConfig, Currency } from '../types';
+import { 
+  PlanDetails, Store, Product, Order, Customer, Coupon, 
+  SellerUser, SupabaseConfig, GitHubConfig, Currency 
+} from '../types';
 
 export const PLANS: PlanDetails[] = [
   {
@@ -43,6 +46,7 @@ export const PLANS: PlanDetails[] = [
       'Unlimited products & categories',
       '0% platform transaction fees',
       'Custom domain connection (e.g. mystore.com)',
+      'Coupons & promotional marketing engine',
       'Native Supabase & PostgreSQL sync',
       'GitHub repository & automated CI/CD deploy',
       'Priority 24/7 seller support',
@@ -52,6 +56,7 @@ export const PLANS: PlanDetails[] = [
       'عدد غير محدود من المنتجات والتصنيفات',
       '0% عمولة مبيعات للمنصة',
       'ربط دومين مخصص بك (مثال: mystore.com)',
+      'محرك الكوبونات والعروض التسويقية المتقدمة',
       'مزامنة سحابية مباشرة مع Supabase و PostgreSQL',
       'ربط مستودع GitHub والنشر التلقائي',
       'دعم فني مخصص للتجار على مدار الساعة',
@@ -59,6 +64,13 @@ export const PLANS: PlanDetails[] = [
     ]
   }
 ];
+
+export const INITIAL_SELLER_USER: SellerUser = {
+  id: 'usr_seller_1',
+  name: 'خالد المنصور',
+  email: 'khalid@domain.com',
+  storeId: 'store_demo_1'
+};
 
 export const INITIAL_STORE: Store = {
   id: 'store_demo_1',
@@ -75,8 +87,8 @@ export const INITIAL_STORE: Store = {
   ownerEmail: 'khalid@domain.com',
   plan: 'pro',
   accentColor: '#6366F1',
-  totalSales: 8450,
-  ordersCount: 12,
+  totalSales: 12450,
+  ordersCount: 16,
   createdAt: '2026-10-18',
   supabaseConnected: true,
   githubConnected: true,
@@ -88,7 +100,9 @@ export const INITIAL_STORE: Store = {
     freeShippingThreshold: 500,
     taxRate: 15,
     currency: 'SAR',
-    isPublished: true
+    isPublished: true,
+    payoutBank: 'مصرف الراجحي (Al Rajhi Bank)',
+    payoutIban: 'SA4480000456608010123456'
   }
 };
 
@@ -101,6 +115,7 @@ export const INITIAL_PRODUCTS: Product[] = [
     description: 'Handcrafted titanium case with 72-hour power reserve and sapphire glass.',
     descriptionAr: 'هيكل تيتانيوم مصقول يدوياً مع احتياطي طاقة 72 ساعة وزجاج سفير مقاوم للخدش.',
     price: 1850,
+    costPrice: 750,
     category: 'Watches',
     stock: 8,
     sku: 'LXC-WTCH-01',
@@ -114,6 +129,7 @@ export const INITIAL_PRODUCTS: Product[] = [
     description: 'Full-grain vegetable-tanned leather handcrafted with solid brass hardware.',
     descriptionAr: 'جلد طبيعي مدبوغ نباتياً ومصنوع يدوياً مع إكسسوارات من النحاس الصلب.',
     price: 680,
+    costPrice: 280,
     category: 'Leather Goods',
     stock: 14,
     sku: 'LXC-BAG-02',
@@ -127,9 +143,24 @@ export const INITIAL_PRODUCTS: Product[] = [
     description: 'Pure 35% extrait concentration with wild resins and aged woods.',
     descriptionAr: 'تركيز نقي 35% بخلاصة الراتنجات الطبيعية وخشب العود المعتق.',
     price: 420,
+    costPrice: 110,
     category: 'Fragrance',
     stock: 22,
     sku: 'LXC-OUD-03',
+    isPublished: true
+  },
+  {
+    id: 'prod_4',
+    storeId: 'store_demo_1',
+    name: 'Minimalist Italian Calfskin Wallet',
+    nameAr: 'محفظة جيب من جلد العجل الإيطالي الفاخر',
+    description: 'Ultra-slim RFID protected minimalist bi-fold leather wallet.',
+    descriptionAr: 'محفظة جلدية نحيفة للغاية بحماية RFID تتسع لـ 8 بطاقات مع جيب نقود.',
+    price: 240,
+    costPrice: 75,
+    category: 'Accessories',
+    stock: 35,
+    sku: 'LXC-WLT-04',
     isPublished: true
   }
 ];
@@ -152,7 +183,8 @@ export const INITIAL_ORDERS: Order[] = [
     status: 'processing',
     paymentMethod: 'مدى / Mada',
     createdAt: '2026-10-18T14:30:00Z',
-    trackingNumber: 'AVT-EXP-99201'
+    trackingNumber: 'AVT-EXP-99201',
+    notes: 'توصيل مسائي مع فحص الشحنة'
   },
   {
     id: 'ord_102',
@@ -172,6 +204,84 @@ export const INITIAL_ORDERS: Order[] = [
     paymentMethod: 'Apple Pay',
     createdAt: '2026-10-17T09:15:00Z',
     trackingNumber: 'AVT-EXP-99184'
+  },
+  {
+    id: 'ord_103',
+    orderNumber: 'AVT-2026-9039',
+    storeId: 'store_demo_1',
+    customerName: 'سلطان بن فهد',
+    customerEmail: 'sultan.f@domain.sa',
+    customerPhone: '+966 54 333 4455',
+    customerCity: 'جدة',
+    customerAddress: 'طريق الملك عبد العزيز، أبراج الشاطئ',
+    items: [
+      { id: 'item_3', product: INITIAL_PRODUCTS[1], quantity: 1 }
+    ],
+    total: 705,
+    currency: 'SAR',
+    status: 'shipped',
+    paymentMethod: 'بطاقة ائتمان / Credit Card',
+    createdAt: '2026-10-16T11:00:00Z',
+    trackingNumber: 'AVT-EXP-99160'
+  }
+];
+
+export const INITIAL_CUSTOMERS: Customer[] = [
+  {
+    id: 'cust_1',
+    storeId: 'store_demo_1',
+    name: 'فيصل العتيبي',
+    email: 'faisal@domain.sa',
+    phone: '+966 50 111 2233',
+    city: 'الرياض',
+    totalOrders: 4,
+    totalSpent: 4250,
+    lastOrderDate: '2026-10-18'
+  },
+  {
+    id: 'cust_2',
+    storeId: 'store_demo_1',
+    name: 'نورة الشمري',
+    email: 'noura@domain.sa',
+    phone: '+966 55 999 8877',
+    city: 'الدمام',
+    totalOrders: 3,
+    totalSpent: 2100,
+    lastOrderDate: '2026-10-17'
+  },
+  {
+    id: 'cust_3',
+    storeId: 'store_demo_1',
+    name: 'سلطان بن فهد',
+    email: 'sultan.f@domain.sa',
+    phone: '+966 54 333 4455',
+    city: 'جدة',
+    totalOrders: 2,
+    totalSpent: 1385,
+    lastOrderDate: '2026-10-16'
+  }
+];
+
+export const INITIAL_COUPONS: Coupon[] = [
+  {
+    id: 'cpn_1',
+    storeId: 'store_demo_1',
+    code: 'WELCOME15',
+    discountType: 'percentage',
+    value: 15,
+    minOrder: 300,
+    usageCount: 28,
+    isActive: true
+  },
+  {
+    id: 'cpn_2',
+    storeId: 'store_demo_1',
+    code: 'VIP50',
+    discountType: 'fixed',
+    value: 50,
+    minOrder: 500,
+    usageCount: 14,
+    isActive: true
   }
 ];
 

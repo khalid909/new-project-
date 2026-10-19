@@ -1,19 +1,21 @@
 import React, { useState, useEffect } from 'react';
 import { 
-  Currency, Language, Store, Product, Order, PlanType, 
-  SupabaseConfig, GitHubConfig 
+  Currency, Language, Store, Product, Order, Customer, Coupon, 
+  PlanType, SupabaseConfig, GitHubConfig, SellerUser 
 } from './types';
 import { 
   INITIAL_STORE, INITIAL_PRODUCTS, INITIAL_ORDERS, 
+  INITIAL_CUSTOMERS, INITIAL_COUPONS, INITIAL_SELLER_USER, 
   INITIAL_SUPABASE_CONFIG, INITIAL_GITHUB_CONFIG, PLANS 
 } from './data/initialData';
 import { RegisterStoreView } from './components/RegisterStoreView';
 import { StoreDashboardView } from './components/StoreDashboardView';
+import { SellerLoginModal } from './components/SellerLoginModal';
 import { PublicStoreView } from './components/PublicStoreView';
 import { Footer } from './components/Footer';
 import { 
   Store as StoreIcon, Plus, ExternalLink, Globe, 
-  Layers, ShieldCheck, ChevronDown, Check 
+  Layers, ShieldCheck, ChevronDown, Check, LogIn, LogOut, User 
 } from 'lucide-react';
 
 export default function App() {
@@ -21,13 +23,19 @@ export default function App() {
   const [currency, setCurrency] = useState<Currency>('SAR');
   const [appMode, setAppMode] = useState<'dashboard' | 'register'>('dashboard');
   
+  // Auth State
+  const [currentUser, setCurrentUser] = useState<SellerUser | null>(INITIAL_SELLER_USER);
+  const [isLoginModalOpen, setIsLoginModalOpen] = useState<boolean>(false);
+
   // Stores State
   const [stores, setStores] = useState<Store[]>([INITIAL_STORE]);
   const [activeStoreId, setActiveStoreId] = useState<string>(INITIAL_STORE.id);
   
-  // Products & Orders State
+  // Products, Orders, Customers, Coupons
   const [products, setProducts] = useState<Product[]>(INITIAL_PRODUCTS);
   const [orders, setOrders] = useState<Order[]>(INITIAL_ORDERS);
+  const [customers, setCustomers] = useState<Customer[]>(INITIAL_CUSTOMERS);
+  const [coupons, setCoupons] = useState<Coupon[]>(INITIAL_COUPONS);
 
   // Live Customer Store Preview Modal
   const [previewingStore, setPreviewingStore] = useState<Store | null>(null);
@@ -45,10 +53,29 @@ export default function App() {
     document.documentElement.lang = language;
   }, [language]);
 
+  // Auth Handlers
+  const handleLoginSuccess = (user: SellerUser, storeId: string) => {
+    setCurrentUser(user);
+    setActiveStoreId(storeId);
+    setAppMode('dashboard');
+  };
+
+  const handleLogout = () => {
+    setCurrentUser(null);
+    setIsLoginModalOpen(true);
+  };
+
   // Handler: Register New Store
   const handleRegisterSuccess = (newStore: Store) => {
     setStores((prev) => [newStore, ...prev]);
     setActiveStoreId(newStore.id);
+    const seller: SellerUser = {
+      id: `usr_${newStore.id}`,
+      name: newStore.ownerName,
+      email: newStore.ownerEmail,
+      storeId: newStore.id
+    };
+    setCurrentUser(seller);
     setAppMode('dashboard');
   };
 
@@ -96,6 +123,18 @@ export default function App() {
     );
   };
 
+  // Handler: Add Coupon
+  const handleAddCoupon = (newCoupon: Coupon) => {
+    setCoupons((prev) => [newCoupon, ...prev]);
+  };
+
+  // Handler: Toggle Coupon
+  const handleToggleCoupon = (couponId: string) => {
+    setCoupons((prev) =>
+      prev.map((c) => (c.id === couponId ? { ...c, isActive: !c.isActive } : c))
+    );
+  };
+
   // Handler: Customer Order from Public Store
   const handleNewCustomerOrder = (newOrder: Order) => {
     setOrders((prev) => [newOrder, ...prev]);
@@ -111,6 +150,37 @@ export default function App() {
           : s
       )
     );
+
+    // Update or add customer
+    setCustomers((prev) => {
+      const existing = prev.find((c) => c.email === newOrder.customerEmail);
+      if (existing) {
+        return prev.map((c) =>
+          c.id === existing.id
+            ? {
+                ...c,
+                totalOrders: c.totalOrders + 1,
+                totalSpent: c.totalSpent + newOrder.total,
+                lastOrderDate: new Date().toISOString().split('T')[0]
+              }
+            : c
+        );
+      }
+      return [
+        {
+          id: `cust_${Date.now()}`,
+          storeId: newOrder.storeId,
+          name: newOrder.customerName,
+          email: newOrder.customerEmail,
+          phone: newOrder.customerPhone,
+          city: newOrder.customerCity,
+          totalOrders: 1,
+          totalSpent: newOrder.total,
+          lastOrderDate: new Date().toISOString().split('T')[0]
+        },
+        ...prev
+      ];
+    });
   };
 
   return (
@@ -145,8 +215,8 @@ export default function App() {
                 </div>
               </button>
 
-              {/* Store Switcher (in dashboard mode) */}
-              {appMode === 'dashboard' && (
+              {/* Store Switcher */}
+              {appMode === 'dashboard' && currentUser && (
                 <div className="hidden sm:flex items-center gap-2 ps-4 border-s border-slate-800">
                   <select
                     value={activeStoreId}
@@ -189,23 +259,52 @@ export default function App() {
                 <span className="font-semibold">{language === 'ar' ? 'EN' : 'عربي'}</span>
               </button>
 
-              {/* App Mode Switcher Button */}
-              {appMode === 'dashboard' ? (
-                <button
-                  onClick={() => setAppMode('register')}
-                  className="flex items-center gap-1.5 px-3.5 py-2 text-xs font-bold text-white bg-indigo-600 hover:bg-indigo-500 rounded-lg shadow-md transition-all active:scale-95"
-                >
-                  <Plus className="w-3.5 h-3.5" />
-                  <span>{isAr ? 'تسجيل متجر جديد' : 'New Store'}</span>
-                </button>
+              {/* Auth / Action Button */}
+              {currentUser ? (
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => setPreviewingStore(activeStore)}
+                    className="hidden md:flex items-center gap-1.5 px-3 py-2 rounded-lg bg-slate-900 border border-slate-700 hover:border-indigo-400 text-xs font-medium text-slate-200 transition-colors"
+                  >
+                    <ExternalLink className="w-3.5 h-3.5 text-indigo-400" />
+                    <span>{isAr ? 'المتجر الحي' : 'Live Store'}</span>
+                  </button>
+
+                  <button
+                    onClick={() => setAppMode(appMode === 'dashboard' ? 'register' : 'dashboard')}
+                    className="flex items-center gap-1.5 px-3 py-2 text-xs font-bold text-white bg-indigo-600 hover:bg-indigo-500 rounded-lg shadow-md transition-all active:scale-95"
+                  >
+                    {appMode === 'dashboard' ? (
+                      <>
+                        <Plus className="w-3.5 h-3.5" />
+                        <span>{isAr ? 'متجر جديد' : 'New Store'}</span>
+                      </>
+                    ) : (
+                      <>
+                        <Layers className="w-3.5 h-3.5" />
+                        <span>{isAr ? 'لوحة التحكم' : 'Dashboard'}</span>
+                      </>
+                    )}
+                  </button>
+                </div>
               ) : (
-                <button
-                  onClick={() => setAppMode('dashboard')}
-                  className="flex items-center gap-1.5 px-3.5 py-2 text-xs font-bold text-slate-200 bg-slate-900 hover:bg-slate-800 border border-slate-700 rounded-lg transition-all"
-                >
-                  <Layers className="w-3.5 h-3.5 text-indigo-400" />
-                  <span>{isAr ? 'الدخول للوحة التحكم' : 'Dashboard'}</span>
-                </button>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => setIsLoginModalOpen(true)}
+                    className="flex items-center gap-1.5 px-3.5 py-2 text-xs font-bold text-slate-200 bg-slate-900 hover:bg-slate-800 border border-slate-700 rounded-lg transition-colors"
+                  >
+                    <LogIn className="w-3.5 h-3.5 text-indigo-400" />
+                    <span>{isAr ? 'تسجيل دخول التاجر' : 'Seller Login'}</span>
+                  </button>
+
+                  <button
+                    onClick={() => setAppMode('register')}
+                    className="flex items-center gap-1.5 px-3.5 py-2 text-xs font-bold text-white bg-indigo-600 hover:bg-indigo-500 rounded-lg transition-all"
+                  >
+                    <Plus className="w-3.5 h-3.5" />
+                    <span>{isAr ? 'أنشئ متجرك' : 'Create Store'}</span>
+                  </button>
+                </div>
               )}
             </div>
 
@@ -228,6 +327,9 @@ export default function App() {
             store={activeStore}
             products={products}
             orders={orders}
+            customers={customers}
+            coupons={coupons}
+            currentUser={currentUser}
             currency={currency}
             language={language}
             supabaseConfig={supabaseConfig}
@@ -238,8 +340,11 @@ export default function App() {
             onDeleteProduct={handleDeleteProduct}
             onUpdateProductStock={handleUpdateProductStock}
             onUpdateOrderStatus={handleUpdateOrderStatus}
+            onAddCoupon={handleAddCoupon}
+            onToggleCoupon={handleToggleCoupon}
             onOpenLivePreview={() => setPreviewingStore(activeStore)}
             onOpenCreateNewStore={() => setAppMode('register')}
+            onLogout={handleLogout}
           />
         )}
       </main>
@@ -253,6 +358,19 @@ export default function App() {
           } else {
             setAppMode('dashboard');
           }
+        }}
+      />
+
+      {/* Seller Login Modal */}
+      <SellerLoginModal
+        isOpen={isLoginModalOpen}
+        onClose={() => setIsLoginModalOpen(false)}
+        language={language}
+        stores={stores}
+        onLoginSuccess={handleLoginSuccess}
+        onSwitchToRegister={() => {
+          setIsLoginModalOpen(false);
+          setAppMode('register');
         }}
       />
 

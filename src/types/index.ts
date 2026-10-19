@@ -2,17 +2,25 @@ export type Currency = 'SAR' | 'USD' | 'AED' | 'EUR';
 export type Language = 'ar' | 'en';
 export type PlanType = 'free' | 'pro';
 
+export interface SellerUser {
+  id: string;
+  name: string;
+  email: string;
+  storeId: string;
+  avatarUrl?: string;
+}
+
 export interface PlanDetails {
   id: PlanType;
   name: string;
   nameAr: string;
-  price: number; // monthly in USD
+  price: number;
   priceSar: number;
   description: string;
   descriptionAr: string;
   features: string[];
   featuresAr: string[];
-  maxProducts: number; // -1 for unlimited
+  maxProducts: number;
   transactionFee: string;
   isPopular?: boolean;
 }
@@ -26,6 +34,8 @@ export interface StoreSettings {
   taxRate: number;
   currency: Currency;
   isPublished: boolean;
+  payoutBank?: string;
+  payoutIban?: string;
 }
 
 export interface Store {
@@ -59,6 +69,7 @@ export interface Product {
   description: string;
   descriptionAr: string;
   price: number;
+  costPrice?: number;
   category: string;
   stock: number;
   sku: string;
@@ -88,6 +99,30 @@ export interface Order {
   paymentMethod: string;
   createdAt: string;
   trackingNumber: string;
+  notes?: string;
+}
+
+export interface Customer {
+  id: string;
+  storeId: string;
+  name: string;
+  email: string;
+  phone: string;
+  city: string;
+  totalOrders: number;
+  totalSpent: number;
+  lastOrderDate: string;
+}
+
+export interface Coupon {
+  id: string;
+  storeId: string;
+  code: string;
+  discountType: 'percentage' | 'fixed';
+  value: number;
+  minOrder: number;
+  usageCount: number;
+  isActive: boolean;
 }
 
 export interface SupabaseConfig {
