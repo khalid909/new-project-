@@ -1,108 +1,214 @@
 import { 
   PlanDetails, Store, Product, Order, Customer, Coupon, 
-  SellerUser, SupabaseConfig, GitHubConfig, Currency, PlatformFeatureItem, StoreFeatureItem 
+  SellerUser, SupabaseConfig, GitHubConfig, Currency, 
+  PlatformFeatureItem, StoreFeatureItem, WilayaDeliveryRate, CarrierConfig,
+  AbandonedCart, LandingPageFunnel
 } from '../types';
+
+export const ALGERIA_58_WILAYAS: WilayaDeliveryRate[] = [
+  { code: '01', name: 'Adrar', nameAr: 'أدرار', homePrice: 900, deskPrice: 600, isAvailable: true },
+  { code: '02', name: 'Chlef', nameAr: 'الشلف', homePrice: 600, deskPrice: 400, isAvailable: true },
+  { code: '03', name: 'Laghouat', nameAr: 'الأغواط', homePrice: 750, deskPrice: 500, isAvailable: true },
+  { code: '04', name: 'Oum El Bouaghi', nameAr: 'أم البواقي', homePrice: 650, deskPrice: 450, isAvailable: true },
+  { code: '05', name: 'Batna', nameAr: 'باتنة', homePrice: 650, deskPrice: 400, isAvailable: true },
+  { code: '06', name: 'Béjaïa', nameAr: 'بجاية', homePrice: 650, deskPrice: 450, isAvailable: true },
+  { code: '07', name: 'Biskra', nameAr: 'بسكرة', homePrice: 700, deskPrice: 450, isAvailable: true },
+  { code: '08', name: 'Béchar', nameAr: 'بشار', homePrice: 900, deskPrice: 600, isAvailable: true },
+  { code: '09', name: 'Blida', nameAr: 'البليدة', homePrice: 500, deskPrice: 350, isAvailable: true },
+  { code: '10', name: 'Bouira', nameAr: 'البويرة', homePrice: 600, deskPrice: 400, isAvailable: true },
+  { code: '11', name: 'Tamanrasset', nameAr: 'تمنراست', homePrice: 1200, deskPrice: 850, isAvailable: true },
+  { code: '12', name: 'Tébessa', nameAr: 'تبسة', homePrice: 700, deskPrice: 450, isAvailable: true },
+  { code: '13', name: 'Tlemcen', nameAr: 'تلمسان', homePrice: 650, deskPrice: 450, isAvailable: true },
+  { code: '14', name: 'Tiaret', nameAr: 'تيارت', homePrice: 700, deskPrice: 450, isAvailable: true },
+  { code: '15', name: 'Tizi Ouzou', nameAr: 'تيزي وزو', homePrice: 600, deskPrice: 400, isAvailable: true },
+  { code: '16', name: 'Alger', nameAr: 'الجزائر العاصمة', homePrice: 450, deskPrice: 300, isAvailable: true },
+  { code: '17', name: 'Djelfa', nameAr: 'الجلفة', homePrice: 750, deskPrice: 500, isAvailable: true },
+  { code: '18', name: 'Jijel', nameAr: 'جيجل', homePrice: 650, deskPrice: 450, isAvailable: true },
+  { code: '19', name: 'Sétif', nameAr: 'سطيف', homePrice: 600, deskPrice: 400, isAvailable: true },
+  { code: '20', name: 'Saïda', nameAr: 'سعيدة', homePrice: 750, deskPrice: 500, isAvailable: true },
+  { code: '21', name: 'Skikda', nameAr: 'سكيكدة', homePrice: 650, deskPrice: 450, isAvailable: true },
+  { code: '22', name: 'Sidi Bel Abbès', nameAr: 'سيدي بلعباس', homePrice: 650, deskPrice: 450, isAvailable: true },
+  { code: '23', name: 'Annaba', nameAr: 'عنابة', homePrice: 650, deskPrice: 450, isAvailable: true },
+  { code: '24', name: 'Guelma', nameAr: 'قالمة', homePrice: 700, deskPrice: 450, isAvailable: true },
+  { code: '25', name: 'Constantine', nameAr: 'قسنطينة', homePrice: 600, deskPrice: 400, isAvailable: true },
+  { code: '26', name: 'Médéa', nameAr: 'المدية', homePrice: 600, deskPrice: 400, isAvailable: true },
+  { code: '27', name: 'Mostaganem', nameAr: 'مستغانم', homePrice: 650, deskPrice: 450, isAvailable: true },
+  { code: '28', name: "M'Sila", nameAr: 'المسيلة', homePrice: 700, deskPrice: 450, isAvailable: true },
+  { code: '29', name: 'Mascara', nameAr: 'معسكر', homePrice: 650, deskPrice: 450, isAvailable: true },
+  { code: '30', name: 'Ouargla', nameAr: 'ورقلة', homePrice: 850, deskPrice: 600, isAvailable: true },
+  { code: '31', name: 'Oran', nameAr: 'وهران', homePrice: 550, deskPrice: 350, isAvailable: true },
+  { code: '32', name: 'El Bayadh', nameAr: 'البيض', homePrice: 850, deskPrice: 600, isAvailable: true },
+  { code: '33', name: 'Illizi', nameAr: 'إليزي', homePrice: 1200, deskPrice: 850, isAvailable: true },
+  { code: '34', name: 'Bordj Bou Arréridj', nameAr: 'برج بوعريريج', homePrice: 600, deskPrice: 400, isAvailable: true },
+  { code: '35', name: 'Boumerdès', nameAr: 'بومرداس', homePrice: 500, deskPrice: 350, isAvailable: true },
+  { code: '36', name: 'El Tarf', nameAr: 'الطارف', homePrice: 750, deskPrice: 500, isAvailable: true },
+  { code: '37', name: 'Tindouf', nameAr: 'تندوف', homePrice: 1300, deskPrice: 900, isAvailable: true },
+  { code: '38', name: 'Tissemsilt', nameAr: 'تيسمسيلت', homePrice: 750, deskPrice: 500, isAvailable: true },
+  { code: '39', name: 'El Oued', nameAr: 'الوادي', homePrice: 800, deskPrice: 550, isAvailable: true },
+  { code: '40', name: 'Khenchela', nameAr: 'خنشلة', homePrice: 750, deskPrice: 500, isAvailable: true },
+  { code: '41', name: 'Souk Ahras', nameAr: 'سوق أهراس', homePrice: 750, deskPrice: 500, isAvailable: true },
+  { code: '42', name: 'Tipaza', nameAr: 'تيبازة', homePrice: 500, deskPrice: 350, isAvailable: true },
+  { code: '43', name: 'Mila', nameAr: 'ميلة', homePrice: 650, deskPrice: 450, isAvailable: true },
+  { code: '44', name: 'Aïn Defla', nameAr: 'عين الدفلى', homePrice: 600, deskPrice: 400, isAvailable: true },
+  { code: '45', name: 'Naâma', nameAr: 'النعامة', homePrice: 850, deskPrice: 600, isAvailable: true },
+  { code: '46', name: 'Aïn Témouchent', nameAr: 'عين تموشنت', homePrice: 650, deskPrice: 450, isAvailable: true },
+  { code: '47', name: 'Ghardaïa', nameAr: 'غرداية', homePrice: 800, deskPrice: 550, isAvailable: true },
+  { code: '48', name: 'Relizane', nameAr: 'غليزان', homePrice: 650, deskPrice: 450, isAvailable: true },
+  { code: '49', name: 'Timimoun', nameAr: 'تيميمون', homePrice: 950, deskPrice: 650, isAvailable: true },
+  { code: '50', name: 'Bordj Badji Mokhtar', nameAr: 'برج باجي مختار', homePrice: 1400, deskPrice: 950, isAvailable: true },
+  { code: '51', name: 'Ouled Djellal', nameAr: 'أولاد جلال', homePrice: 750, deskPrice: 500, isAvailable: true },
+  { code: '52', name: 'Béni Abbès', nameAr: 'بني عباس', homePrice: 950, deskPrice: 650, isAvailable: true },
+  { code: '53', name: 'In Salah', nameAr: 'عين صالح', homePrice: 1100, deskPrice: 800, isAvailable: true },
+  { code: '54', name: 'In Guezzam', nameAr: 'عين قزام', homePrice: 1400, deskPrice: 950, isAvailable: true },
+  { code: '55', name: 'Touggourt', nameAr: 'توقرت', homePrice: 800, deskPrice: 550, isAvailable: true },
+  { code: '56', name: 'Djanet', nameAr: 'جانت', homePrice: 1400, deskPrice: 950, isAvailable: true },
+  { code: '57', name: "El M'Ghair", nameAr: 'المغير', homePrice: 800, deskPrice: 550, isAvailable: true },
+  { code: '58', name: 'El Meniaa', nameAr: 'المنيعة', homePrice: 850, deskPrice: 600, isAvailable: true }
+];
+
+export const ALGERIA_CARRIERS: CarrierConfig[] = [
+  { id: 'yalidine', name: 'Yalidine Delivery', nameAr: 'ياليدين للتوصيل السريع (Yalidine)', isEnabled: true, defaultDeliveryType: 'home' },
+  { id: 'zrexpress', name: 'ZR Express', nameAr: 'زد آر إكسبريس (ZR Express)', isEnabled: true, defaultDeliveryType: 'home' },
+  { id: 'noest', name: 'NOEST Delivery', nameAr: 'نوست دليفري (NOEST)', isEnabled: true, defaultDeliveryType: 'desk' },
+  { id: 'maystro', name: 'Maystro Delivery', nameAr: 'مايسترو دليفري (Maystro)', isEnabled: true, defaultDeliveryType: 'home' },
+  { id: 'procolis', name: 'Procolis Express', nameAr: 'بروكولي إكسبريس (Procolis)', isEnabled: true, defaultDeliveryType: 'home' }
+];
 
 export const PLANS: PlanDetails[] = [
   {
     id: 'free',
-    name: 'Starter Plan',
-    nameAr: 'الخطة المجانية',
+    name: 'Starter Trial',
+    nameAr: 'خطة البداية المجانية (30 طلب مجاني)',
     price: 0,
     priceSar: 0,
-    description: 'Perfect for launching your first online store with zero upfront cost.',
-    descriptionAr: 'مثالية لإطلاق متجرك الإلكتروني الأول بدون أي تكاليف مسبقة.',
+    description: 'Perfect for launching and testing your first COD store in Algeria with 0 DZD upfront.',
+    descriptionAr: 'ابدأ تجارتك وجرب المنصة بدون دفع أي دينار مسبقاً، حتى 30 طلباً مجانياً وبـ 0% عمولة.',
     maxProducts: 10,
-    transactionFee: '2%',
+    transactionFee: '0%',
     features: [
-      'Up to 10 active products',
-      'Free .avanto.store subdomain',
-      'Full Merchant Dashboard',
-      'Orders and inventory manager',
-      'Standard SSL security',
-      'Basic sales analytics'
+      'Up to 30 free orders included',
+      'Free yourstore.wasladz.app subdomain',
+      'All 58 Algerian Wilayas delivery engine',
+      'Cash on Delivery (COD) 1-click checkout',
+      'Basic fraud detection',
+      'Orders and inventory manager'
     ],
     featuresAr: [
-      'حتى 10 منتجات نشطة في المتجر',
-      'نطاق فرعي مجاني yourstore.avanto.store',
-      'لوحة تحكم كاملة لإدارة المتجر',
-      'إدارة الطلبات والشحن والمخزون',
-      'شهادة أمان وتشفير SSL مجانية',
-      'تقارير المبيعات الأساسية'
+      'حتى 30 طلب مجاني لتجربة المنصة بدون بطاقة بنكية',
+      'نطاق فرعي مجاني yourstore.wasladz.app',
+      'نظام شحن الـ 58 ولاية (توصيل للمنزل أو المكتب)',
+      'نموذج الدفع عند الاستلام (COD) بنقرة واحدة',
+      'حماية أساسية من الطلبات الوهمية والمكررة',
+      'إدارة المنتجات والمخزون والطلبات'
     ]
   },
   {
     id: 'pro',
     name: 'Pro Merchant Plan',
-    nameAr: 'الخطة الاحترافية (المدفوعة)',
-    price: 29,
-    priceSar: 99,
-    description: 'Advanced e-commerce infrastructure for scaling businesses.',
-    descriptionAr: 'بنية تحتية متطورة للتجار الراغبين في التوسع بدون حدود.',
+    nameAr: 'الخطة الاحترافية (الأكثر طلباً)',
+    price: 1000,
+    priceSar: 28,
+    description: 'Unlimited orders, zero commission, and full courier integration for scale.',
+    descriptionAr: 'طلبات غير محدودة و0% عمولة مع ربط ياليدين وزد آر وإيكوتراك وصفحات هبوط بالذكاء الاصطناعي.',
     maxProducts: -1, // Unlimited
     transactionFee: '0%',
     isPopular: true,
     features: [
-      'Unlimited products & categories',
-      '0% platform transaction fees',
-      'Custom domain connection (e.g. mystore.com)',
-      'Coupons & promotional marketing engine',
-      'Native Supabase & PostgreSQL sync',
-      'GitHub repository & automated CI/CD deploy',
-      'Priority 24/7 seller support',
-      'Advanced conversion & analytics reports'
+      'Unlimited orders & 0% sales commission',
+      'Native Yalidine, ZR Express & Ecotrack integration',
+      'AI-Powered Landing Page builder (Darija, FR, AR)',
+      'Smart Anti-Fraud & Phone Verification Shield',
+      'Multi-Pixel Engine (Meta, TikTok, Snapchat, Google)',
+      'Call center confirmation logging (No answer, closed)',
+      'Custom domain connection (e.g. www.mystore.dz)',
+      'Automated thermal waybill (Bordereau) printing'
     ],
     featuresAr: [
-      'عدد غير محدود من المنتجات والتصنيفات',
-      '0% عمولة مبيعات للمنصة',
-      'ربط دومين مخصص بك (مثال: mystore.com)',
-      'محرك الكوبونات والعروض التسويقية المتقدمة',
-      'مزامنة سحابية مباشرة مع Supabase و PostgreSQL',
-      'ربط مستودع GitHub والنشر التلقائي',
-      'دعم فني مخصص للتجار على مدار الساعة',
-      'تقارير متقدمة للمبيعات وسلوك العملاء'
+      'طلبات غير محدودة و 0% عمولة على المبيعات',
+      'ربط وتتبع تلقائي مع Yalidine و ZR Express و Ecotrack',
+      'منشئ صفحات الهبوط السريعة بالذكاء الاصطناعي (بالدارجة والفرنسية)',
+      'نظام فحص وتصفية الطلبات الوهمية وأرقام الهواتف',
+      'ربط بكسلات التتبع (Facebook, TikTok, Snapchat, Google)',
+      'نظام تسجيل محاولات الاتصال (لم يرد، مغلق، مؤكد)',
+      'ربط نطاق خاص مخصص بك (مثال: www.mystore.dz أو .com)',
+      'طباعة بوالص الشحن الحرارية (Bordereau) بالباركود'
+    ]
+  },
+  {
+    id: 'enterprise',
+    name: 'Enterprise Scale',
+    nameAr: 'خطة الشركات ومراكز الاتصال',
+    price: 5500,
+    priceSar: 150,
+    description: 'Designed for scaling e-commerce brands, call centers, and multi-staff teams.',
+    descriptionAr: 'مخصصة للعلامات التجارية وفرق العمل ومراكز الاتصال لعمليات شحن ضخمة مع مدير حساب VIP.',
+    maxProducts: -1,
+    transactionFee: '0%',
+    features: [
+      'Up to 25 staff & call-center team accounts',
+      'Multi-carrier automated routing & bulk waybills',
+      'Unlimited landing pages & custom stores',
+      'Dedicated VIP account manager via WhatsApp',
+      'Priority delivery rates & carrier API sync',
+      'Developer REST API (21 permissions) & Webhooks'
+    ],
+    featuresAr: [
+      'حتى 25 حساب لفريق العمل وموظفي الكول سنتر',
+      'توجيه الشحنات الذكي وطباعة البوالص بالجملة',
+      'عدد غير محدود من صفحات الهبوط والمتاجر',
+      'مدير حساب خاص ودعم VIP عبر واتساب',
+      'أسعار شحن تفضيلية ومزامنة سحابية مخصصة',
+      'بوابة المطورين وواجهة API متقدمة مع Webhooks'
     ]
   }
 ];
 
 export const INITIAL_SELLER_USER: SellerUser = {
   id: 'usr_seller_1',
-  name: 'خالد المنصور',
-  email: 'khalid@domain.com',
+  name: 'كريم بلحاج',
+  email: 'karim.belhadj@wasladz.com',
   storeId: 'store_demo_1'
 };
 
 export const INITIAL_STORE: Store = {
   id: 'store_demo_1',
-  name: 'Luxe Craft Store',
-  nameAr: 'متجر الحِرف الراقية',
-  slug: 'luxe-craft',
-  slogan: 'Curated artisanal watches and leather goods',
-  sloganAr: 'ساعات فاخرة ومصنوعات جلدية مختارة بعناية',
-  description: 'Online store built on AVANTO cloud commerce engine.',
-  descriptionAr: 'متجر تجارة إلكترونية سحابي مدعوم بمنصة أفانتو.',
-  category: 'Fashion & Luxury',
-  categoryAr: 'أزياء وإكسسوارات فاخرة',
-  ownerName: 'خالد المنصور',
-  ownerEmail: 'khalid@domain.com',
+  name: 'Elegance DZ Store',
+  nameAr: 'متجر إليغانس ديزاد',
+  slug: 'elegance-dz',
+  slogan: 'Leading Algerian COD store with 58 wilayas fast delivery',
+  sloganAr: 'المتجر الإلكتروني الرائد في الجزائر - توصيل سريع ودفع عند الاستلام لكافة الـ 58 ولاية',
+  description: 'Online store built on WASLADZ commerce engine.',
+  descriptionAr: 'متجر سحابي مستقل مدعوم بمنصة وصلة ديزاد (WaslaDZ).',
+  category: 'Fashion & Tech',
+  categoryAr: 'أزياء وإلكترونيات وساعات',
+  ownerName: 'كريم بلحاج',
+  ownerEmail: 'karim.belhadj@wasladz.com',
   plan: 'pro',
-  accentColor: '#6366F1',
-  totalSales: 12450,
-  ordersCount: 16,
+  accentColor: '#059669',
+  totalSales: 485000,
+  ordersCount: 94,
   createdAt: '2026-10-18',
   supabaseConnected: true,
   githubConnected: true,
   settings: {
-    subdomain: 'luxecraft.avanto.store',
-    customDomain: 'www.luxecraft.sa',
-    themeColor: '#6366F1',
-    shippingRate: 25,
-    freeShippingThreshold: 500,
-    taxRate: 15,
-    currency: 'SAR',
+    subdomain: 'elegance-dz.wasladz.app',
+    customDomain: 'www.elegance-dz.store',
+    themeColor: '#059669',
+    shippingRate: 450,
+    freeShippingThreshold: 8000,
+    taxRate: 0,
+    currency: 'DZD',
     isPublished: true,
-    payoutBank: 'مصرف الراجحي (Al Rajhi Bank)',
-    payoutIban: 'SA4480000456608010123456'
+    payoutBank: 'بريد الجزائر (BaridiMob / CCP) / بنك BNA',
+    payoutIban: '00799999000123456789 (RIP BaridiMob)',
+    activeCarrier: 'yalidine',
+    defaultDeliveryType: 'home',
+    enableFakeOrderShield: true,
+    enableLandingPageDirectBuy: true,
+    yalidineApiKey: 'YAL_API_KEY_LIVE_9921',
+    yalidineApiToken: 'YAL_TOKEN_SEC_7718',
+    facebookPixel: 'PIXEL_FB_99182374',
+    tiktokPixel: 'PIXEL_TT_88129033'
   }
 };
 
@@ -110,119 +216,173 @@ export const INITIAL_PRODUCTS: Product[] = [
   {
     id: 'prod_1',
     storeId: 'store_demo_1',
-    name: 'Titanium Automatic Chronometer Watch',
-    nameAr: 'ساعة كرونوميتر أوتوماتيكية من التيتانيوم',
-    description: 'Handcrafted titanium case with 72-hour power reserve and sapphire glass.',
-    descriptionAr: 'هيكل تيتانيوم مصقول يدوياً مع احتياطي طاقة 72 ساعة وزجاج سفير مقاوم للخدش.',
-    price: 1850,
-    costPrice: 750,
-    category: 'Watches',
-    stock: 8,
-    sku: 'LXC-WTCH-01',
-    isPublished: true
+    name: 'Smart Titanium Ultra Watch Pro',
+    nameAr: 'ساعة ذكية تيتانيوم ألترا برو مقاومة للماء مع شاشة AMOLED',
+    description: 'High-precision titanium sports smartwatch with heart rate, calls, Arabic UI, and 10-day battery.',
+    descriptionAr: 'ساعة رياضية ذكية فاخرة من التيتانيوم، تدعم المكالمات باللغة العربية، قياس دقات القلب والضغط، وبطارية تدوم 10 أيام مع شاحن لاسلكي سريع.',
+    price: 4900,
+    costPrice: 2200,
+    compareAtPrice: 6500,
+    category: 'Electronics',
+    stock: 24,
+    sku: 'WATCH-ULTRA-DZ',
+    isPublished: true,
+    isFeatured: true,
+    imageUrl: 'https://images.unsplash.com/photo-1579586337278-3befd40fd17a?auto=format&fit=crop&w=600&q=80'
   },
   {
     id: 'prod_2',
     storeId: 'store_demo_1',
-    name: 'Cognac Full-Grain Leather Travel Bag',
-    nameAr: 'حقيبة سفر من الجلد الطبيعي بلون الكونياك',
-    description: 'Full-grain vegetable-tanned leather handcrafted with solid brass hardware.',
-    descriptionAr: 'جلد طبيعي مدبوغ نباتياً ومصنوع يدوياً مع إكسسوارات من النحاس الصلب.',
-    price: 680,
-    costPrice: 280,
-    category: 'Leather Goods',
-    stock: 14,
-    sku: 'LXC-BAG-02',
-    isPublished: true
+    name: 'Ergonomic Waterproof Leather Backpack',
+    nameAr: 'حقيبة ظهر جلدية مضادة للماء مع منفذ شحن USB للعمل والسفر',
+    description: 'Premium waterproof synthetic leather laptop backpack with multi-compartments and anti-theft zipper.',
+    descriptionAr: 'حقيبة ظهر أنيقة من الجلد الفاخر المقاوم للماء والخدش، مخصصة للحاسوب المحمول والأغراض الشخصية مع سحاب أمان ومنفذ شحن مدمج.',
+    price: 3600,
+    costPrice: 1500,
+    compareAtPrice: 4800,
+    category: 'Bags & Accessories',
+    stock: 35,
+    sku: 'BAG-LEATH-02',
+    isPublished: true,
+    isFeatured: true,
+    imageUrl: 'https://images.unsplash.com/photo-1553062407-98eeb64c6a62?auto=format&fit=crop&w=600&q=80'
   },
   {
     id: 'prod_3',
     storeId: 'store_demo_1',
-    name: 'Royal Amber & Rare Cambodian Oud Extrait',
-    nameAr: 'عطر العنبر الملكي وخلاصة العود الكمبودي',
-    description: 'Pure 35% extrait concentration with wild resins and aged woods.',
-    descriptionAr: 'تركيز نقي 35% بخلاصة الراتنجات الطبيعية وخشب العود المعتق.',
-    price: 420,
-    costPrice: 110,
-    category: 'Fragrance',
-    stock: 22,
-    sku: 'LXC-OUD-03',
-    isPublished: true
+    name: 'Professional Ceramic Hair Styler & Beard Trimmer',
+    nameAr: 'ماكينة الحلاقة والتحديد الاحترافية اللاسلكية المقاومة للماء',
+    description: 'Rechargeable cordless hair and beard precision trimmer with titanium-ceramic blades and LED display.',
+    descriptionAr: 'ماكينة حلاقة وتحديد عالية الدقة بشفرات تيتانيوم سيراميك، شاشة رقمية لعرض نسبة البطارية، وهيكل معدني مقاوم للماء مع 4 أمشاط مدرجة.',
+    price: 2900,
+    costPrice: 1100,
+    compareAtPrice: 3900,
+    category: 'Personal Care',
+    stock: 42,
+    sku: 'TRIM-PRO-DZ',
+    isPublished: true,
+    isFeatured: false,
+    imageUrl: 'https://images.unsplash.com/photo-1621607512214-68297480165e?auto=format&fit=crop&w=600&q=80'
   },
   {
     id: 'prod_4',
     storeId: 'store_demo_1',
-    name: 'Minimalist Italian Calfskin Wallet',
-    nameAr: 'محفظة جيب من جلد العجل الإيطالي الفاخر',
-    description: 'Ultra-slim RFID protected minimalist bi-fold leather wallet.',
-    descriptionAr: 'محفظة جلدية نحيفة للغاية بحماية RFID تتسع لـ 8 بطاقات مع جيب نقود.',
-    price: 240,
-    costPrice: 75,
-    category: 'Accessories',
-    stock: 35,
-    sku: 'LXC-WLT-04',
-    isPublished: true
+    name: 'Wireless Noise-Cancelling ANC Earbuds',
+    nameAr: 'سماعات بلوتوث لاسلكية مع عزل الضوضاء النشط وصوت محيطي 3D',
+    description: 'Hi-Fi stereo bluetooth 5.3 earbuds with active noise cancellation, deep bass, and touch controls.',
+    descriptionAr: 'سماعات أذن لاسلكية فائقة النقاء مع ميزة عزل الضوضاء الذكي، ميكروفون مزدوج للمكالمات الواضحة، وعلبة شحن ذكية تدوم 36 ساعة.',
+    price: 2500,
+    costPrice: 950,
+    compareAtPrice: 3500,
+    category: 'Electronics',
+    stock: 50,
+    sku: 'EAR-ANC-04',
+    isPublished: true,
+    isFeatured: false,
+    imageUrl: 'https://images.unsplash.com/photo-1590658268037-6bf12165a8df?auto=format&fit=crop&w=600&q=80'
   }
 ];
 
 export const INITIAL_ORDERS: Order[] = [
   {
     id: 'ord_101',
-    orderNumber: 'AVT-2026-9041',
+    orderNumber: 'SQB-2026-1082',
     storeId: 'store_demo_1',
-    customerName: 'فيصل العتيبي',
-    customerEmail: 'faisal@domain.sa',
-    customerPhone: '+966 50 111 2233',
-    customerCity: 'الرياض',
-    customerAddress: 'حي الياسمين، شارع أنس بن مالك',
+    customerName: 'أمين بلقاسم',
+    customerEmail: 'amine.belkacem@gmail.com',
+    customerPhone: '0550123456',
+    customerCity: 'الجزائر العاصمة (حي باب الزوار)',
+    customerAddress: 'حي 1200 مسكن عمارة 14، باب الزوار',
+    wilayaCode: '16',
+    wilayaName: 'الجزائر العاصمة (Alger)',
+    deliveryType: 'home',
     items: [
       { id: 'item_1', product: INITIAL_PRODUCTS[0], quantity: 1 }
     ],
-    total: 1850,
-    currency: 'SAR',
-    status: 'processing',
-    paymentMethod: 'مدى / Mada',
-    createdAt: '2026-10-18T14:30:00Z',
-    trackingNumber: 'AVT-EXP-99201',
-    notes: 'توصيل مسائي مع فحص الشحنة'
+    total: 5350, // 4900 + 450 delivery
+    currency: 'DZD',
+    status: 'delivered',
+    callStatus: 'confirmed',
+    carrier: 'Yalidine Delivery',
+    paymentMethod: 'الدفع عند الاستلام (COD)',
+    createdAt: '2026-10-18T14:20:00Z',
+    trackingNumber: 'YAL-DZ-16990234',
+    fraudRisk: 'low'
   },
   {
     id: 'ord_102',
-    orderNumber: 'AVT-2026-9040',
+    orderNumber: 'SQB-2026-1083',
     storeId: 'store_demo_1',
-    customerName: 'نورة الشمري',
-    customerEmail: 'noura@domain.sa',
-    customerPhone: '+966 55 999 8877',
-    customerCity: 'الدمام',
-    customerAddress: 'حي الشاطئ، برج البحر',
+    customerName: 'ياسين منصوري',
+    customerEmail: 'yacine.mansouri@yahoo.com',
+    customerPhone: '0661234567',
+    customerCity: 'وهران (حي إيسطو)',
+    customerAddress: 'مكتب ياليدين للتوصيل - وهران إيسطو',
+    wilayaCode: '31',
+    wilayaName: 'وهران (Oran)',
+    deliveryType: 'desk',
     items: [
-      { id: 'item_2', product: INITIAL_PRODUCTS[2], quantity: 2 }
+      { id: 'item_2', product: INITIAL_PRODUCTS[1], quantity: 1 }
     ],
-    total: 840,
-    currency: 'SAR',
-    status: 'delivered',
-    paymentMethod: 'Apple Pay',
-    createdAt: '2026-10-17T09:15:00Z',
-    trackingNumber: 'AVT-EXP-99184'
+    total: 3950, // 3600 + 350 stop-desk
+    currency: 'DZD',
+    status: 'shipped',
+    callStatus: 'confirmed',
+    carrier: 'Yalidine Delivery',
+    paymentMethod: 'الدفع عند الاستلام (COD)',
+    createdAt: '2026-10-18T16:15:00Z',
+    trackingNumber: 'YAL-DZ-31889012',
+    fraudRisk: 'low'
   },
   {
     id: 'ord_103',
-    orderNumber: 'AVT-2026-9039',
+    orderNumber: 'SQB-2026-1084',
     storeId: 'store_demo_1',
-    customerName: 'سلطان بن فهد',
-    customerEmail: 'sultan.f@domain.sa',
-    customerPhone: '+966 54 333 4455',
-    customerCity: 'جدة',
-    customerAddress: 'طريق الملك عبد العزيز، أبراج الشاطئ',
+    customerName: 'مريم بن علي',
+    customerEmail: 'meriem.benali@outlook.com',
+    customerPhone: '0770987654',
+    customerCity: 'قسنطينة (المدينة الجديدة علي منجلي)',
+    customerAddress: 'الوحدة الجوارية 07، عمارة 03، علي منجلي',
+    wilayaCode: '25',
+    wilayaName: 'قسنطينة (Constantine)',
+    deliveryType: 'home',
     items: [
-      { id: 'item_3', product: INITIAL_PRODUCTS[1], quantity: 1 }
+      { id: 'item_3', product: INITIAL_PRODUCTS[2], quantity: 1 }
     ],
-    total: 705,
-    currency: 'SAR',
-    status: 'shipped',
-    paymentMethod: 'بطاقة ائتمان / Credit Card',
-    createdAt: '2026-10-16T11:00:00Z',
-    trackingNumber: 'AVT-EXP-99160'
+    total: 3500, // 2900 + 600 delivery
+    currency: 'DZD',
+    status: 'processing',
+    callStatus: 'pending_call',
+    carrier: 'ZR Express',
+    paymentMethod: 'الدفع عند الاستلام (COD)',
+    createdAt: '2026-10-19T07:45:00Z',
+    trackingNumber: 'ZR-EXP-25109823',
+    fraudRisk: 'low'
+  },
+  {
+    id: 'ord_104',
+    orderNumber: 'SQB-2026-1085',
+    storeId: 'store_demo_1',
+    customerName: 'طارق زواوي',
+    customerEmail: 'tarek.zouaoui@gmail.com',
+    customerPhone: '0555998877',
+    customerCity: 'سطيف (حي الهضاب)',
+    customerAddress: 'شارع 8 ماي 1945، سطيف',
+    wilayaCode: '19',
+    wilayaName: 'سطيف (Sétif)',
+    deliveryType: 'home',
+    items: [
+      { id: 'item_4', product: INITIAL_PRODUCTS[0], quantity: 2 }
+    ],
+    total: 8930, // 4900*2 with 15% discount + 600 shipping
+    currency: 'DZD',
+    status: 'pending',
+    callStatus: 'no_answer_1',
+    carrier: 'Yalidine Delivery',
+    paymentMethod: 'الدفع عند الاستلام (COD)',
+    createdAt: '2026-10-19T08:10:00Z',
+    trackingNumber: 'YAL-DZ-19003412',
+    fraudRisk: 'medium'
   }
 ];
 
@@ -230,35 +390,41 @@ export const INITIAL_CUSTOMERS: Customer[] = [
   {
     id: 'cust_1',
     storeId: 'store_demo_1',
-    name: 'فيصل العتيبي',
-    email: 'faisal@domain.sa',
-    phone: '+966 50 111 2233',
-    city: 'الرياض',
-    totalOrders: 4,
-    totalSpent: 4250,
-    lastOrderDate: '2026-10-18'
+    name: 'أمين بلقاسم',
+    email: 'amine.belkacem@gmail.com',
+    phone: '0550123456',
+    city: 'الجزائر العاصمة',
+    wilayaName: 'الجزائر (16)',
+    totalOrders: 3,
+    totalSpent: 14500,
+    lastOrderDate: '2026-10-18',
+    isVerified: true
   },
   {
     id: 'cust_2',
     storeId: 'store_demo_1',
-    name: 'نورة الشمري',
-    email: 'noura@domain.sa',
-    phone: '+966 55 999 8877',
-    city: 'الدمام',
-    totalOrders: 3,
-    totalSpent: 2100,
-    lastOrderDate: '2026-10-17'
+    name: 'ياسين منصوري',
+    email: 'yacine.mansouri@yahoo.com',
+    phone: '0661234567',
+    city: 'وهران',
+    wilayaName: 'وهران (31)',
+    totalOrders: 2,
+    totalSpent: 8200,
+    lastOrderDate: '2026-10-18',
+    isVerified: true
   },
   {
     id: 'cust_3',
     storeId: 'store_demo_1',
-    name: 'سلطان بن فهد',
-    email: 'sultan.f@domain.sa',
-    phone: '+966 54 333 4455',
-    city: 'جدة',
-    totalOrders: 2,
-    totalSpent: 1385,
-    lastOrderDate: '2026-10-16'
+    name: 'مريم بن علي',
+    email: 'meriem.benali@outlook.com',
+    phone: '0770987654',
+    city: 'قسنطينة',
+    wilayaName: 'قسنطينة (25)',
+    totalOrders: 1,
+    totalSpent: 3500,
+    lastOrderDate: '2026-10-19',
+    isVerified: true
   }
 ];
 
@@ -266,82 +432,199 @@ export const INITIAL_COUPONS: Coupon[] = [
   {
     id: 'cpn_1',
     storeId: 'store_demo_1',
-    code: 'WELCOME15',
+    code: 'WELCOME10',
     discountType: 'percentage',
-    value: 15,
-    minOrder: 300,
-    usageCount: 28,
+    value: 10,
+    minOrder: 4000,
+    usageCount: 42,
     isActive: true
   },
   {
     id: 'cpn_2',
     storeId: 'store_demo_1',
-    code: 'VIP50',
+    code: 'PROMO500',
     discountType: 'fixed',
-    value: 50,
-    minOrder: 500,
-    usageCount: 14,
+    value: 500,
+    minOrder: 6000,
+    usageCount: 19,
     isActive: true
   }
 ];
 
+export const INITIAL_ABANDONED_CARTS: AbandonedCart[] = [
+  {
+    id: 'cart_1',
+    storeId: 'store_demo_1',
+    customerName: 'أمين بن صالح',
+    customerPhone: '0555123490',
+    wilayaName: 'الجزائر العاصمة',
+    productName: 'ساعة ذكية تيتانيوم ألترا برو',
+    total: 4900,
+    createdAt: 'منذ 25 دقيقة',
+    isRecovered: false,
+    recoveryAttempts: 1
+  },
+  {
+    id: 'cart_2',
+    storeId: 'store_demo_1',
+    customerName: 'فاطمة الزهراء قاسمي',
+    customerPhone: '0661984210',
+    wilayaName: 'وهران',
+    productName: 'حقيبة ظهر جلدية مضادة للماء',
+    total: 3600,
+    createdAt: 'منذ ساعة',
+    isRecovered: true,
+    recoveryAttempts: 1
+  },
+  {
+    id: 'cart_3',
+    storeId: 'store_demo_1',
+    customerName: 'ياسين بوعبدالله',
+    customerPhone: '0770341892',
+    wilayaName: 'سطيف',
+    productName: 'ماكينة حلاقة وتشذيب فينتيج احترافية',
+    total: 2900,
+    createdAt: 'منذ 3 ساعات',
+    isRecovered: false,
+    recoveryAttempts: 2
+  }
+];
+
+export const INITIAL_LANDING_PAGES: LandingPageFunnel[] = [
+  {
+    id: 'lp_1',
+    storeId: 'store_demo_1',
+    productId: 'prod_1',
+    title: 'Titanium Ultra Watch Pro High-Converting Funnel',
+    titleAr: 'صفحة هبوط الساعة الذكية تيتانيوم ألترا برو (بالدارجة)',
+    language: 'darija',
+    urgencyHeadline: 'عرض خاص وحصري: تخفيض 30% مع التوصيل السريع لكامل 58 ولاية والدفع حتى يلحقك وتشوف السلعة!',
+    bulletPoints: [
+      'بطارية تدوم حتى 10 أيام كاملة بدون انقطاع مع شاحن لاسلكي',
+      'مقاومة للماء بنسبة 100% مع هيكل تيتانيوم فائق الصلابة',
+      'تدعم إجراء واستقبال المكالمات وإشعارات فيسبوك وواتساب بالعربية',
+      'شاشة AMOLED عملاقة وفائقة الوضوح تحت أشعة الشمس',
+      'ضمان لمدة 12 شهر مع إمكانية التبديل الفوري'
+    ],
+    dealOffers: [
+      { quantity: 1, price: 4900, discountLabel: 'قطعة واحدة - 4,900 د.ج' },
+      { quantity: 2, price: 8900, discountLabel: 'قطعتين - 8,900 د.ج (وفر 900 د.ج)', isBestValue: true },
+      { quantity: 3, price: 12500, discountLabel: '3 قطع - 12,500 د.ج + توصيل مجاني للمنزل' }
+    ],
+    reviewsCount: 38,
+    averageRating: 4.9,
+    visitorCountLive: 14,
+    isPublished: true
+  }
+];
+
 export const INITIAL_SUPABASE_CONFIG: SupabaseConfig = {
-  projectUrl: 'https://avanto-stores.supabase.co',
-  anonKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImF2YW50by1zdG9yZXMiLCJyb2xlIjoiYW5vbiJ9.token_sample',
+  projectUrl: 'https://wasladz-stores.supabase.co',
+  anonKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Indhc2xhZHotZGF0YWJhc2UiLCJyb2xlIjoic2VsbGVyIn0.token_live_sample',
   isConnected: true,
-  lastSyncTime: '2026-10-18T21:00:00Z'
+  lastSyncTime: '2026-10-19T08:00:00Z'
 };
 
 export const INITIAL_GITHUB_CONFIG: GitHubConfig = {
-  repoUrl: 'https://github.com/avanto-commerce/avanto-store-template',
+  repoUrl: 'https://github.com/wasladz/wasladz-storefront-starter',
   branch: 'main',
   connected: true
 };
 
 export const CURRENCY_RATES: Record<Currency, { rate: number; symbol: string; symbolAr: string }> = {
-  SAR: { rate: 1, symbol: 'SAR', symbolAr: 'ر.س' },
-  USD: { rate: 0.27, symbol: '$', symbolAr: '$' },
-  AED: { rate: 0.98, symbol: 'AED', symbolAr: 'د.إ' },
-  EUR: { rate: 0.25, symbol: '€', symbolAr: '€' }
+  DZD: { rate: 1, symbol: 'DZD', symbolAr: 'د.ج' },
+  SAR: { rate: 0.028, symbol: 'SAR', symbolAr: 'ر.س' },
+  USD: { rate: 0.0074, symbol: '$', symbolAr: '$' },
+  EUR: { rate: 0.0069, symbol: '€', symbolAr: '€' }
 };
 
 export const INITIAL_PLATFORM_FEATURES: PlatformFeatureItem[] = [
   {
+    id: 'dz58Wilayas',
+    name: '58 Algerian Wilayas Delivery Matrix',
+    nameAr: 'نظام توصيل وتسعير الـ 58 ولاية جزائرية',
+    description: 'Dynamic automated shipping fees for home delivery (Domicile) and pickup desk (Stop-Desk) across all 58 Wilayas.',
+    descriptionAr: 'حساب تلقائي دقيق لأسعار الشحن لكافة الـ 58 ولاية للتوصيل للمنزل أو الاستلام من المكتب.',
+    category: 'store',
+    isEnabled: true,
+    isRemoved: false
+  },
+  {
+    id: 'yalidineCarrier',
+    name: 'Yalidine & ZR Express Native Integrations',
+    nameAr: 'الربط المباشر مع شركات التوصيل (Yalidine و ZR Express)',
+    description: 'Automated order dispatching, waybill generation, and synchronized parcel live tracking status.',
+    descriptionAr: 'توليد بوالص الشحن التلقائية وتتبع حالة الطرود مباشرة عبر API ياليدين وزد آر إكسبريس.',
+    category: 'checkout',
+    isEnabled: true,
+    isRemoved: false
+  },
+  {
+    id: 'fakeOrderShield',
+    name: 'Smart Anti-Fraud & Fake Order Shield',
+    nameAr: 'نظام كشف وتصفية الطلبات الوهمية والمكررة',
+    description: 'Algerian phone number regex validation (05/06/07), anti-duplicate submission block, and risk scoring.',
+    descriptionAr: 'التحقق التلقائي من أرقام الهواتف الجزائرية ومنع تكرار الطلبات وتنبيه التاجر من الزبائن غير الجادين.',
+    category: 'checkout',
+    isEnabled: true,
+    isRemoved: false
+  },
+  {
+    id: 'landingPageMode',
+    name: '1-Minute High-Converting Landing Page Builder',
+    nameAr: 'منشئ صفحات الهبوط السريعة للشراء المباشر',
+    description: 'Ultra-fast single-page checkout optimized for COD conversions with quantity discount bundles.',
+    descriptionAr: 'صفحات هبوط مخصصة لكل منتج مع نموذج طلب فوري مدمج وعروض كميات ترفع المبيعات بنسبة 35%.',
+    category: 'marketing',
+    isEnabled: true,
+    isRemoved: false
+  },
+  {
+    id: 'orderConfirmationStatus',
+    name: 'Call Center Order Confirmation Tracker',
+    nameAr: 'نظام تسجيل محاولات الاتصال والتأكيد الهاتفي',
+    description: 'Track confirmation call attempts: No Answer 1, No Answer 2, Switched Off, Confirmed, Cancelled.',
+    descriptionAr: 'إدارة وتتبع دقيق لمحاولات الاتصال بالزبون لتأكيد الطلب قبل الشحن وتفادي المرتجعات.',
+    category: 'store',
+    isEnabled: true,
+    isRemoved: false
+  },
+  {
+    id: 'thermalWaybills',
+    name: 'Thermal Waybill Printing (Bordereau avec Code-Barres)',
+    nameAr: 'طباعة بوالص الشحن الحرارية مع الباركود',
+    description: '1-click thermal printing for shipping labels and order delivery slips matching carrier standards.',
+    descriptionAr: 'طباعة فورية لبوالص الشحن الحرارية مع الباركود لتسليم الطرود لموزعي ياليدين وزد آر إكسبريس.',
+    category: 'store',
+    isEnabled: true,
+    isRemoved: false
+  },
+  {
+    id: 'pixelTracking',
+    name: 'Multi-Pixel Advertising Engine (Meta, TikTok, Snapchat)',
+    nameAr: 'ربط بكسلات التتبع الإعلاني (فيسبوك، تيك توك، سناب شات)',
+    description: 'Accurate event tracking for PageView, AddToCart, and Purchase across major ad networks.',
+    descriptionAr: 'إرسال أحداث الشراء الدقيقة لبكسل فيسبوك وتيك توك وسناب شات لتحسين نتائج الحملات الإعلانية.',
+    category: 'marketing',
+    isEnabled: true,
+    isRemoved: false
+  },
+  {
     id: 'coupons',
-    name: 'Coupons & Promo Codes',
-    nameAr: 'نظام الكوبونات والخصومات',
-    description: 'Allow merchants to create, activate, and manage percentage and fixed discount codes.',
-    descriptionAr: 'تمكين التجار من إنشاء وإدارة أكواد التخفيض والعروض الترويجية لزيادة المبيعات.',
+    name: 'Promotional Coupons & Discount Engine',
+    nameAr: 'نظام الكوبونات والخصومات الترويجية',
+    description: 'Create percentage and fixed DZD promo codes to boost conversion rates.',
+    descriptionAr: 'إنشاء وتفعيل أكواد الخصم والعروض الترويجية لزيادة حجم السلة الشرائية.',
     category: 'marketing',
     isEnabled: true,
     isRemoved: false
   },
   {
     id: 'customersCRM',
-    name: 'Customer Directory CRM',
-    nameAr: 'إدارة وسجل العملاء',
-    description: 'Track customer profiles, contact numbers, order counts, and lifetime purchase values.',
-    descriptionAr: 'عرض وتتبع بيانات الزبائن ومشترياتهم السابقة وتكرار الطلب في المتجر.',
-    category: 'store',
-    isEnabled: true,
-    isRemoved: false
-  },
-  {
-    id: 'onlinePayments',
-    name: 'Online Payment Gateways (Mada & Apple Pay)',
-    nameAr: 'بوابات الدفع الإلكتروني (مدى و Apple Pay)',
-    description: 'Enable digital payments via Mada, Apple Pay, and credit cards during checkout.',
-    descriptionAr: 'تفعيل الدفع الإلكتروني المباشر بمدى و Apple Pay والبطاقات البنكية عند الشراء.',
-    category: 'checkout',
-    isEnabled: true,
-    isRemoved: false
-  },
-  {
-    id: 'invoicing',
-    name: 'Official Tax Invoicing',
-    nameAr: 'طباعة الفواتير الضريبية',
-    description: 'Generate and print detailed PDF/paper commercial invoices for fulfilled orders.',
-    descriptionAr: 'إصدار وطباعة الفواتير الرسمية وبوالص الطلبات لزبائن المتجر بضغطة زر.',
+    name: 'Customer CRM & Verified Buyer Directory',
+    nameAr: 'إدارة وسجل العملاء الموثوقين',
+    description: 'Complete purchase history, phone numbers, delivery locations, and order reliability scores.',
+    descriptionAr: 'سجل كامل لبيانات الزبائن وأماكن استلامهم ونسبة استلامهم للشحنات السابقة.',
     category: 'store',
     isEnabled: true,
     isRemoved: false
@@ -349,8 +632,8 @@ export const INITIAL_PLATFORM_FEATURES: PlatformFeatureItem[] = [
   {
     id: 'developerIntegrations',
     name: 'Supabase & GitHub Developer Hub',
-    nameAr: 'تكامل Supabase و GitHub للمطورين',
-    description: 'Direct SQL schema export, live database sync, and repository branch management.',
+    nameAr: 'تكامل قواعد بيانات Supabase و GitHub للمطورين',
+    description: 'Direct SQL schema export, real-time database sync, and repository branch management.',
     descriptionAr: 'الربط المباشر لقواعد البيانات وتصدير كود SQL ومزامنة مستودع GitHub.',
     category: 'tech',
     isEnabled: true,
@@ -358,57 +641,97 @@ export const INITIAL_PLATFORM_FEATURES: PlatformFeatureItem[] = [
   },
   {
     id: 'plansAndUpgrades',
-    name: 'Pro Subscription & Upgrades',
-    nameAr: 'ترقية الباقات والاشتراكات',
-    description: 'Allow merchants to switch between the Free Starter tier and the Pro Growth tier.',
-    descriptionAr: 'إتاحة التبديل والترقية بين الخطة المجانية والخطة الاحترافية للتجار.',
+    name: '0% Commission Subscription Tiers (DZD)',
+    nameAr: 'باقات الاشتراك الشهرية بالدينار الجزائري (0% عمولة)',
+    description: 'Switch between Free Starter, Pro Merchant (1,000 DZD), and Enterprise Scale (5,500 DZD).',
+    descriptionAr: 'الترقية بين الباقات بدون أي اقتطاع أو نسبة من مبيعاتك وأرباحك.',
     category: 'marketing',
     isEnabled: true,
     isRemoved: false
   },
   {
-    id: 'multiCurrency',
-    name: 'Multi-Currency Selector (SAR, USD, AED, EUR)',
-    nameAr: 'محدد وتعدد العملات',
-    description: 'Provide live conversion between Saudi Riyal, US Dollar, UAE Dirham, and Euro.',
-    descriptionAr: 'إتاحة التسعير والتحويل بين الريال السعودي والدولار والدرهم الإماراتي واليورو.',
-    category: 'checkout',
+    id: 'abandonedCartRecovery',
+    name: 'Abandoned Cart Recovery (WhatsApp & SMS)',
+    nameAr: 'استرجاع السلات المتروكة عبر واتساب ورسائل SMS',
+    description: 'Send automated customized recovery reminders in Algerian Darija to boost conversion by 25%.',
+    descriptionAr: 'إرسال تذكيرات تلقائية بالدارجة الجزائرية للزبائن الذين ملأوا بياناتهم ولم يؤكدوا طلباتهم.',
+    category: 'marketing',
     isEnabled: true,
     isRemoved: false
   },
   {
-    id: 'shippingSettings',
-    name: 'Automated Shipping Engine',
-    nameAr: 'إعدادات الشحن والتوصيل التلقائي',
-    description: 'Customize flat shipping rates and automated free delivery thresholds.',
-    descriptionAr: 'التحكم بتكلفة الشحن الثابتة وسياسات الشحن المجاني التلقائي للطلبات.',
+    id: 'smartCatalogImport',
+    name: '1-Click Catalog Importer (Shopify / YouCan / Excel)',
+    nameAr: 'استيراد المنتجات بضغطة زر (Shopify، YouCan، Excel)',
+    description: 'Instant CSV & Excel product catalogue migration with images, variants, and pricing.',
+    descriptionAr: 'استيراد فوري لكافة منتجاتك وصورها وأسعارها بملف إكسل أو رابط شوبيفاي ويوكان.',
     category: 'store',
+    isEnabled: true,
+    isRemoved: false
+  },
+  {
+    id: 'ecotrackNetwork',
+    name: '102+ Couriers & Ecotrack Hub Integration',
+    nameAr: 'الربط مع شبكة إيكوتراك الموحدة وأكثر من 102 شركة شحن',
+    description: 'Connect with Ecotrack, Yalidine, ZR Express, Procolis, and regional Algerian couriers.',
+    descriptionAr: 'الربط الموحد مع كبرى شبكات التوصيل الجزائرية لتغطية كل شبر في الـ 58 ولاية.',
+    category: 'checkout',
     isEnabled: true,
     isRemoved: false
   },
   {
     id: 'demoLogin',
     name: '1-Click Quick Demo Login',
-    nameAr: 'زر الدخول التجريبي السريع',
+    nameAr: 'زر الدخول التجريبي السريع للوحة التحكم',
     description: 'Instant one-tap login for testing merchant dashboard without typing credentials.',
     descriptionAr: 'إتاحة تسجيل الدخول الفوري للتاجر التجريبي بنقرة واحدة لتجربة المنصة فوراً.',
     category: 'tech',
-    isEnabled: true,
-    isRemoved: false
-  },
-  {
-    id: 'stockAdjuster',
-    name: 'Quick Stock Stepper (+ / -)',
-    nameAr: 'التعديل السريع لكميات المخزون (+ / -)',
-    description: 'Instant plus/minus buttons to adjust available inventory units directly from tables.',
-    descriptionAr: 'أزرار الزيادة والنقصان الفورية لكميات المنتجات مباشرة من جدول المخزون.',
-    category: 'store',
     isEnabled: true,
     isRemoved: false
   }
 ];
 
 export const INITIAL_STORE_FEATURES: StoreFeatureItem[] = [
+  {
+    id: 'dzWilayasDelivery',
+    name: 'Algerian 58 Wilayas Selector',
+    nameAr: 'اختيار وتحديد الولاية من الـ 58 ولاية جزائرية',
+    description: 'Allows buyers to pick their Wilaya with automated calculated delivery fee.',
+    descriptionAr: 'عرض قائمة الـ 58 ولاية جزائرية مع حساب تكلفة التوصيل المناسبة فورياً.',
+    category: 'checkout',
+    isEnabled: true,
+    isRemoved: false
+  },
+  {
+    id: 'deliveryTypeChoice',
+    name: 'Home Delivery vs Stop-Desk Option',
+    nameAr: 'خيار التوصيل للمنزل أو الاستلام من مكتب الشحن (Stop-Desk)',
+    description: 'Gives buyers the choice between home delivery and cheaper pickup from courier desk.',
+    descriptionAr: 'منح المشتري خيار استلام الطرد من مكتب التوصيل بسعر مخفض أو التوصيل لباب منزله.',
+    category: 'checkout',
+    isEnabled: true,
+    isRemoved: false
+  },
+  {
+    id: 'phoneValidation',
+    name: 'Algerian Mobile Validation (05/06/07)',
+    nameAr: 'التحقق من صحة رقم الهاتف الجزائري',
+    description: 'Ensures customer inputs a genuine 10-digit mobile number before checkout submission.',
+    descriptionAr: 'منع كتابة أرقام خاطئة لضمان إمكانية الاتصال بالزبون وتأكيد الطلبية.',
+    category: 'checkout',
+    isEnabled: true,
+    isRemoved: false
+  },
+  {
+    id: 'quantityBundles',
+    name: 'Quantity Discount Bundles (1, 2, or 3 Items)',
+    nameAr: 'عروض الكميات التوفيرية (عرض 2 بخصم وعرض 3 مع توصيل مجاني)',
+    description: 'Display attractive discount tiers to increase average order value (AOV).',
+    descriptionAr: 'عرض حزم توفيرية تشجع الزبون على طلب قطعتين أو ثلاث قطع بخصم مغري.',
+    category: 'storefront',
+    isEnabled: true,
+    isRemoved: false
+  },
   {
     id: 'storeSearch',
     name: 'Live Product Search Bar',
@@ -420,215 +743,93 @@ export const INITIAL_STORE_FEATURES: StoreFeatureItem[] = [
     isRemoved: false
   },
   {
-    id: 'cartAndCheckout',
-    name: 'Customer Cart & Instant Checkout Drawer',
-    nameAr: 'سلة المشتريات وإتمام الطلب للزبائن',
-    description: 'Floating cart button, item counters, address collection, and checkout workflow.',
-    descriptionAr: 'زر السلة العائم، عداد المنتجات، وتجميع عنوان الشحن وإتمام الشراء.',
+    id: 'instantCart',
+    name: 'Instant COD Checkout Drawer',
+    nameAr: 'نموذج الطلب السريع والدفع عند الاستلام',
+    description: 'High-converting drawer for frictionless cash on delivery submissions.',
+    descriptionAr: 'نافذة سريعة تتيح ملء الاسم ورقم الهاتف والولاية وإتمام الطلب في ثوانٍ معدودة.',
     category: 'checkout',
     isEnabled: true,
     isRemoved: false
   },
   {
     id: 'discountCoupons',
-    name: 'Discount Coupon Applicator',
-    nameAr: 'كوبونات وقسائم الخصم في السلة',
-    description: 'Input box in checkout allowing customers to apply promotional codes.',
-    descriptionAr: 'حقل إدخال أكواد الخصم الترويجية لحساب التخفيضات بالسلة.',
-    category: 'marketing',
+    name: 'Store Promotional Coupon Application',
+    nameAr: 'حقل تطبيق كوبون الخصم عند الدفع',
+    description: 'Permits buyers to apply promotional codes like WELCOME10 for instant savings.',
+    descriptionAr: 'إتاحة إدخال أكواد الخصم الترويجية للحصول على تخفيض مباشر من الفاتورة.',
+    category: 'checkout',
     isEnabled: true,
     isRemoved: false
   },
   {
-    id: 'customerReviews',
-    name: 'Customer Reviews & Star Ratings',
-    nameAr: 'تقييمات ومراجعات الزبائن (النجوم)',
-    description: 'Display 4.9-star ratings and customer trust reviews on product cards.',
-    descriptionAr: 'إظهار النجوم الذهبية وتجارب الزبائن الموثوقة على بطاقات المنتجات.',
-    category: 'customer',
-    isEnabled: true,
-    isRemoved: false
-  },
-  {
-    id: 'topAnnouncement',
-    name: 'Top Store Promotional Announcement Bar',
-    nameAr: 'شريط الإعلانات الترويجي العلوي في المتجر',
-    description: 'Sticky announcement banner highlighting discounts, store guarantees, and updates.',
-    descriptionAr: 'شريط ملون بأعلى المتجر يبرز العروض الحصرية وضمانات المتجر.',
+    id: 'shippingThreshold',
+    name: 'Free Delivery Progress Bar',
+    nameAr: 'شريط تقدم الشحن المجاني للطلبات',
+    description: 'Shows dynamic progress indicator towards free shipping threshold.',
+    descriptionAr: 'عرض شريط يحفز الزبون على إضافة المزيد من المنتجات للحصول على توصيل مجاني.',
     category: 'storefront',
     isEnabled: true,
     isRemoved: false
   },
   {
     id: 'orderTracking',
-    name: 'Customer Order Tracking System',
-    nameAr: 'نظام تتبع حالة الطلبات والشحنات',
-    description: 'Interactive tracking modal for customers to query live fulfillment status.',
-    descriptionAr: 'نافذة تتبع فورية للزبائن للتحقق من خط سير وتجهيز شحناتهم.',
+    name: 'Customer Live Order & Waybill Tracking',
+    nameAr: 'تتبع الطلبية ورقم بوليصة الشحن للزبون',
+    description: 'Modal allowing buyers to enter tracking code and view fulfillment progress.',
+    descriptionAr: 'نافذة تمكّن الزبائن من كتابة رقم طلبهم لمعرفة حالة الشحن والتوصيل مع شركة التوصيل.',
     category: 'customer',
     isEnabled: true,
     isRemoved: false
   },
   {
-    id: 'shippingThreshold',
-    name: 'Free Shipping Incentive Indicator',
-    nameAr: 'حافز الشحن المجاني التلقائي',
-    description: 'Automatic free shipping calculation when cart reaches the threshold.',
-    descriptionAr: 'حساب وتطبيق الشحن المجاني التلقائي عندما يتجاوز الطلب الحد الأدنى.',
-    category: 'checkout',
-    isEnabled: true,
-    isRemoved: false
-  },
-  {
-    id: 'onlinePayments',
-    name: 'Digital Payment Gateways (Mada & Apple Pay)',
-    nameAr: 'بوابات الدفع الإلكتروني (مدى و Apple Pay)',
-    description: 'Accept instant payments via Apple Pay, Mada, and bank cards.',
-    descriptionAr: 'قبول الدفع الرقمي الفوري عبر بطاقات مدى و Apple Pay والفيزا.',
-    category: 'checkout',
-    isEnabled: true,
-    isRemoved: false
-  },
-  {
-    id: 'cashOnDelivery',
-    name: 'Cash on Delivery (COD)',
-    nameAr: 'خيار الدفع عند الاستلام',
-    description: 'Allow customers to pay cash directly upon receiving the package.',
-    descriptionAr: 'إتاحة خيار دفع المبلغ نقداً لشركة الشحن عند تسليم الطرد للزبون.',
-    category: 'checkout',
-    isEnabled: true,
-    isRemoved: false
-  },
-  {
-    id: 'stockIndicator',
-    name: 'Remaining Stock Counter Badge',
-    nameAr: 'عرض كمية المخزون المتبقية على المنتجات',
-    description: 'Displays remaining stock badge (e.g. 5 in stock) to drive urgency.',
-    descriptionAr: 'إظهار عدد القطع المتبقية بالمنتج لخلق دافع الشراء السريع.',
+    id: 'productQuickView',
+    name: '1-Click Product Quick View Modal',
+    nameAr: 'المعاينة السريعة للمنتج بدون مغادرة الصفحة',
+    description: 'Interactive popup with product gallery, specifications, and fast buy button.',
+    descriptionAr: 'نافذة تفاعلية تفتح تفاصيل المنتج وصوره وزر الشراء فوراً لتجربة تسوق سلسة.',
     category: 'storefront',
     isEnabled: true,
     isRemoved: false
   },
   {
-    id: 'quickView',
-    name: 'Product Quick View Modal',
-    nameAr: 'المعاينة السريعة للمنتج (Quick View)',
-    description: 'Popup preview modal allowing customers to inspect product details without leaving.',
-    descriptionAr: 'نافذة عرض تفاصيل المنتج السريعة والصور بضغطة زر دون مغادرة الصفحة.',
+    id: 'topAnnouncement',
+    name: 'Top Flash Promo Announcement Bar',
+    nameAr: 'شريط الإعلانات الترويجي العلوي للمتجر',
+    description: 'Customizable top banner highlighting promotions, return guarantees, or free delivery.',
+    descriptionAr: 'شريط علوي بارز للإعلان عن العروض الحصرية، ضمان الاسترجاع، والتوصيل السريع.',
     category: 'storefront',
     isEnabled: true,
     isRemoved: false
   },
   {
-    id: 'returnGuarantee',
-    name: '14-Day Return Guarantee Badge',
-    nameAr: 'شارة ضمان الاسترجاع والاستبدال 14 يوماً',
-    description: 'Displays easy return & buyer protection guarantees on the storefront.',
-    descriptionAr: 'إبراز شارة سياسة الاسترجاع السهلة لتعزيز ثقة المشتري.',
-    category: 'storefront',
-    isEnabled: true,
-    isRemoved: false
-  },
-  {
-    id: 'invoicePrinting',
-    name: 'Commercial Invoice Printing',
-    nameAr: 'إصدار وطباعة الفاتورة التجارية للزبائن',
-    description: 'Printable receipt and order confirmation slip upon placing the order.',
-    descriptionAr: 'إصدار وطباعة فاتورة الشراء التفصيلية بعد إتمام الطلب مباشرة.',
+    id: 'whatsappChat',
+    name: 'WhatsApp Instant Customer Support Button',
+    nameAr: 'زر التواصل السريع عبر واتساب مع التاجر',
+    description: 'Floating button connecting shoppers directly to merchant via WhatsApp.',
+    descriptionAr: 'زر عائم في أسفل المتجر يتيح للزبون الاستفسار أو تأكيد طلبه مباشرة مع التاجر.',
     category: 'customer',
     isEnabled: true,
     isRemoved: false
   },
   {
-    id: 'buyerCurrency',
-    name: 'Buyer Currency Selector',
-    nameAr: 'مبدّل عملة الشراء للزبائن (SAR, USD, AED, EUR)',
-    description: 'Allows international customers to view prices in their preferred currency.',
-    descriptionAr: 'تمكين الزبائن من تحويل أسعار المتجر لعملتهم المفضلة.',
-    category: 'checkout',
+    id: 'urgencyTimer',
+    name: 'Stock Counter & Urgency Countdown Timer',
+    nameAr: 'عداد التنازل ومؤشر نفاذ المخزون (تحفيز الشراء)',
+    description: 'Displays limited stock alert and countdown timer to accelerate purchasing decision.',
+    descriptionAr: 'عرض مؤشر القطع المتبقية ومؤقت تنازلي للعرض لرفع سرعة اتخاذ قرار الشراء.',
+    category: 'storefront',
     isEnabled: true,
     isRemoved: false
   },
   {
     id: 'storeFooterLinks',
     name: 'Store Legal & Policy Footer',
-    nameAr: 'روابط السياسات والرقم الضريبي بأسفل المتجر',
-    description: 'Displays return policy, terms, privacy, tax registration, and support contact.',
-    descriptionAr: 'عرض الرقم الضريبي، سياسة الخصوصية، وشروط الاسترجاع بأسفل صفحة المتجر.',
+    nameAr: 'روابط السياسات وضمان الاسترجاع بأسفل المتجر',
+    description: 'Displays return policy, terms, privacy, and support contact details.',
+    descriptionAr: 'عرض سياسة الاسترجاع والضمان وشروط الشحن والدعم الفني في تذييل المتجر.',
     category: 'storefront',
-    isEnabled: true,
-    isRemoved: false
-  },
-  {
-    id: 'shippingFlat',
-    name: 'Flat Rate Delivery Calculation',
-    nameAr: 'تكلفة الشحن الثابتة للطلبات',
-    description: 'Applies standard flat shipping fee at checkout when free shipping threshold is not met.',
-    descriptionAr: 'حساب وإضافة تكلفة التوصيل الثابتة عند إتمام الطلب في حال لم يبلغ الحد الأدنى.',
-    category: 'checkout',
-    isEnabled: true,
-    isRemoved: false
-  },
-  {
-    id: 'taxCalculation',
-    name: 'VAT / Tax Calculation (15%)',
-    nameAr: 'حساب ضريبة القيمة المضافة (15%)',
-    description: 'Calculates and displays official VAT breakdown on the shopping cart and checkout invoice.',
-    descriptionAr: 'حساب وتفصيل نسبة ضريبة القيمة المضافة في ملخص سلة الشراء والفاتورة.',
-    category: 'checkout',
-    isEnabled: true,
-    isRemoved: false
-  },
-  {
-    id: 'bankPayouts',
-    name: 'Bank IBAN Account Payouts',
-    nameAr: 'الحساب البنكي ورقم الآيبان (IBAN)',
-    description: 'Direct IBAN account configuration for merchant revenue payouts and bank deposits.',
-    descriptionAr: 'تفعيل إعدادات الحساب البنكي والآيبان لإيداع إيرادات مبيعات المتجر.',
-    category: 'checkout',
-    isEnabled: true,
-    isRemoved: false
-  },
-  {
-    id: 'whatsappChat',
-    name: 'WhatsApp Direct Customer Support Button',
-    nameAr: 'زر محادثة الواتساب المباشرة للزبائن',
-    description: 'Floating WhatsApp quick action button enabling shoppers to chat directly with store support.',
-    descriptionAr: 'زر واتساب عائم يتيح لزبائن المتجر بدء محادثة فورية مع خدمة العملاء.',
-    category: 'customer',
-    isEnabled: true,
-    isRemoved: false
-  },
-  {
-    id: 'maintenanceMode',
-    name: 'Store Maintenance Mode',
-    nameAr: 'وضع الصيانة المؤقت للمتجر',
-    description: 'Temporarily pauses storefront sales with a friendly maintenance banner while updating inventory.',
-    descriptionAr: 'إيقاف استقبال طلبات الشراء مؤقتاً وعرض لافتة تحديث المخزون للزبائن.',
-    category: 'storefront',
-    isEnabled: false, // Default disabled (store is active)
-    isRemoved: false
-  },
-  {
-    id: 'welcomeDiscount',
-    name: 'New Shopper Welcome Discount Card',
-    nameAr: 'بطاقة الخصم الترحيبي للزبائن الجدد',
-    description: 'Displays a prominent promo box in the store hero offering coupon code WELCOME10.',
-    descriptionAr: 'إظهار بطاقة كود الخصم الترحيبي (WELCOME10) ببانر المتجر لجذب الزوار.',
-    category: 'marketing',
-    isEnabled: true,
-    isRemoved: false
-  },
-  {
-    id: 'instantOrderSms',
-    name: 'Instant Order Confirmation & Receipt',
-    nameAr: 'إشعار تأكيد الطلب الفوري وتفاصيل الشحنة',
-    description: 'Instant on-screen invoice summary and SMS receipt alert after completing payment.',
-    descriptionAr: 'إظهار شاشة تأكيد فورية للطلب مع رقم التتبع وتفاصيل الشحن والفاتورة.',
-    category: 'customer',
     isEnabled: true,
     isRemoved: false
   }
 ];
-
-

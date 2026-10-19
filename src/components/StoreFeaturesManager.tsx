@@ -116,11 +116,11 @@ export const StoreFeaturesManager: React.FC<StoreFeaturesManagerProps> = ({
       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 border-b border-slate-100 pb-6">
         <div>
           <div className="flex flex-wrap items-center gap-2.5">
-            <div className="w-9 h-9 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center shadow-2xs">
+            <div className="w-9 h-9 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center shadow-2xs">
               <Sliders className="w-5 h-5" />
             </div>
             <h3 className="text-lg sm:text-xl font-extrabold text-slate-900">
-              {isAr ? 'التحكم في خصائص وإعدادات المتجر (نظام الأزرار والحذف)' : 'Store Feature & Settings Manager'}
+              {isAr ? 'التحكم في خصائص وإعدادات المتجر الجزائري (نظام الأزرار والحذف)' : 'Algerian Store Features & Settings Manager'}
             </h3>
             <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
               {activeCount} {isAr ? 'خاصية نشطة بالمتجر' : 'active features'}
@@ -136,11 +136,10 @@ export const StoreFeaturesManager: React.FC<StoreFeaturesManagerProps> = ({
 
         {/* Global Action Buttons */}
         <div className="flex flex-wrap items-center gap-2">
-          {/* Add Custom Feature Button */}
           {onAddStoreFeature && (
             <button
               onClick={() => setShowAddModal(true)}
-              className="flex items-center gap-1.5 px-3.5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold transition-all cursor-pointer shadow-sm shadow-indigo-600/20"
+              className="flex items-center gap-1.5 px-3.5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition-all cursor-pointer shadow-sm shadow-emerald-600/20"
             >
               <Plus className="w-4 h-4 stroke-[3]" />
               <span>{isAr ? 'إضافة خاصية/إعداد جديد' : 'Add New Feature'}</span>

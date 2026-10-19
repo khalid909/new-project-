@@ -20,12 +20,13 @@ import { Footer } from './components/Footer';
 import { 
   Store as StoreIcon, Plus, ExternalLink, Globe, 
   Layers, ShieldCheck, ChevronDown, Check, LogIn, LogOut, User,
-  BarChart2, Sparkles, Sliders, ShoppingBag, Copy, ArrowRight, ArrowLeft
+  BarChart2, Sparkles, Sliders, ShoppingBag, Copy, ArrowRight, ArrowLeft,
+  Share2, Link2, CheckCircle2, Smartphone, X
 } from 'lucide-react';
 
 export default function App() {
   const [language, setLanguage] = useState<Language>('ar');
-  const [currency, setCurrency] = useState<Currency>('SAR');
+  const [currency, setCurrency] = useState<Currency>('DZD');
   
   // Navigation mode: 
   // 'landing' (SaaS Platform Homepage) 
@@ -44,6 +45,8 @@ export default function App() {
     return INITIAL_SELLER_USER;
   });
   const [isLoginModalOpen, setIsLoginModalOpen] = useState<boolean>(false);
+  const [isGlobalShareModalOpen, setIsGlobalShareModalOpen] = useState<boolean>(false);
+  const [copiedLinkType, setCopiedLinkType] = useState<string | null>(null);
 
   // Platform Modular Features State (Active / Inactive / Removed)
   const [features, setFeatures] = useState<PlatformFeatureItem[]>(() => {
@@ -227,8 +230,22 @@ export default function App() {
         if (found) {
           setActiveStoreId(found.id);
           setAppMode('store');
-        } else if (stores.length > 0) {
-          setActiveStoreId(stores[0].id);
+        } else {
+          // If opened in another browser or incognito window, instantiate store cleanly
+          const cleanName = storeSlug.replace(/-/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
+          const newStore: Store = {
+            ...INITIAL_STORE,
+            id: `store_${storeSlug}`,
+            slug: storeSlug,
+            name: cleanName,
+            nameAr: `متجر ${cleanName}`,
+            settings: {
+              ...INITIAL_STORE.settings,
+              subdomain: `${storeSlug}.wasladz.app`
+            }
+          };
+          setStores((prev) => [newStore, ...prev]);
+          setActiveStoreId(newStore.id);
           setAppMode('store');
         }
       }
@@ -390,6 +407,30 @@ export default function App() {
     );
   };
 
+  // Handler: Update Order Call Status (Confirmation Tracker for Algerian COD)
+  const handleUpdateOrderCallStatus = (orderId: string, callStatus: Order['callStatus']) => {
+    setOrders((prev) =>
+      prev.map((o) => (o.id === orderId ? { ...o, callStatus } : o))
+    );
+  };
+
+  // Handler: Dispatch Order to Algerian Carrier (Yalidine / ZR Express)
+  const handleDispatchOrderToCarrier = (orderId: string, carrierName: string) => {
+    const trackingCode = `${carrierName.toUpperCase().slice(0, 3)}-DZ-${Math.floor(10000000 + Math.random() * 90000000)}`;
+    setOrders((prev) =>
+      prev.map((o) =>
+        o.id === orderId
+          ? {
+              ...o,
+              status: 'shipped',
+              carrier: carrierName,
+              trackingNumber: trackingCode
+            }
+          : o
+      )
+    );
+  };
+
   // Handler: Add Coupon
   const handleAddCoupon = (newCoupon: Coupon) => {
     setCoupons((prev) => [newCoupon, ...prev]);
@@ -490,20 +531,20 @@ export default function App() {
                 onClick={() => switchMode('landing')}
                 className="flex items-center gap-3 text-start group focus:outline-none cursor-pointer"
               >
-                <div className="w-10 h-10 rounded-xl bg-indigo-600 flex items-center justify-center shadow-sm shadow-indigo-600/25 group-hover:scale-105 transition-all text-white font-extrabold text-xl">
-                  A
+                <div className="w-10 h-10 rounded-xl bg-emerald-600 flex items-center justify-center shadow-sm shadow-emerald-600/30 group-hover:scale-105 transition-all text-white font-extrabold text-xl">
+                  W
                 </div>
                 <div className="flex flex-col">
                   <div className="flex items-center gap-2">
                     <span className="text-xl font-black tracking-wider text-slate-900 uppercase">
-                      AVANTO
+                      WASLA<span className="text-emerald-600">DZ</span>
                     </span>
-                    <span className="text-[10px] bg-indigo-50 border border-indigo-200 text-indigo-700 font-bold px-1.5 py-0.5 rounded">
-                      COMMERCE
+                    <span className="text-[10px] bg-amber-50 border border-amber-200 text-amber-800 font-bold px-1.5 py-0.5 rounded">
+                      COD 58
                     </span>
                   </div>
                   <span className="text-[10px] text-slate-500 font-medium">
-                    {isAr ? 'منصة المتاجر السحابية' : 'SaaS Commerce Platform'}
+                    {isAr ? 'منصة التجارة والدفع عند الاستلام' : 'Algerian COD Commerce Platform'}
                   </span>
                 </div>
               </button>
@@ -513,7 +554,7 @@ export default function App() {
                 <button
                   onClick={() => switchMode('landing')}
                   className={`px-3 py-2 rounded-lg transition-colors cursor-pointer ${
-                    appMode === 'landing' ? 'text-indigo-600 bg-indigo-50/70 font-extrabold' : 'hover:text-slate-900 hover:bg-slate-50'
+                    appMode === 'landing' ? 'text-emerald-700 bg-emerald-50/90 font-extrabold' : 'hover:text-slate-900 hover:bg-slate-50'
                   }`}
                 >
                   {isAr ? 'الرئيسية' : 'Home'}
@@ -522,7 +563,7 @@ export default function App() {
                 <button
                   onClick={() => switchMode('dashboard')}
                   className={`px-3 py-2 rounded-lg transition-colors cursor-pointer ${
-                    appMode === 'dashboard' ? 'text-indigo-600 bg-indigo-50/70 font-extrabold' : 'hover:text-slate-900 hover:bg-slate-50'
+                    appMode === 'dashboard' ? 'text-emerald-700 bg-emerald-50/90 font-extrabold' : 'hover:text-slate-900 hover:bg-slate-50'
                   }`}
                 >
                   {isAr ? 'لوحة تحكم المتجر' : 'Dashboard'}
@@ -532,7 +573,7 @@ export default function App() {
                   <button
                     onClick={() => switchMode('pricing')}
                     className={`px-3 py-2 rounded-lg transition-colors cursor-pointer ${
-                      appMode === 'pricing' ? 'text-indigo-600 bg-indigo-50/70 font-extrabold' : 'hover:text-slate-900 hover:bg-slate-50'
+                      appMode === 'pricing' ? 'text-emerald-700 bg-emerald-50/90 font-extrabold' : 'hover:text-slate-900 hover:bg-slate-50'
                     }`}
                   >
                     {isAr ? 'الباقات والأسعار' : 'Pricing'}
@@ -542,7 +583,7 @@ export default function App() {
                 {/* Independent Standalone Store Direct Access Button */}
                 <button
                   onClick={() => switchMode('store')}
-                  className="px-3 py-2 rounded-lg text-emerald-700 bg-emerald-50 hover:bg-emerald-100/80 border border-emerald-200/80 transition-colors flex items-center gap-1.5 cursor-pointer font-bold shadow-2xs"
+                  className="px-3 py-2 rounded-lg text-emerald-800 bg-emerald-50 hover:bg-emerald-100/80 border border-emerald-200 transition-colors flex items-center gap-1.5 cursor-pointer font-bold shadow-2xs"
                   title={isAr ? 'فتح المتجر المستقل كصفحة مستقلة بالكامل بدون عناصر المنصة' : 'Open 100% independent standalone store'}
                 >
                   <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
@@ -562,9 +603,9 @@ export default function App() {
                 className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200/90 text-xs font-bold transition-all cursor-pointer shadow-2xs"
                 title={isAr ? 'التحكم في تفعيل أو حذف خصائص المنصة عبر زر' : 'Platform Features Manager'}
               >
-                <Sliders className="w-3.5 h-3.5 text-indigo-600" />
+                <Sliders className="w-3.5 h-3.5 text-emerald-600" />
                 <span className="hidden lg:inline">{isAr ? 'خصائص المنصة' : 'Features'}</span>
-                <span className="w-5 h-5 rounded-full bg-indigo-600 text-white font-mono text-[10px] font-bold flex items-center justify-center">
+                <span className="w-5 h-5 rounded-full bg-emerald-600 text-white font-mono text-[10px] font-bold flex items-center justify-center">
                   {activeFeaturesCount}
                 </span>
               </button>
@@ -574,13 +615,13 @@ export default function App() {
                 <select
                   value={currency}
                   onChange={(e) => setCurrency(e.target.value as Currency)}
-                  className="bg-slate-100 hover:bg-slate-200/80 border border-slate-200 text-xs font-bold rounded-xl px-2.5 py-2 text-slate-700 focus:outline-none focus:border-indigo-600 cursor-pointer transition-colors"
+                  className="bg-slate-100 hover:bg-slate-200/80 border border-slate-200 text-xs font-bold rounded-xl px-2.5 py-2 text-slate-700 focus:outline-none focus:border-emerald-600 cursor-pointer transition-colors"
                   aria-label="Currency"
                 >
-                  <option value="SAR">ر.س (SAR)</option>
-                  <option value="USD">$ (USD)</option>
-                  <option value="AED">د.إ (AED)</option>
-                  <option value="EUR">€ (EUR)</option>
+                  <option value="DZD">د.ج (DZD - الجزائر)</option>
+                  <option value="EUR">€ (EUR - أوروبا)</option>
+                  <option value="USD">$ (USD - دولار)</option>
+                  <option value="SAR">ر.س (SAR - ريال)</option>
                 </select>
               </div>
 
@@ -600,7 +641,7 @@ export default function App() {
                     onClick={() => switchMode('dashboard')}
                     className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-bold transition-all cursor-pointer border border-slate-200"
                   >
-                    <User className="w-3.5 h-3.5 text-indigo-600" />
+                    <User className="w-3.5 h-3.5 text-emerald-600" />
                     <span className="hidden sm:inline">{currentUser.name.split(' ')[0]}</span>
                   </button>
                   <button
@@ -621,10 +662,20 @@ export default function App() {
                 </button>
               )}
 
+              {/* Share Platform Link Button (Works in any phone & browser) */}
+              <button
+                onClick={() => setIsGlobalShareModalOpen(true)}
+                className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200 text-xs font-bold transition-all cursor-pointer shadow-2xs"
+                title={isAr ? 'فتح ومشاركة رابط المنصة لأي متصفح وهاتف' : 'Share live platform link'}
+              >
+                <Share2 className="w-3.5 h-3.5 text-emerald-600" />
+                <span className="hidden xl:inline">{isAr ? 'رابط المنصة' : 'Platform Link'}</span>
+              </button>
+
               {/* Start New Store CTA */}
               <button
                 onClick={() => switchMode('register')}
-                className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold shadow-sm shadow-indigo-600/20 transition-all cursor-pointer"
+                className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-sm shadow-emerald-600/20 transition-all cursor-pointer"
               >
                 <Plus className="w-3.5 h-3.5" />
                 <span className="hidden sm:inline">{isAr ? 'إنشاء متجر جديد' : 'Create Store'}</span>
@@ -641,7 +692,7 @@ export default function App() {
           <button
             onClick={() => switchMode('landing')}
             className={`px-2.5 py-1.5 rounded-lg whitespace-nowrap cursor-pointer ${
-              appMode === 'landing' ? 'bg-white text-indigo-600 shadow-2xs font-extrabold' : 'text-slate-600'
+              appMode === 'landing' ? 'bg-white text-emerald-700 shadow-2xs font-extrabold' : 'text-slate-600'
             }`}
           >
             {isAr ? 'الرئيسية' : 'Home'}
@@ -649,21 +700,21 @@ export default function App() {
           <button
             onClick={() => switchMode('dashboard')}
             className={`px-2.5 py-1.5 rounded-lg whitespace-nowrap cursor-pointer ${
-              appMode === 'dashboard' ? 'bg-white text-indigo-600 shadow-2xs font-extrabold' : 'text-slate-600'
+              appMode === 'dashboard' ? 'bg-white text-emerald-700 shadow-2xs font-extrabold' : 'text-slate-600'
             }`}
           >
             {isAr ? 'لوحة التحكم' : 'Dashboard'}
           </button>
           <button
             onClick={() => switchMode('store')}
-            className="px-2.5 py-1.5 rounded-lg whitespace-nowrap text-emerald-700 bg-emerald-50 border border-emerald-200 cursor-pointer flex items-center gap-1"
+            className="px-2.5 py-1.5 rounded-lg whitespace-nowrap text-emerald-800 bg-emerald-50 border border-emerald-200 cursor-pointer flex items-center gap-1 font-bold"
           >
             <span>{isAr ? 'المتجر المستقل 🛍️' : 'Store 🛍️'}</span>
           </button>
           <button
             onClick={() => switchMode('pricing')}
             className={`px-2.5 py-1.5 rounded-lg whitespace-nowrap cursor-pointer ${
-              appMode === 'pricing' ? 'bg-white text-indigo-600 shadow-2xs font-extrabold' : 'text-slate-600'
+              appMode === 'pricing' ? 'bg-white text-emerald-700 shadow-2xs font-extrabold' : 'text-slate-600'
             }`}
           >
             {isAr ? 'الباقات' : 'Pricing'}
@@ -715,6 +766,8 @@ export default function App() {
             onDeleteProduct={handleDeleteProduct}
             onUpdateProductStock={handleUpdateProductStock}
             onUpdateOrderStatus={handleUpdateOrderStatus}
+            onUpdateOrderCallStatus={handleUpdateOrderCallStatus}
+            onDispatchOrderToCarrier={handleDispatchOrderToCarrier}
             onAddCoupon={handleAddCoupon}
             onToggleCoupon={handleToggleCoupon}
             onOpenLivePreview={() => setPreviewingStore(activeStore)}
@@ -783,6 +836,194 @@ export default function App() {
         onResetDefaults={handleResetDefaultFeatures}
         language={language}
       />
+
+      {/* ─── GLOBAL PLATFORM & STORE SHARE MODAL ─── */}
+      {isGlobalShareModalOpen && (
+        <div className="fixed inset-0 z-60 overflow-y-auto bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="relative w-full max-w-xl bg-white border border-slate-200 rounded-3xl shadow-2xl p-6 sm:p-8 space-y-6 text-start animate-in zoom-in-95 duration-200">
+            
+            {/* Header */}
+            <div className="flex items-center justify-between border-b border-slate-100 pb-4">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-emerald-600 text-white flex items-center justify-center shadow-xs">
+                  <Share2 className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-extrabold text-slate-900">
+                    {isAr ? 'روابط المنصة والمتجر لفتحها في أي هاتف ومتصفح' : 'Platform & Store Links (Any Device & Browser)'}
+                  </h3>
+                  <p className="text-xs text-slate-500">
+                    {isAr ? 'روابط ويب قياسية تعمل فوراً على Android و iPhone و PC دون أي متطلبات خاصة' : 'Standard live URLs working on any mobile browser'}
+                  </p>
+                </div>
+              </div>
+
+              <button
+                onClick={() => setIsGlobalShareModalOpen(false)}
+                className="w-8 h-8 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-500 flex items-center justify-center cursor-pointer transition-colors"
+                title={isAr ? 'إغلاق' : 'Close'}
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            {/* Links List */}
+            <div className="space-y-4">
+              
+              {/* 1. Platform Main Link */}
+              <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-2">
+                <div className="flex items-center justify-between text-xs">
+                  <span className="font-bold text-slate-800 flex items-center gap-1.5">
+                    <Globe className="w-3.5 h-3.5 text-emerald-600" />
+                    <span>{isAr ? '1. رابط منصة وصلة ديزاد الرئيسية (WaslaDZ):' : '1. Main Platform URL:'}</span>
+                  </span>
+                  <span className="text-[10px] bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-full font-bold">
+                    {isAr ? 'المنصة كاملة' : 'Full Platform'}
+                  </span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="text"
+                    readOnly
+                    value={typeof window !== 'undefined' ? window.location.origin : 'https://ais-pre-dpfft72pkywmphfmost32j-8726732667.europe-west2.run.app'}
+                    className="flex-1 bg-slate-900 text-emerald-300 font-mono text-xs rounded-xl p-2.5 border border-slate-800 select-all focus:outline-none"
+                  />
+                  <button
+                    onClick={() => {
+                      const url = typeof window !== 'undefined' ? window.location.origin : 'https://ais-pre-dpfft72pkywmphfmost32j-8726732667.europe-west2.run.app';
+                      navigator.clipboard?.writeText(url);
+                      setCopiedLinkType('platform');
+                      setTimeout(() => setCopiedLinkType(null), 2500);
+                    }}
+                    className="px-3.5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs flex items-center gap-1 cursor-pointer transition-colors whitespace-nowrap"
+                  >
+                    <Copy className="w-3.5 h-3.5" />
+                    <span>{copiedLinkType === 'platform' ? (isAr ? 'تم النسخ ✓' : 'Copied ✓') : (isAr ? 'نسخ' : 'Copy')}</span>
+                  </button>
+                </div>
+              </div>
+
+              {/* 2. Standalone Store Direct Customer Link */}
+              <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-2">
+                <div className="flex items-center justify-between text-xs">
+                  <span className="font-bold text-slate-800 flex items-center gap-1.5">
+                    <ShoppingBag className="w-3.5 h-3.5 text-emerald-600" />
+                    <span>{isAr ? `2. رابط متجرك المستقل المباشر (${activeStore.nameAr}):` : `2. Independent Store Direct Link:`}</span>
+                  </span>
+                  <span className="text-[10px] bg-indigo-100 text-indigo-800 px-2 py-0.5 rounded-full font-bold">
+                    {isAr ? 'مخصص للزبائن' : 'For Customers'}
+                  </span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="text"
+                    readOnly
+                    value={`${typeof window !== 'undefined' ? window.location.origin : 'https://ais-pre-dpfft72pkywmphfmost32j-8726732667.europe-west2.run.app'}?mode=store&store=${activeStore.slug}`}
+                    className="flex-1 bg-slate-900 text-emerald-300 font-mono text-xs rounded-xl p-2.5 border border-slate-800 select-all focus:outline-none"
+                  />
+                  <button
+                    onClick={() => {
+                      const url = `${typeof window !== 'undefined' ? window.location.origin : 'https://ais-pre-dpfft72pkywmphfmost32j-8726732667.europe-west2.run.app'}?mode=store&store=${activeStore.slug}`;
+                      navigator.clipboard?.writeText(url);
+                      setCopiedLinkType('store');
+                      setTimeout(() => setCopiedLinkType(null), 2500);
+                    }}
+                    className="px-3.5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs flex items-center gap-1 cursor-pointer transition-colors whitespace-nowrap"
+                  >
+                    <Copy className="w-3.5 h-3.5" />
+                    <span>{copiedLinkType === 'store' ? (isAr ? 'تم النسخ ✓' : 'Copied ✓') : (isAr ? 'نسخ' : 'Copy')}</span>
+                  </button>
+                </div>
+              </div>
+
+              {/* 3. Merchant Dashboard Direct Link */}
+              <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-2">
+                <div className="flex items-center justify-between text-xs">
+                  <span className="font-bold text-slate-800 flex items-center gap-1.5">
+                    <BarChart2 className="w-3.5 h-3.5 text-emerald-600" />
+                    <span>{isAr ? '3. رابط لوحة تحكم التاجر المباشر:' : '3. Merchant Dashboard Direct Link:'}</span>
+                  </span>
+                  <span className="text-[10px] bg-slate-200 text-slate-800 px-2 py-0.5 rounded-full font-bold">
+                    {isAr ? 'للتاجر فقط' : 'For Merchant'}
+                  </span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="text"
+                    readOnly
+                    value={`${typeof window !== 'undefined' ? window.location.origin : 'https://ais-pre-dpfft72pkywmphfmost32j-8726732667.europe-west2.run.app'}?mode=dashboard`}
+                    className="flex-1 bg-slate-900 text-emerald-300 font-mono text-xs rounded-xl p-2.5 border border-slate-800 select-all focus:outline-none"
+                  />
+                  <button
+                    onClick={() => {
+                      const url = `${typeof window !== 'undefined' ? window.location.origin : 'https://ais-pre-dpfft72pkywmphfmost32j-8726732667.europe-west2.run.app'}?mode=dashboard`;
+                      navigator.clipboard?.writeText(url);
+                      setCopiedLinkType('dashboard');
+                      setTimeout(() => setCopiedLinkType(null), 2500);
+                    }}
+                    className="px-3.5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs flex items-center gap-1 cursor-pointer transition-colors whitespace-nowrap"
+                  >
+                    <Copy className="w-3.5 h-3.5" />
+                    <span>{copiedLinkType === 'dashboard' ? (isAr ? 'تم النسخ ✓' : 'Copied ✓') : (isAr ? 'نسخ' : 'Copy')}</span>
+                  </button>
+                </div>
+              </div>
+
+            </div>
+
+            {/* QR Code & Mobile Instructions */}
+            <div className="p-4 rounded-2xl bg-emerald-50/70 border border-emerald-200 flex flex-col sm:flex-row items-center gap-4 text-xs">
+              <div className="w-20 h-20 bg-white p-1.5 rounded-xl border border-emerald-300 shadow-2xs shrink-0 flex items-center justify-center">
+                <svg viewBox="0 0 100 100" className="w-full h-full text-slate-900 fill-current">
+                  <rect x="0" y="0" width="30" height="30" />
+                  <rect x="5" y="5" width="20" height="20" fill="white" />
+                  <rect x="10" y="10" width="10" height="10" />
+                  <rect x="70" y="0" width="30" height="30" />
+                  <rect x="75" y="5" width="20" height="20" fill="white" />
+                  <rect x="80" y="10" width="10" height="10" />
+                  <rect x="0" y="70" width="30" height="30" />
+                  <rect x="5" y="75" width="20" height="20" fill="white" />
+                  <rect x="10" y="80" width="10" height="10" />
+                  <rect x="36" y="10" width="8" height="8" />
+                  <rect x="48" y="10" width="8" height="8" />
+                  <rect x="36" y="24" width="8" height="8" />
+                  <rect x="48" y="36" width="14" height="8" />
+                  <rect x="10" y="44" width="8" height="14" />
+                  <rect x="70" y="44" width="10" height="8" />
+                  <rect x="84" y="44" width="8" height="8" />
+                  <rect x="36" y="70" width="10" height="10" />
+                  <rect x="50" y="76" width="8" height="14" />
+                  <rect x="70" y="70" width="12" height="12" />
+                  <rect x="86" y="80" width="8" height="12" />
+                </svg>
+              </div>
+
+              <div className="space-y-1">
+                <div className="font-bold text-slate-900 flex items-center gap-1.5">
+                  <Smartphone className="w-4 h-4 text-emerald-600" />
+                  <span>{isAr ? 'كيف تفتح الرابط في أي هاتف أو متصفح؟' : 'How to open on any phone?'}</span>
+                </div>
+                <p className="text-[11px] text-slate-600 leading-relaxed">
+                  {isAr
+                    ? 'انسخ أي رابط من الروابط أعلاه وقم بلصقه في متصفح Safari على iPhone أو Chrome على Android أو كمبيوترك، أو امسح الباركود مباشرة بكاميرا هاتفك ليفتح فوراً بكامل مميزاته.'
+                    : 'Copy any URL above and paste it into Safari on iOS, Chrome on Android, or scan the QR code directly with your camera.'}
+                </p>
+              </div>
+            </div>
+
+            {/* Close Button */}
+            <div className="pt-2 flex justify-end">
+              <button
+                onClick={() => setIsGlobalShareModalOpen(false)}
+                className="px-6 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs cursor-pointer transition-colors"
+              >
+                {isAr ? 'إغلاق النافذة' : 'Close'}
+              </button>
+            </div>
+
+          </div>
+        </div>
+      )}
 
       {/* ─── CUSTOMER LIVE STOREFRONT SIMULATION (MODAL MODE) ─── */}
       {previewingStore && (

@@ -40,26 +40,26 @@ export const Navbar: React.FC<NavbarProps> = ({
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between gap-6 h-20">
           
-          {/* Zone 1: AVANTO Brand Lockup */}
+          {/* Zone 1: WaslaDZ Brand Lockup */}
           <div className="flex items-center gap-4 shrink-0">
             <button
               onClick={() => setCurrentTab('dashboard')}
               className="flex items-center gap-3 text-start group focus:outline-none"
             >
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500 via-indigo-600 to-violet-700 flex items-center justify-center shadow-lg shadow-indigo-500/20 group-hover:shadow-indigo-500/30 transition-all duration-300 group-hover:scale-105">
-                <span className="font-sans font-black text-white text-xl tracking-tighter">A</span>
+              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-500 via-emerald-600 to-teal-700 flex items-center justify-center shadow-lg shadow-emerald-500/25 group-hover:shadow-emerald-500/40 transition-all duration-300 group-hover:scale-105">
+                <span className="font-sans font-black text-white text-xl tracking-tighter">W</span>
               </div>
               <div className="flex flex-col">
                 <div className="flex items-center gap-2">
-                  <span className="text-xl font-extrabold tracking-wider text-white group-hover:text-indigo-400 transition-colors uppercase">
-                    AVANTO
+                  <span className="text-xl font-extrabold tracking-wider text-white group-hover:text-emerald-400 transition-colors uppercase">
+                    WASLA<span className="text-emerald-400">DZ</span>
                   </span>
-                  <span className="text-[10px] bg-indigo-500/10 border border-indigo-500/30 text-indigo-400 font-mono px-1.5 py-0.5 rounded">
-                    OS
+                  <span className="text-[10px] bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 font-mono px-1.5 py-0.5 rounded font-bold">
+                    COD 58
                   </span>
                 </div>
                 <span className="text-[10px] uppercase tracking-widest text-slate-400 font-mono">
-                  {isAr ? 'نظام إدارة المتاجر السحابية' : 'MERCHANT CLOUD OS'}
+                  {isAr ? 'منصة التجارة والدفع عند الاستلام' : 'ALGERIAN COD OPERATING OS'}
                 </span>
               </div>
             </button>

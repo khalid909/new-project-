@@ -2,9 +2,13 @@ import React, { useState } from 'react';
 import { 
   Store, Product, Order, Customer, Coupon, PlanType, 
   Currency, Language, SupabaseConfig, GitHubConfig, SellerUser, 
-  PlatformFeatureItem, StoreFeatureItem 
+  PlatformFeatureItem, StoreFeatureItem, AbandonedCart, LandingPageFunnel,
+  WilayaDeliveryRate, CarrierConfig
 } from '../types';
-import { CURRENCY_RATES, PLANS } from '../data/initialData';
+import { 
+  CURRENCY_RATES, PLANS, ALGERIA_58_WILAYAS, 
+  ALGERIA_CARRIERS, INITIAL_ABANDONED_CARTS, INITIAL_LANDING_PAGES 
+} from '../data/initialData';
 import { PlansPricingView } from './PlansPricingView';
 import { StoreFeaturesManager } from './StoreFeaturesManager';
 import { 
@@ -13,7 +17,9 @@ import {
   TrendingUp, ShieldCheck, Database, GitBranch, Globe, 
   Check, ArrowRight, ArrowLeft, AlertCircle, Copy, Terminal, 
   Edit3, Users, Tag, DollarSign, Printer, Lock, LogOut, Sparkles,
-  BarChart3, RefreshCw, Eye, Sliders, RotateCcw, ShoppingBag
+  BarChart3, RefreshCw, Eye, Sliders, RotateCcw, ShoppingBag,
+  Link2, Share2, QrCode, Smartphone, CheckCheck, Truck, UploadCloud,
+  MessageCircle, Zap, PhoneCall, Filter, HelpCircle
 } from 'lucide-react';
 
 interface StoreDashboardViewProps {
@@ -45,6 +51,8 @@ interface StoreDashboardViewProps {
   onDeleteProduct: (productId: string) => void;
   onUpdateProductStock: (productId: string, stock: number) => void;
   onUpdateOrderStatus: (orderId: string, status: Order['status']) => void;
+  onUpdateOrderCallStatus?: (orderId: string, callStatus: Order['callStatus']) => void;
+  onDispatchOrderToCarrier?: (orderId: string, carrierName: string) => void;
   onAddCoupon: (coupon: Coupon) => void;
   onToggleCoupon: (couponId: string) => void;
   onOpenLivePreview: () => void;
@@ -83,6 +91,8 @@ export const StoreDashboardView: React.FC<StoreDashboardViewProps> = ({
   onDeleteProduct,
   onUpdateProductStock,
   onUpdateOrderStatus,
+  onUpdateOrderCallStatus,
+  onDispatchOrderToCarrier,
   onAddCoupon,
   onToggleCoupon,
   onOpenLivePreview,
@@ -92,7 +102,7 @@ export const StoreDashboardView: React.FC<StoreDashboardViewProps> = ({
   onLogout
 }) => {
   const isAr = language === 'ar';
-  const [activeTab, setActiveTab] = useState<'overview' | 'products' | 'orders' | 'customers' | 'coupons' | 'plans' | 'storeFeatures' | 'settings' | 'developer' | 'features'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'orders' | 'products' | 'shipping58' | 'aiLanding' | 'abandonedCarts' | 'pixels' | 'customers' | 'coupons' | 'plans' | 'storeFeatures' | 'settings' | 'developer' | 'features'>('overview');
   
   // Feature Helper
   const isFeatureActive = (id: string) => {
@@ -102,13 +112,41 @@ export const StoreDashboardView: React.FC<StoreDashboardViewProps> = ({
   const activeFeaturesCount = (features || []).filter((f) => f.isEnabled && !f.isRemoved).length;
   const activeStoreFeaturesCount = (storeFeatures || []).filter((f) => f.isEnabled && !f.isRemoved).length;
   
-  // Modals
+  // Modals & Algerian COD States
   const [showAddProductModal, setShowAddProductModal] = useState<boolean>(false);
   const [showAddCouponModal, setShowAddCouponModal] = useState<boolean>(false);
+  const [showImporterModal, setShowImporterModal] = useState<boolean>(false);
   const [selectedInvoiceOrder, setSelectedInvoiceOrder] = useState<Order | null>(null);
+  const [selectedWaybillOrder, setSelectedWaybillOrder] = useState<Order | null>(null);
   const [copiedSql, setCopiedSql] = useState<boolean>(false);
   const [copiedTracking, setCopiedTracking] = useState<string | null>(null);
   const [saveSettingsSuccess, setSaveSettingsSuccess] = useState<boolean>(false);
+  
+  // 58 Wilayas & Carrier Rates State
+  const [wilayaRates, setWilayaRates] = useState<WilayaDeliveryRate[]>(ALGERIA_58_WILAYAS);
+  const [wilayaFilter, setWilayaFilter] = useState('');
+  const [carriers, setCarriers] = useState<CarrierConfig[]>(ALGERIA_CARRIERS);
+  const [yalidineKey, setYalidineKey] = useState(store.settings.yalidineApiKey || 'YAL_API_KEY_LIVE_9921');
+  const [yalidineToken, setYalidineToken] = useState(store.settings.yalidineApiToken || 'YAL_TOKEN_SEC_7718');
+  const [zrKey, setZrKey] = useState(store.settings.zrExpressKey || 'ZR_KEY_LIVE_7712');
+  const [ecotrackToken, setEcotrackToken] = useState('ECOTRACK_LIVE_TOKEN_773');
+  const [savedCarrierNotice, setSavedCarrierNotice] = useState<string | null>(null);
+
+  // Abandoned Carts State
+  const [abandonedCarts, setAbandonedCarts] = useState<AbandonedCart[]>(INITIAL_ABANDONED_CARTS);
+
+  // AI Landing Pages State
+  const [landingPages, setLandingPages] = useState<LandingPageFunnel[]>(INITIAL_LANDING_PAGES);
+  const [selectedAiProdId, setSelectedAiProdId] = useState<string>('');
+  const [aiFunnelLang, setAiFunnelLang] = useState<'darija' | 'fr' | 'ar'>('darija');
+  const [isGeneratingLp, setIsGeneratingLp] = useState(false);
+
+  // Multi-Pixel Marketing State
+  const [fbPixel, setFbPixel] = useState(store.settings.facebookPixel || 'PIXEL_FB_99182374');
+  const [ttPixel, setTtPixel] = useState(store.settings.tiktokPixel || 'PIXEL_TT_88129033');
+  const [snapPixel, setSnapPixel] = useState('PIXEL_SNAP_771892');
+  const [gtmId, setGtmId] = useState('GTM-DZ99482');
+  const [pixelSaved, setPixelSaved] = useState(false);
 
   // Store-specific data
   const storeProducts = products.filter((p) => p.storeId === store.id);
@@ -147,15 +185,54 @@ export const StoreDashboardView: React.FC<StoreDashboardViewProps> = ({
   const [taxRate, setTaxRate] = useState(store.settings.taxRate);
   const [themeColor, setThemeColor] = useState(store.settings.themeColor);
   const [isPublished, setIsPublished] = useState(store.settings.isPublished);
-  const [payoutBank, setPayoutBank] = useState(store.settings.payoutBank || 'مصرف الراجحي');
-  const [payoutIban, setPayoutIban] = useState(store.settings.payoutIban || 'SA4480000456608010123456');
+  const [payoutBank, setPayoutBank] = useState(store.settings.payoutBank || 'بريد الجزائر (BaridiMob / CCP) / بنك BNA');
+  const [payoutIban, setPayoutIban] = useState(store.settings.payoutIban || '00799999000123456789 (RIP BaridiMob)');
+
+  // Normal Link & Subdomain Configuration State
+  const [preferredLinkFormat, setPreferredLinkFormat] = useState<'standard' | 'subdomain'>('standard');
+  const [isShareModalOpen, setIsShareModalOpen] = useState<boolean>(false);
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
+
+  const showToast = (msg: string) => {
+    setToastMessage(msg);
+    setTimeout(() => setToastMessage(null), 3000);
+  };
+
+  const getStandardStoreUrl = () => {
+    if (typeof window !== 'undefined') {
+      const origin = window.location.origin;
+      const path = window.location.pathname === '/' ? '' : window.location.pathname;
+      return `${origin}${path}?mode=store&store=${store.slug}`;
+    }
+    return `https://wasladz.app/?mode=store&store=${store.slug}`;
+  };
+
+  const getSubdomainUrl = () => {
+    return `https://${store.settings.subdomain || `${store.slug}.wasladz.app`}`;
+  };
+
+  const activeDisplayUrl = preferredLinkFormat === 'standard' ? getStandardStoreUrl() : getSubdomainUrl();
+
+  const handleCopyStoreLink = (format: 'standard' | 'subdomain' = preferredLinkFormat) => {
+    const url = format === 'standard' ? getStandardStoreUrl() : getSubdomainUrl();
+    try {
+      navigator.clipboard?.writeText(url);
+      showToast(
+        format === 'standard' 
+          ? (isAr ? 'تم نسخ الرابط العادي المباشر بنجاح! يعمل فوراً في أي متصفح.' : 'Direct standard URL copied! Works in any browser.')
+          : (isAr ? 'تم نسخ رابط النطاق الفرعي للمتجر.' : 'Subdomain link copied!')
+      );
+    } catch (e) {
+      showToast(isAr ? 'تم نسخ الرابط.' : 'Link copied.');
+    }
+  };
 
   const handleCreateProductSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!newProdName.trim()) return;
 
     if (isFreePlan && storeProducts.length >= 10) {
-      alert(isAr ? 'وصلت للحد الأقصى للمنتجات في الخطة المجانية (10 منتجات). قم بالترقية للخطة الاحترافية للحصول على عدد غير محدود!' : 'Free plan limit reached (10 products). Upgrade to Pro for unlimited products!');
+      showToast(isAr ? 'وصلت للحد الأقصى للمنتجات في الخطة المجانية (10 منتجات). قم بالترقية للخطة الاحترافية للحصول على عدد غير محدود!' : 'Free plan limit reached (10 products). Upgrade to Pro for unlimited products!');
       return;
     }
 
@@ -333,14 +410,20 @@ CREATE POLICY "Public read products" ON public.store_products FOR SELECT USING (
             </span>
           </button>
 
-          {/* Copy Public Store URL */}
+          {/* Share & Copy Normal Store URL */}
           <button
-            onClick={() => {
-              navigator.clipboard?.writeText(`https://${store.settings.subdomain}`);
-              alert(isAr ? `تم نسخ رابط متجرك المستقل:\nhttps://${store.settings.subdomain}` : 'Independent store link copied!');
-            }}
+            onClick={() => setIsShareModalOpen(true)}
+            className="flex items-center gap-1.5 px-3 py-2.5 rounded-xl bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 text-xs font-bold shadow-2xs transition-all cursor-pointer"
+            title={isAr ? 'مشاركة رابط المتجر العادي وتفاصيله والباركود QR' : 'Share & manage normal store link'}
+          >
+            <Share2 className="w-3.5 h-3.5 text-indigo-600" />
+            <span className="hidden sm:inline">{isAr ? 'مشاركة الرابط العادي' : 'Share Link'}</span>
+          </button>
+
+          <button
+            onClick={() => handleCopyStoreLink('standard')}
             className="flex items-center gap-1.5 px-3 py-2.5 rounded-xl bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 text-xs font-bold shadow-2xs transition-all cursor-pointer"
-            title={isAr ? 'نسخ رابط المتجر المستقل المخصص للزبائن' : 'Copy independent store URL'}
+            title={isAr ? 'نسخ الرابط العادي المباشر الذي يعمل في أي متصفح' : 'Copy direct standard store link'}
           >
             <Copy className="w-3.5 h-3.5 text-slate-500" />
             <span className="hidden sm:inline">{isAr ? 'نسخ الرابط' : 'Copy Link'}</span>
@@ -364,7 +447,7 @@ CREATE POLICY "Public read products" ON public.store_products FOR SELECT USING (
               setActiveTab('products');
               setShowAddProductModal(true);
             }}
-            className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold shadow-sm shadow-indigo-600/20 transition-all cursor-pointer"
+            className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-sm shadow-emerald-600/20 transition-all cursor-pointer"
           >
             <Plus className="w-4 h-4" />
             <span>{isAr ? 'إضافة منتج' : 'Add Product'}</span>
@@ -384,14 +467,18 @@ CREATE POLICY "Public read products" ON public.store_products FOR SELECT USING (
       <div className="flex items-center gap-1 overflow-x-auto border-b border-slate-200 pb-px scrollbar-none">
         {[
           { id: 'overview', label: isAr ? 'نظرة عامة والتقارير' : 'Overview & Stats', icon: BarChart3, show: true },
-          { id: 'products', label: isAr ? `المنتجات (${storeProducts.length})` : `Products (${storeProducts.length})`, icon: Package, show: true },
-          { id: 'orders', label: isAr ? `الطلبات (${storeOrders.length})` : `Orders (${storeOrders.length})`, icon: ShoppingCart, show: true },
+          { id: 'orders', label: isAr ? `الطلبات وتأكيد الكول سنتر (${storeOrders.length})` : `Orders & Call Center (${storeOrders.length})`, icon: ShoppingCart, show: true },
+          { id: 'products', label: isAr ? `المنتجات والاستيراد (${storeProducts.length})` : `Products (${storeProducts.length})`, icon: Package, show: true },
+          { id: 'shipping58', label: isAr ? 'شحن 58 ولاية و 102 شركة توصيل' : '58 Wilayas & Couriers', icon: Truck, show: true },
+          { id: 'aiLanding', label: isAr ? 'صفحات الهبوط بالذكاء الاصطناعي' : 'AI Landing Pages', icon: Sparkles, show: true },
+          { id: 'abandonedCarts', label: isAr ? `السلات المتروكة (${abandonedCarts.length})` : `Abandoned Carts (${abandonedCarts.length})`, icon: MessageCircle, show: true },
+          { id: 'pixels', label: isAr ? 'بكسلات التتبع (Meta / TikTok)' : 'Pixels Engine', icon: Zap, show: true },
           { id: 'customers', label: isAr ? `العملاء (${storeCustomers.length})` : `Customers (${storeCustomers.length})`, icon: Users, show: isFeatureActive('customersCRM') },
           { id: 'coupons', label: isAr ? `الكوبونات (${storeCoupons.length})` : `Coupons (${storeCoupons.length})`, icon: Tag, show: isFeatureActive('coupons') },
-          { id: 'plans', label: isAr ? 'الباقات والترقية' : 'Plans & Upgrades', icon: Sparkles, show: isFeatureActive('plansAndUpgrades') },
+          { id: 'plans', label: isAr ? 'الباقات (0% عمولة)' : 'Plans & 0% Fee', icon: Sparkles, show: isFeatureActive('plansAndUpgrades') },
           { id: 'storeFeatures', label: isAr ? `خصائص وإعدادات المتجر (${activeStoreFeaturesCount})` : `Store Features & Settings (${activeStoreFeaturesCount})`, icon: Sliders, show: true },
-          { id: 'settings', label: isAr ? 'إعدادات المتجر' : 'Store Settings', icon: Settings, show: true },
-          { id: 'developer', label: isAr ? 'الربط (Supabase & GitHub)' : 'Integrations', icon: Database, show: isFeatureActive('developerIntegrations') },
+          { id: 'settings', label: isAr ? 'إعدادات المتجر والرابط' : 'Store Settings', icon: Settings, show: true },
+          { id: 'developer', label: isAr ? 'بوابة المطورين والـ API' : 'Integrations & API', icon: Database, show: isFeatureActive('developerIntegrations') },
           { id: 'features', label: isAr ? `خصائص المنصة (${activeFeaturesCount})` : `Platform Features (${activeFeaturesCount})`, icon: Sliders, show: true }
         ].filter(t => t.show).map((tab) => {
           const Icon = tab.icon;
@@ -402,7 +489,7 @@ CREATE POLICY "Public read products" ON public.store_products FOR SELECT USING (
               onClick={() => setActiveTab(tab.id as any)}
               className={`flex items-center gap-2 px-4 py-3 rounded-t-xl text-xs font-bold transition-all whitespace-nowrap cursor-pointer border-b-2 ${
                 isActive
-                  ? 'border-indigo-600 text-indigo-600 bg-white shadow-xs'
+                  ? 'border-emerald-600 text-emerald-800 bg-white shadow-2xs font-extrabold'
                   : 'border-transparent text-slate-500 hover:text-slate-900 hover:bg-slate-100/60'
               }`}
             >
@@ -419,42 +506,98 @@ CREATE POLICY "Public read products" ON public.store_products FOR SELECT USING (
       {activeTab === 'overview' && (
         <div className="space-y-8">
           
-          {/* Independent Storefront Live Status Banner */}
-          <div className="p-5 rounded-2xl bg-gradient-to-r from-emerald-500/10 via-indigo-500/10 to-transparent border border-emerald-200/80 bg-white flex flex-col md:flex-row md:items-center justify-between gap-4 shadow-2xs">
-            <div className="flex items-center gap-3.5">
-              <div className="w-11 h-11 rounded-xl bg-emerald-600 text-white flex items-center justify-center shadow-xs shrink-0">
+          {/* Independent Storefront Live Status & Link Management Banner */}
+          <div className="p-5 sm:p-6 rounded-3xl bg-gradient-to-r from-emerald-500/10 via-indigo-500/10 to-transparent border border-emerald-200/80 bg-white flex flex-col lg:flex-row lg:items-center justify-between gap-5 shadow-2xs">
+            <div className="flex items-start sm:items-center gap-3.5">
+              <div className="w-12 h-12 rounded-2xl bg-emerald-600 text-white flex items-center justify-center shadow-xs shrink-0">
                 <Globe className="w-6 h-6" />
               </div>
-              <div>
-                <div className="flex items-center gap-2">
+              <div className="space-y-1.5">
+                <div className="flex flex-wrap items-center gap-2">
                   <h3 className="font-extrabold text-slate-900 text-sm">
                     {isAr ? 'متجرك الإلكتروني المستقل مفصول ويعمل أونلاين' : 'Your Independent Store is Live & Standalone'}
                   </h3>
                   <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800">
                     {isAr ? 'مستقل 100%' : '100% Standalone'}
                   </span>
+                  <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-indigo-100 text-indigo-800 flex items-center gap-1">
+                    <Link2 className="w-2.5 h-2.5" />
+                    <span>
+                      {preferredLinkFormat === 'standard' 
+                        ? (isAr ? 'صيغة: رابط عادي قياسي' : 'Format: Standard URL') 
+                        : (isAr ? 'صيغة: نطاق فرعي' : 'Format: Subdomain')}
+                    </span>
+                  </span>
                 </div>
-                <p className="text-xs text-slate-600 mt-0.5 font-mono">
-                  https://{store.settings.subdomain}
+
+                {/* Displaying the Actual Link with Format Toggle */}
+                <div className="flex flex-wrap items-center gap-2">
+                  <div className="px-3 py-1.5 rounded-xl bg-slate-900 text-emerald-300 font-mono text-xs max-w-lg truncate border border-slate-800 select-all shadow-inner">
+                    {activeDisplayUrl}
+                  </div>
+                  
+                  {/* Format Switcher Buttons */}
+                  <div className="inline-flex rounded-xl border border-slate-200 bg-slate-100 p-0.5 text-[11px] font-bold">
+                    <button
+                      type="button"
+                      onClick={() => setPreferredLinkFormat('standard')}
+                      className={`px-2.5 py-1 rounded-lg transition-all cursor-pointer flex items-center gap-1 ${
+                        preferredLinkFormat === 'standard'
+                          ? 'bg-white text-indigo-700 shadow-2xs font-black'
+                          : 'text-slate-600 hover:text-slate-900'
+                      }`}
+                      title={isAr ? 'الرابط العادي يعمل فوراً في أي متصفح وجهاز بدون DNS' : 'Standard direct URL works immediately in any browser'}
+                    >
+                      <Link2 className="w-3 h-3" />
+                      <span>{isAr ? 'رابط عادي قياسي ⚡' : 'Standard Link ⚡'}</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setPreferredLinkFormat('subdomain')}
+                      className={`px-2.5 py-1 rounded-lg transition-all cursor-pointer flex items-center gap-1 ${
+                        preferredLinkFormat === 'subdomain'
+                          ? 'bg-white text-indigo-700 shadow-2xs font-black'
+                          : 'text-slate-600 hover:text-slate-900'
+                      }`}
+                      title={isAr ? 'نطاق فرعي مخصص للمتجر' : 'Store Subdomain'}
+                    >
+                      <Globe className="w-3 h-3" />
+                      <span>{isAr ? 'نطاق فرعي 🌐' : 'Subdomain 🌐'}</span>
+                    </button>
+                  </div>
+                </div>
+
+                <p className="text-[11px] text-slate-500">
+                  {preferredLinkFormat === 'standard'
+                    ? (isAr ? '✓ هذا هو الرابط العادي المباشر الذي يمكنك نسخه ولصقه في أي متصفح آخر أو إرساله للعملاء لفتح المتجر مباشرة.' : '✓ This is the standard normal link you can copy and open in any other browser directly.')
+                    : (isAr ? 'ℹ️ صيغة النطاق الفرعي المخصص (يتطلب ربط DNS CNAME عند النشر الفعلي).' : 'ℹ️ Custom branded subdomain format (requires DNS CNAME in production).')
+                  }
                 </p>
               </div>
             </div>
 
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2.5">
               <button
-                onClick={() => {
-                  navigator.clipboard?.writeText(`https://${store.settings.subdomain}`);
-                  alert(isAr ? `تم نسخ الرابط المستقل للعملاء:\nhttps://${store.settings.subdomain}` : 'Independent store link copied!');
-                }}
-                className="px-3.5 py-2 rounded-xl bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 text-xs font-bold transition-all cursor-pointer shadow-2xs flex items-center gap-1.5"
+                onClick={() => handleCopyStoreLink(preferredLinkFormat)}
+                className="px-3.5 py-2.5 rounded-xl bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 text-xs font-bold transition-all cursor-pointer shadow-2xs flex items-center gap-1.5"
+                title={isAr ? 'نسخ الرابط المعروض حالياً' : 'Copy displayed link'}
               >
                 <Copy className="w-3.5 h-3.5 text-slate-500" />
-                <span>{isAr ? 'نسخ رابط الزبائن' : 'Copy Link'}</span>
+                <span>{isAr ? 'نسخ الرابط' : 'Copy Link'}</span>
+              </button>
+
+              <button
+                onClick={() => setIsShareModalOpen(true)}
+                className="px-3.5 py-2.5 rounded-xl bg-indigo-50 hover:bg-indigo-100 border border-indigo-200 text-indigo-700 text-xs font-bold transition-all cursor-pointer shadow-2xs flex items-center gap-1.5"
+                title={isAr ? 'عرض خيارات مشاركة الرابط العادي والباركود QR' : 'Share link & QR code'}
+              >
+                <Share2 className="w-3.5 h-3.5 text-indigo-600" />
+                <span>{isAr ? 'مشاركة وتفاصيل الرابط 📲' : 'Share & Details 📲'}</span>
               </button>
 
               <button
                 onClick={onOpenStandaloneStore || onOpenLivePreview}
-                className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition-all cursor-pointer shadow-sm shadow-emerald-600/20 flex items-center gap-1.5"
+                className="px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition-all cursor-pointer shadow-sm shadow-emerald-600/20 flex items-center gap-1.5"
               >
                 <ShoppingBag className="w-4 h-4" />
                 <span>{isAr ? 'زيارة المتجر المستقل 🛍️' : 'Visit Independent Store 🛍️'}</span>
@@ -1018,6 +1161,126 @@ CREATE POLICY "Public read products" ON public.store_products FOR SELECT USING (
               <Sliders className="w-3.5 h-3.5" />
               <span>{isAr ? 'فتح لوحة الأزرار والحذف 🎛️' : 'Open Button & Delete Panel 🎛️'}</span>
             </button>
+          </div>
+
+          {/* Store URL & Link Formats Guide Card */}
+          <div className="p-5 rounded-2xl border border-slate-200 bg-slate-50/70 space-y-4">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <div className="flex items-center gap-2.5">
+                <div className="w-9 h-9 rounded-xl bg-indigo-100 text-indigo-700 flex items-center justify-center shrink-0">
+                  <Link2 className="w-5 h-5" />
+                </div>
+                <div>
+                  <h4 className="font-extrabold text-slate-900 text-sm">
+                    {isAr ? 'روابط المتجر ونوع الظهور (الرابط العادي القياسي vs النطاق المخصص)' : 'Store Link Formats (Standard Normal URL vs Subdomain)'}
+                  </h4>
+                  <p className="text-xs text-slate-500">
+                    {isAr 
+                      ? 'اختر الرابط الذي تفضل مشاركته مع الزبائن أو استخدامه في المتصفحات الأخرى'
+                      : 'Choose between the direct standard URL and your branded subdomain'}
+                  </p>
+                </div>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => setIsShareModalOpen(true)}
+                className="px-3.5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs flex items-center gap-1.5 shadow-xs transition-colors cursor-pointer self-start sm:self-auto"
+              >
+                <Share2 className="w-3.5 h-3.5" />
+                <span>{isAr ? 'فتح نافذة المشاركة والباركود' : 'Share & QR Window'}</span>
+              </button>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-1">
+              {/* 1. Normal Standard Link */}
+              <div className={`p-4 rounded-xl border transition-all ${
+                preferredLinkFormat === 'standard' ? 'border-indigo-400 bg-white ring-2 ring-indigo-500/10 shadow-xs' : 'border-slate-200 bg-white/70'
+              }`}>
+                <div className="flex items-center justify-between gap-2 mb-2">
+                  <div className="flex items-center gap-1.5">
+                    <span className="w-2 h-2 rounded-full bg-emerald-500" />
+                    <span className="font-bold text-slate-900 text-xs">
+                      {isAr ? '1. الرابط العادي القياسي (Direct URL)' : '1. Standard Direct URL'}
+                    </span>
+                  </div>
+                  <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-100 text-emerald-800">
+                    {isAr ? 'يعمل فوراً ⚡' : 'Works Instantly ⚡'}
+                  </span>
+                </div>
+                <div className="p-2 rounded-lg bg-slate-900 text-emerald-300 font-mono text-[11px] truncate select-all mb-2.5">
+                  {getStandardStoreUrl()}
+                </div>
+                <p className="text-[11px] text-slate-600 leading-relaxed mb-3">
+                  {isAr 
+                    ? 'هذا هو الرابط الفعلي الذي يفتح المتجر مباشرة في أي متصفح (Safari, Chrome, Firefox) بدون أي إعداد، ومثالي لإرساله للعملاء في واتساب أو تجربته في نافذة أخرى.'
+                    : 'This standard web link works in any browser immediately without extra configuration. Great for WhatsApp and testing in any browser.'}
+                </p>
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => handleCopyStoreLink('standard')}
+                    className="flex-1 py-1.5 px-3 rounded-lg bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-bold text-xs flex items-center justify-center gap-1.5 cursor-pointer"
+                  >
+                    <Copy className="w-3.5 h-3.5" />
+                    <span>{isAr ? 'نسخ الرابط العادي' : 'Copy Normal Link'}</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setPreferredLinkFormat('standard')}
+                    className={`py-1.5 px-3 rounded-lg text-xs font-bold transition-colors cursor-pointer ${
+                      preferredLinkFormat === 'standard' ? 'bg-indigo-600 text-white' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+                    }`}
+                  >
+                    {preferredLinkFormat === 'standard' ? (isAr ? 'محدد كافتراضي ✓' : 'Default ✓') : (isAr ? 'جعله الافتراضي' : 'Set Default')}
+                  </button>
+                </div>
+              </div>
+
+              {/* 2. Custom Subdomain Link */}
+              <div className={`p-4 rounded-xl border transition-all ${
+                preferredLinkFormat === 'subdomain' ? 'border-indigo-400 bg-white ring-2 ring-indigo-500/10 shadow-xs' : 'border-slate-200 bg-white/70'
+              }`}>
+                <div className="flex items-center justify-between gap-2 mb-2">
+                  <div className="flex items-center gap-1.5">
+                    <Globe className="w-3.5 h-3.5 text-indigo-600" />
+                    <span className="font-bold text-slate-900 text-xs">
+                      {isAr ? '2. النطاق الفرعي / المخصص (Subdomain)' : '2. Custom Subdomain'}
+                    </span>
+                  </div>
+                  <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-slate-100 text-slate-700">
+                    {isAr ? 'يتطلب DNS' : 'Requires DNS'}
+                  </span>
+                </div>
+                <div className="p-2 rounded-lg bg-slate-900 text-indigo-300 font-mono text-[11px] truncate select-all mb-2.5">
+                  {getSubdomainUrl()}
+                </div>
+                <p className="text-[11px] text-slate-600 leading-relaxed mb-3">
+                  {isAr 
+                    ? 'رابط باسم تجاري فرعي لمتجرك. في بيئة الإنتاج الفعلية يتم توجيهه بسجل DNS CNAME لنطاقك الخاص.'
+                    : 'A clean branded subdomain format. In production environments, this maps to custom domains via DNS CNAME.'}
+                </p>
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => handleCopyStoreLink('subdomain')}
+                    className="flex-1 py-1.5 px-3 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs flex items-center justify-center gap-1.5 cursor-pointer"
+                  >
+                    <Copy className="w-3.5 h-3.5" />
+                    <span>{isAr ? 'نسخ النطاق الفرعي' : 'Copy Subdomain'}</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setPreferredLinkFormat('subdomain')}
+                    className={`py-1.5 px-3 rounded-lg text-xs font-bold transition-colors cursor-pointer ${
+                      preferredLinkFormat === 'subdomain' ? 'bg-indigo-600 text-white' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+                    }`}
+                  >
+                    {preferredLinkFormat === 'subdomain' ? (isAr ? 'محدد كافتراضي ✓' : 'Default ✓') : (isAr ? 'جعله الافتراضي' : 'Set Default')}
+                  </button>
+                </div>
+              </div>
+            </div>
           </div>
 
           <form onSubmit={handleSaveSettings} className="space-y-6 text-xs max-w-2xl">
@@ -1642,6 +1905,193 @@ CREATE POLICY "Public read products" ON public.store_products FOR SELECT USING (
               </button>
             </div>
           </div>
+        </div>
+      )}
+
+      {/* ─── MODAL: SHARE & NORMAL STORE LINK ─── */}
+      {isShareModalOpen && (
+        <div className="fixed inset-0 z-60 overflow-y-auto bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="relative w-full max-w-lg bg-white border border-slate-200 rounded-3xl shadow-2xl p-6 sm:p-7 space-y-5 animate-in zoom-in-95 duration-200 text-start">
+            
+            {/* Modal Header */}
+            <div className="flex items-center justify-between border-b border-slate-100 pb-3.5">
+              <div className="flex items-center gap-2.5">
+                <div className="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center">
+                  <Share2 className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="text-base font-extrabold text-slate-900">
+                    {isAr ? 'مشاركة ورابط المتجر للعملاء' : 'Share & Store Link'}
+                  </h3>
+                  <p className="text-[11px] text-slate-500">
+                    {isAr ? 'روابط متجرك الجزائري المستقل المخصصة للمتصفحات والزبائن' : 'Your live customer-facing store links'}
+                  </p>
+                </div>
+              </div>
+
+              <button
+                onClick={() => setIsShareModalOpen(false)}
+                className="w-8 h-8 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-500 flex items-center justify-center cursor-pointer transition-colors"
+              >
+                ✕
+              </button>
+            </div>
+
+            {/* Link Format Switcher */}
+            <div className="space-y-2">
+              <label className="block text-xs font-bold text-slate-700">
+                {isAr ? 'اختر صيغة الرابط المطلوبة:' : 'Select Link Format:'}
+              </label>
+              <div className="grid grid-cols-2 gap-2 p-1 rounded-xl bg-slate-100 border border-slate-200 text-xs font-bold">
+                <button
+                  type="button"
+                  onClick={() => setPreferredLinkFormat('standard')}
+                  className={`py-2 px-3 rounded-lg flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
+                    preferredLinkFormat === 'standard'
+                      ? 'bg-white text-emerald-800 shadow-xs'
+                      : 'text-slate-600 hover:text-slate-900'
+                  }`}
+                >
+                  <Link2 className="w-3.5 h-3.5 text-emerald-600" />
+                  <span>{isAr ? 'رابط عادي مباشر ⚡' : 'Standard URL ⚡'}</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setPreferredLinkFormat('subdomain')}
+                  className={`py-2 px-3 rounded-lg flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
+                    preferredLinkFormat === 'subdomain'
+                      ? 'bg-white text-emerald-800 shadow-xs'
+                      : 'text-slate-600 hover:text-slate-900'
+                  }`}
+                >
+                  <Globe className="w-3.5 h-3.5 text-emerald-600" />
+                  <span>{isAr ? 'نطاق فرعي 🌐' : 'Subdomain 🌐'}</span>
+                </button>
+              </div>
+            </div>
+
+            {/* URL Input Box with Copy Button */}
+            <div className="space-y-1.5">
+              <div className="flex items-center justify-between text-xs">
+                <span className="font-bold text-slate-700">
+                  {preferredLinkFormat === 'standard' 
+                    ? (isAr ? 'الرابط العادي القياسي (جاهز للنسخ والمشاركة):' : 'Standard Direct URL (Ready to Share):')
+                    : (isAr ? 'رابط النطاق الفرعي التجاري:' : 'Branded Subdomain URL:')}
+                </span>
+                <span className="text-[10px] font-bold text-emerald-600 flex items-center gap-1">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                  <span>{preferredLinkFormat === 'standard' ? (isAr ? 'يعمل في أي متصفح فوراً' : 'Works anywhere') : (isAr ? 'صيغة تجارية' : 'Branded')}</span>
+                </span>
+              </div>
+              <div className="flex items-center gap-2">
+                <input
+                  type="text"
+                  readOnly
+                  value={activeDisplayUrl}
+                  className="flex-1 bg-slate-900 text-emerald-300 font-mono text-xs rounded-xl p-3 border border-slate-800 select-all focus:outline-none"
+                />
+                <button
+                  onClick={() => handleCopyStoreLink(preferredLinkFormat)}
+                  className="px-4 py-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs flex items-center gap-1.5 cursor-pointer shadow-xs transition-colors whitespace-nowrap"
+                >
+                  <Copy className="w-4 h-4" />
+                  <span>{isAr ? 'نسخ' : 'Copy'}</span>
+                </button>
+              </div>
+            </div>
+
+            {/* Explanation Box */}
+            <div className="p-3.5 rounded-2xl bg-emerald-50/70 border border-emerald-100 text-xs text-emerald-950 space-y-1">
+              <div className="font-bold flex items-center gap-1.5 text-emerald-900">
+                <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+                <span>{isAr ? 'كيف تجعله يظهر في شكل رابط عادي يعمل في أي متصفح؟' : 'How does the normal link work?'}</span>
+              </div>
+              <p className="text-[11px] leading-relaxed text-emerald-900/80">
+                {isAr
+                  ? 'الرابط العادي القياسي أعلاه يبدأ بنطاق الموقع الحالي متبوعاً بمعرّف المتجر (?mode=store&store=...). يمكنك نسخه وفتحه في أي متصفح آخر (Chrome, Safari, Edge, Firefox) أو إرساله للزبائن على الهواتف وسيفتح متجرك المستقل فوراً بكامل منتجاته وسلته.'
+                  : 'The standard URL above appends the store parameters (?mode=store&store=...). It can be opened in any browser or device immediately without DNS configuration.'}
+              </p>
+            </div>
+
+            {/* QR Code & Share Options */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+              {/* QR Code Box */}
+              <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 flex flex-col items-center justify-center text-center space-y-2">
+                {/* SVG QR Code Simulation */}
+                <div className="w-24 h-24 bg-white p-2 rounded-xl border border-slate-200 shadow-2xs flex items-center justify-center">
+                  <svg viewBox="0 0 100 100" className="w-full h-full text-slate-900 fill-current">
+                    <rect x="0" y="0" width="30" height="30" />
+                    <rect x="5" y="5" width="20" height="20" fill="white" />
+                    <rect x="10" y="10" width="10" height="10" />
+                    
+                    <rect x="70" y="0" width="30" height="30" />
+                    <rect x="75" y="5" width="20" height="20" fill="white" />
+                    <rect x="80" y="10" width="10" height="10" />
+                    
+                    <rect x="0" y="70" width="30" height="30" />
+                    <rect x="5" y="75" width="20" height="20" fill="white" />
+                    <rect x="10" y="80" width="10" height="10" />
+                    
+                    <rect x="36" y="10" width="8" height="8" />
+                    <rect x="48" y="10" width="8" height="8" />
+                    <rect x="36" y="24" width="8" height="8" />
+                    <rect x="48" y="36" width="14" height="8" />
+                    <rect x="10" y="44" width="8" height="14" />
+                    <rect x="70" y="44" width="10" height="8" />
+                    <rect x="84" y="44" width="8" height="8" />
+                    <rect x="36" y="70" width="10" height="10" />
+                    <rect x="50" y="76" width="8" height="14" />
+                    <rect x="70" y="70" width="12" height="12" />
+                    <rect x="86" y="80" width="8" height="12" />
+                  </svg>
+                </div>
+                <div className="text-[11px] font-bold text-slate-700 flex items-center gap-1">
+                  <Smartphone className="w-3.5 h-3.5 text-slate-500" />
+                  <span>{isAr ? 'امسح الباركود بهاتفك' : 'Scan with mobile camera'}</span>
+                </div>
+              </div>
+
+              {/* Quick Actions */}
+              <div className="space-y-2 flex flex-col justify-center">
+                <a
+                  href={`https://api.whatsapp.com/send?text=${encodeURIComponent(
+                    (isAr ? 'تفضل بزيارة متجري الإلكتروني: ' : 'Visit my store: ') + activeDisplayUrl
+                  )}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-full py-2.5 px-3 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-xs flex items-center justify-center gap-2 shadow-xs transition-colors cursor-pointer"
+                >
+                  <span>{isAr ? 'مشاركة عبر واتساب 💬' : 'Share on WhatsApp 💬'}</span>
+                </a>
+
+                <button
+                  type="button"
+                  onClick={onOpenStandaloneStore || onOpenLivePreview}
+                  className="w-full py-2.5 px-3 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs flex items-center justify-center gap-2 shadow-xs transition-colors cursor-pointer"
+                >
+                  <ShoppingBag className="w-3.5 h-3.5" />
+                  <span>{isAr ? 'فتح وتجربة المتجر الآن' : 'Test Store Now'}</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setIsShareModalOpen(false)}
+                  className="w-full py-2 px-3 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs transition-colors cursor-pointer"
+                >
+                  {isAr ? 'إغلاق' : 'Close'}
+                </button>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      )}
+
+      {/* Floating Toast Notification */}
+      {toastMessage && (
+        <div className="fixed bottom-6 right-6 z-60 bg-slate-900 text-white text-xs font-bold px-4 py-3 rounded-2xl shadow-xl border border-slate-700 flex items-center gap-2.5 animate-in slide-in-from-bottom-3 duration-200">
+          <CheckCheck className="w-4 h-4 text-emerald-400 shrink-0" />
+          <span>{toastMessage}</span>
         </div>
       )}
 

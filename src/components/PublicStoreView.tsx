@@ -6,7 +6,7 @@ import {
   Lock, X, ShieldCheck, Truck, Star, Check, Plus, Minus, Printer, 
   CreditCard, Search, Tag, Copy, ExternalLink, Eye, RotateCcw, 
   ChevronRight, Phone, Mail, HelpCircle, Package, ArrowUpRight, Globe,
-  MessageCircle, AlertTriangle
+  MessageCircle, AlertTriangle, Link2, Share2
 } from 'lucide-react';
 
 interface PublicStoreViewProps {
@@ -57,6 +57,16 @@ export const PublicStoreView: React.FC<PublicStoreViewProps> = ({
   // Independent Top Simulator Bar
   const [showSimulatorBar, setShowSimulatorBar] = useState<boolean>(true);
   const [copiedLink, setCopiedLink] = useState<boolean>(false);
+  const [simulatorUrlType, setSimulatorUrlType] = useState<'standard' | 'subdomain'>('standard');
+
+  const getStandardStoreUrl = () => {
+    if (typeof window !== 'undefined') {
+      const origin = window.location.origin;
+      const path = window.location.pathname === '/' ? '' : window.location.pathname;
+      return `${origin}${path}?mode=store&store=${store.slug}`;
+    }
+    return `https://wasladz.app/?mode=store&store=${store.slug}`;
+  };
 
   // Search & Filter State
   const [searchQuery, setSearchQuery] = useState<string>('');
@@ -69,13 +79,13 @@ export const PublicStoreView: React.FC<PublicStoreViewProps> = ({
   const [couponError, setCouponError] = useState<string>('');
   const [couponSuccess, setCouponSuccess] = useState<string>('');
 
-  // Customer Checkout Form
-  const [custName, setCustName] = useState(isAr ? 'فيصل العتيبي' : 'Faisal Al-Otaibi');
-  const [custEmail, setCustEmail] = useState('faisal@example.com');
-  const [custPhone, setCustPhone] = useState('+966 50 123 4567');
-  const [custCity, setCustCity] = useState(isAr ? 'الرياض' : 'Riyadh');
-  const [custAddress, setCustAddress] = useState(isAr ? 'حي النخيل، شارع الأمير تركي' : 'Al-Nakheel, Prince Turki St');
-  const [selectedPayment, setSelectedPayment] = useState<'mada' | 'applepay' | 'cod'>('mada');
+  // Customer Checkout Form (Algerian COD Preset)
+  const [custName, setCustName] = useState(isAr ? 'أمين بن سالم' : 'Amine Bensalem');
+  const [custEmail, setCustEmail] = useState('amine.bensalem@gmail.com');
+  const [custPhone, setCustPhone] = useState('0555123456');
+  const [custCity, setCustCity] = useState(isAr ? 'الجزائر العاصمة (16)' : 'Algiers (16)');
+  const [custAddress, setCustAddress] = useState(isAr ? 'شارع ديدوش مراد، الجزائر الوسطى' : 'Didouche Mourad St, Alger Centre');
+  const [selectedPayment, setSelectedPayment] = useState<'cod' | 'baridimob' | 'cib'>('cod');
 
   // Filter products for this specific independent store
   const storeProducts = products.filter((p) => p.storeId === store.id && p.isPublished);
@@ -172,7 +182,9 @@ export const PublicStoreView: React.FC<PublicStoreViewProps> = ({
   };
 
   const handleCopyLink = () => {
-    const url = `https://${store.settings.subdomain || store.slug}.avanto.store`;
+    const url = simulatorUrlType === 'standard'
+      ? getStandardStoreUrl()
+      : `https://${store.settings.subdomain || `${store.slug}.wasladz.app`}`;
     navigator.clipboard?.writeText(url);
     setCopiedLink(true);
     setTimeout(() => setCopiedLink(false), 2500);
@@ -180,12 +192,12 @@ export const PublicStoreView: React.FC<PublicStoreViewProps> = ({
 
   const handleConfirmOrder = (e: React.FormEvent) => {
     e.preventDefault();
-    const orderNum = `ORD-${Math.floor(100000 + Math.random() * 900000)}`;
-    const trackingCode = `TRK-${Math.random().toString(36).substring(2, 8).toUpperCase()}`;
+    const orderNum = `ORD-DZ-${Math.floor(100000 + Math.random() * 900000)}`;
+    const trackingCode = `TRK-DZ-${Math.random().toString(36).substring(2, 8).toUpperCase()}`;
 
-    let payMethodName = isAr ? 'مدى / Apple Pay' : 'Mada / Apple Pay';
-    if (selectedPayment === 'applepay') payMethodName = 'Apple Pay';
-    if (selectedPayment === 'cod') payMethodName = isAr ? 'الدفع عند الاستلام' : 'Cash on Delivery';
+    let payMethodName = isAr ? 'الدفع عند الاستلام (COD)' : 'Cash on Delivery (COD)';
+    if (selectedPayment === 'baridimob') payMethodName = isAr ? 'بريدي موب (BaridiMob / CCP)' : 'BaridiMob / CCP Transfer';
+    if (selectedPayment === 'cib') payMethodName = isAr ? 'البطاقة الذهبية / CIB' : 'Edahabia / CIB Card';
 
     const newOrder: Order = {
       id: `ord_${Date.now()}`,
@@ -219,12 +231,12 @@ export const PublicStoreView: React.FC<PublicStoreViewProps> = ({
     if (!trackingNumberInput.trim()) return;
     setTrackedOrderResult(
       isAr 
-        ? `طلبك (${trackingNumberInput.trim()}) قيد التجهيز وسيتم تسليمه لشركة الشحن خلال 24 ساعة. حالة الشحنة: جاري التغليف والتجهيز.`
-        : `Order (${trackingNumberInput.trim()}) is being prepared and will be handed to carrier within 24h. Status: In fulfillment.`
+        ? `طلبك (${trackingNumberInput.trim()}) قيد التجهيز وسيتم تسليمه لشركة الشحن (ياليدين / ZR Express) خلال 24 ساعة. حالة الشحنة: جاري التغليف والتجهيز للـ 58 ولاية.`
+        : `Order (${trackingNumberInput.trim()}) is being prepared and will be handed to carrier (Yalidine/ZR Express) within 24h.`
     );
   };
 
-  const storeSubdomain = store.settings?.subdomain || `${store.slug}.avanto.store`;
+  const storeSubdomain = store.settings?.subdomain || `${store.slug}.wasladz.app`;
 
   // Render Inner Content
   const renderStoreContent = () => (
@@ -901,48 +913,46 @@ export const PublicStoreView: React.FC<PublicStoreViewProps> = ({
                     </div>
 
                     {/* Payment Method Selector (Respects onlinePayments & cashOnDelivery features) */}
+                    {/* Payment Method Selector (DZ COD & BaridiMob) */}
                     <div>
-                      <label className="text-slate-700 block mb-1.5 font-bold">{isAr ? 'طريقة الدفع' : 'Payment Method'}</label>
+                      <label className="text-slate-700 block mb-1.5 font-bold">{isAr ? 'طريقة الدفع في الجزائر' : 'Payment Method'}</label>
                       <div className="grid grid-cols-3 gap-2">
-                        {isStoreFeatureActive('onlinePayments') && (
-                          <>
-                            <button
-                              type="button"
-                              onClick={() => setSelectedPayment('mada')}
-                              className={`p-2 rounded-xl border text-center font-bold cursor-pointer transition-all ${
-                                selectedPayment === 'mada'
-                                  ? 'border-indigo-600 bg-indigo-50 text-indigo-700'
-                                  : 'border-slate-200 bg-white text-slate-700'
-                              }`}
-                            >
-                              {isAr ? 'مدى / فيزا' : 'Mada / Visa'}
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => setSelectedPayment('applepay')}
-                              className={`p-2 rounded-xl border text-center font-bold cursor-pointer transition-all ${
-                                selectedPayment === 'applepay'
-                                  ? 'border-indigo-600 bg-indigo-50 text-indigo-700'
-                                  : 'border-slate-200 bg-white text-slate-700'
-                              }`}
-                            >
-                              Apple Pay
-                            </button>
-                          </>
-                        )}
-                        {isStoreFeatureActive('cashOnDelivery') && (
-                          <button
-                            type="button"
-                            onClick={() => setSelectedPayment('cod')}
-                            className={`p-2 rounded-xl border text-center font-bold cursor-pointer transition-all ${
-                              selectedPayment === 'cod'
-                                ? 'border-indigo-600 bg-indigo-50 text-indigo-700'
-                                : 'border-slate-200 bg-white text-slate-700'
-                            }`}
-                          >
-                            {isAr ? 'عند الاستلام' : 'Cash on Deliv.'}
-                          </button>
-                        )}
+                        <button
+                          type="button"
+                          onClick={() => setSelectedPayment('cod')}
+                          className={`p-2.5 rounded-xl border text-center font-bold text-xs cursor-pointer transition-all ${
+                            selectedPayment === 'cod'
+                              ? 'border-emerald-600 bg-emerald-50 text-emerald-800 ring-2 ring-emerald-600/15'
+                              : 'border-slate-200 bg-white text-slate-700 hover:border-slate-300'
+                          }`}
+                        >
+                          <div className="font-extrabold">{isAr ? 'الدفع عند الاستلام' : 'Cash on Delivery'}</div>
+                          <div className="text-[10px] text-emerald-600 font-normal">{isAr ? 'معاينة قبل الدفع' : 'Pay on arrival'}</div>
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setSelectedPayment('baridimob')}
+                          className={`p-2.5 rounded-xl border text-center font-bold text-xs cursor-pointer transition-all ${
+                            selectedPayment === 'baridimob'
+                              ? 'border-emerald-600 bg-emerald-50 text-emerald-800 ring-2 ring-emerald-600/15'
+                              : 'border-slate-200 bg-white text-slate-700 hover:border-slate-300'
+                          }`}
+                        >
+                          <div className="font-extrabold">{isAr ? 'بريدي موب (CCP)' : 'BaridiMob'}</div>
+                          <div className="text-[10px] text-slate-500 font-normal">{isAr ? 'تحويل فوري RIP' : 'Instant transfer'}</div>
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setSelectedPayment('cib')}
+                          className={`p-2.5 rounded-xl border text-center font-bold text-xs cursor-pointer transition-all ${
+                            selectedPayment === 'cib'
+                              ? 'border-emerald-600 bg-emerald-50 text-emerald-800 ring-2 ring-emerald-600/15'
+                              : 'border-slate-200 bg-white text-slate-700 hover:border-slate-300'
+                          }`}
+                        >
+                          <div className="font-extrabold">{isAr ? 'الذهبية / CIB' : 'Edahabia Card'}</div>
+                          <div className="text-[10px] text-slate-500 font-normal">{isAr ? 'بطاقة بنكية' : 'Bank card'}</div>
+                        </button>
                       </div>
                     </div>
 
@@ -1185,19 +1195,55 @@ export const PublicStoreView: React.FC<PublicStoreViewProps> = ({
                 {isAr ? 'وضع المتجر المستقل (مفصول عن المنصة):' : 'Independent Store Mode (Separated):'}
               </span>
               <div className="flex items-center gap-1.5 bg-slate-800 border border-slate-700 px-2.5 py-1 rounded-lg font-mono text-[11px] text-emerald-300">
-                <Lock className="w-3 h-3 text-emerald-400" />
-                <span>https://{storeSubdomain}</span>
+                {simulatorUrlType === 'standard' ? <Link2 className="w-3 h-3 text-emerald-400" /> : <Lock className="w-3 h-3 text-emerald-400" />}
+                <span className="max-w-xs sm:max-w-sm truncate select-all">
+                  {simulatorUrlType === 'standard' ? getStandardStoreUrl() : `https://${storeSubdomain}`}
+                </span>
+              </div>
+
+              {/* Format Toggle Switch */}
+              <div className="inline-flex rounded-lg border border-slate-700 bg-slate-800 p-0.5 text-[10px] font-bold">
+                <button
+                  type="button"
+                  onClick={() => setSimulatorUrlType('standard')}
+                  className={`px-2 py-0.5 rounded transition-all cursor-pointer ${
+                    simulatorUrlType === 'standard'
+                      ? 'bg-emerald-500 text-slate-950 font-black'
+                      : 'text-slate-300 hover:text-white'
+                  }`}
+                  title={isAr ? 'عرض ونسخ الرابط العادي الذي يعمل في كافة المتصفحات' : 'Standard direct URL'}
+                >
+                  {isAr ? 'رابط عادي ⚡' : 'Normal Link ⚡'}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setSimulatorUrlType('subdomain')}
+                  className={`px-2 py-0.5 rounded transition-all cursor-pointer ${
+                    simulatorUrlType === 'subdomain'
+                      ? 'bg-emerald-500 text-slate-950 font-black'
+                      : 'text-slate-300 hover:text-white'
+                  }`}
+                  title={isAr ? 'عرض النطاق الفرعي التجاري' : 'Subdomain'}
+                >
+                  {isAr ? 'نطاق فرعي' : 'Subdomain'}
+                </button>
               </div>
             </div>
 
             <div className="flex items-center gap-2">
               <button
                 onClick={handleCopyLink}
-                className="flex items-center gap-1 px-2.5 py-1 rounded-md bg-slate-800 hover:bg-slate-700 text-slate-200 text-[11px] font-bold transition-colors cursor-pointer"
-                title={isAr ? 'نسخ رابط المتجر المستقل للزبائن' : 'Copy independent link'}
+                className="flex items-center gap-1.5 px-3 py-1 rounded-md bg-emerald-600 hover:bg-emerald-500 text-white text-[11px] font-bold transition-colors cursor-pointer shadow-xs"
+                title={isAr ? 'نسخ الرابط المعروض للعملاء ولصقه في أي متصفح' : 'Copy link'}
               >
                 <Copy className="w-3 h-3" />
-                <span>{copiedLink ? (isAr ? 'تم النسخ ✓' : 'Copied ✓') : (isAr ? 'نسخ رابط المتجر للعملاء' : 'Copy Link')}</span>
+                <span>
+                  {copiedLink 
+                    ? (isAr ? 'تم نسخ الرابط ✓' : 'Copied ✓') 
+                    : (simulatorUrlType === 'standard' 
+                        ? (isAr ? 'نسخ الرابط العادي' : 'Copy Normal Link') 
+                        : (isAr ? 'نسخ الرابط' : 'Copy Link'))}
+                </span>
               </button>
 
               {onBackToDashboard && (

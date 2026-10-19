@@ -53,17 +53,20 @@ export const PlatformFeaturesModal: React.FC<PlatformFeaturesModalProps> = ({
 
   const getFeatureIcon = (id: string) => {
     switch (id) {
+      case 'abandonedCartRecovery': return <Sparkles className="w-4 h-4 text-emerald-600" />;
+      case 'smartCatalogImport': return <Database className="w-4 h-4 text-teal-600" />;
+      case 'ecotrackNetwork': return <Truck className="w-4 h-4 text-emerald-700" />;
       case 'coupons': return <Tag className="w-4 h-4 text-amber-600" />;
       case 'customersCRM': return <Users className="w-4 h-4 text-violet-600" />;
       case 'onlinePayments': return <CreditCard className="w-4 h-4 text-emerald-600" />;
-      case 'invoicing': return <Printer className="w-4 h-4 text-indigo-600" />;
+      case 'invoicing': return <Printer className="w-4 h-4 text-emerald-600" />;
       case 'developerIntegrations': return <Database className="w-4 h-4 text-cyan-600" />;
-      case 'plansAndUpgrades': return <Sparkles className="w-4 h-4 text-indigo-600" />;
+      case 'plansAndUpgrades': return <Sparkles className="w-4 h-4 text-amber-600" />;
       case 'multiCurrency': return <DollarSign className="w-4 h-4 text-blue-600" />;
       case 'shippingSettings': return <Truck className="w-4 h-4 text-emerald-600" />;
       case 'demoLogin': return <LogIn className="w-4 h-4 text-amber-600" />;
       case 'stockAdjuster': return <SlidersHorizontal className="w-4 h-4 text-slate-600" />;
-      default: return <Sliders className="w-4 h-4 text-indigo-600" />;
+      default: return <Sliders className="w-4 h-4 text-emerald-600" />;
     }
   };
 
@@ -76,15 +79,15 @@ export const PlatformFeaturesModal: React.FC<PlatformFeaturesModalProps> = ({
         {/* Header */}
         <div className="bg-slate-50/80 px-6 py-5 border-b border-slate-200 flex items-center justify-between gap-4 shrink-0">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-indigo-600 text-white flex items-center justify-center shadow-xs">
+            <div className="w-10 h-10 rounded-xl bg-emerald-600 text-white flex items-center justify-center shadow-xs">
               <Sliders className="w-5 h-5" />
             </div>
             <div>
               <div className="flex items-center gap-2">
                 <h2 className="text-lg font-extrabold text-slate-900">
-                  {isAr ? 'مدير خصائص المنصة (تفعيل / إلغاء / حذف)' : 'Platform Feature & Module Manager'}
+                  {isAr ? 'مدير خصائص منصة وصلة ديزاد (تفعيل / إلغاء / حذف)' : 'WaslaDZ Platform Features Manager'}
                 </h2>
-                <span className="text-[10px] font-mono font-bold bg-indigo-100 text-indigo-800 px-2 py-0.5 rounded-full">
+                <span className="text-[10px] font-mono font-bold bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-full">
                   Live Control
                 </span>
               </div>
@@ -122,7 +125,7 @@ export const PlatformFeaturesModal: React.FC<PlatformFeaturesModalProps> = ({
               onClick={() => setFilter('all')}
               className={`px-3 py-1.5 rounded-lg font-bold transition-all cursor-pointer ${
                 filter === 'all'
-                  ? 'bg-indigo-600 text-white shadow-xs'
+                  ? 'bg-emerald-600 text-white shadow-xs'
                   : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
               }`}
             >

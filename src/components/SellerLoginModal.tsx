@@ -27,7 +27,7 @@ export const SellerLoginModal: React.FC<SellerLoginModalProps> = ({
   if (!isOpen) return null;
 
   const isAr = language === 'ar';
-  const [email, setEmail] = useState('khalid@domain.com');
+  const [email, setEmail] = useState('karim.belhadj@gmail.com');
   const [password, setPassword] = useState('password123');
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(true);
@@ -99,7 +99,7 @@ export const SellerLoginModal: React.FC<SellerLoginModalProps> = ({
 
         {/* Modal Brand Lockup */}
         <div className="text-center space-y-2 pt-1">
-          <div className="w-12 h-12 rounded-xl bg-indigo-600 flex items-center justify-center mx-auto shadow-md shadow-indigo-600/20 text-white">
+          <div className="w-12 h-12 rounded-xl bg-emerald-600 flex items-center justify-center mx-auto shadow-md shadow-emerald-600/20 text-white">
             <Lock className="w-6 h-6" />
           </div>
 
@@ -108,20 +108,20 @@ export const SellerLoginModal: React.FC<SellerLoginModalProps> = ({
           </h2>
           <p className="text-xs text-slate-500 max-w-xs mx-auto">
             {isAr
-              ? 'أدخل بيانات حسابك للوصول إلى لوحة تحكم متجرك وإدارته.'
+              ? 'أدخل بيانات حسابك للوصول إلى لوحة تحكم متجرك الجزائري وإدارته.'
               : 'Enter your credentials to access your store control dashboard.'}
           </p>
         </div>
 
         {/* Quick Demo Login Preset Button */}
         {isDemoLoginEnabled && (
-          <div className="p-3.5 rounded-xl bg-indigo-50 border border-indigo-100 space-y-2.5">
+          <div className="p-3.5 rounded-xl bg-emerald-50 border border-emerald-200 space-y-2.5">
             <div className="flex items-center justify-between text-xs">
-              <span className="text-indigo-900 font-bold flex items-center gap-1.5">
-                <Sparkles className="w-4 h-4 text-indigo-600" />
+              <span className="text-emerald-950 font-bold flex items-center gap-1.5">
+                <Sparkles className="w-4 h-4 text-emerald-600" />
                 <span>{isAr ? 'حساب تجريبي فوري للتجربة' : 'Instant Demo Account'}</span>
               </span>
-              <span className="text-[10px] bg-indigo-200/60 text-indigo-800 font-bold px-2 py-0.5 rounded-full">
+              <span className="text-[10px] bg-emerald-200/60 text-emerald-900 font-bold px-2 py-0.5 rounded-full">
                 1-Click
               </span>
             </div>
@@ -135,7 +135,7 @@ export const SellerLoginModal: React.FC<SellerLoginModalProps> = ({
             <button
               type="button"
               onClick={() => handleQuickDemoLogin(stores[0])}
-              className="w-full py-2.5 px-3 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs flex items-center justify-center gap-2 transition-all active:scale-98 shadow-sm cursor-pointer"
+              className="w-full py-2.5 px-3 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs flex items-center justify-center gap-2 transition-all active:scale-98 shadow-sm cursor-pointer"
             >
               <span>{isAr ? 'دخول فوري بحساب التاجر التجريبي ⚡' : 'Sign In as Demo Merchant ⚡'}</span>
             </button>
@@ -163,7 +163,7 @@ export const SellerLoginModal: React.FC<SellerLoginModalProps> = ({
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="merchant@example.com"
-                className="w-full bg-slate-50 border border-slate-300 rounded-lg py-2.5 px-3 text-slate-900 focus:bg-white focus:border-indigo-600 focus:outline-none transition-colors"
+                className="w-full bg-slate-50 border border-slate-300 rounded-lg py-2.5 px-3 text-slate-900 focus:bg-white focus:border-emerald-600 focus:outline-none transition-colors"
               />
               <Mail className="w-4 h-4 text-slate-400 absolute end-3 top-3 pointer-events-none" />
             </div>
@@ -177,7 +177,7 @@ export const SellerLoginModal: React.FC<SellerLoginModalProps> = ({
               <button
                 type="button"
                 onClick={() => alert(isAr ? 'في النسخة التجريبية يمكنك استخدام كلمة المرور الحالية أو تسجيل الدخول السريع.' : 'In demo mode, you can use any password or quick login.')}
-                className="text-[11px] text-indigo-600 hover:underline"
+                className="text-[11px] text-emerald-600 hover:underline"
               >
                 {isAr ? 'نسيت كلمة المرور؟' : 'Forgot password?'}
               </button>
@@ -189,7 +189,7 @@ export const SellerLoginModal: React.FC<SellerLoginModalProps> = ({
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="••••••••"
-                className="w-full bg-slate-50 border border-slate-300 rounded-lg py-2.5 px-3 text-slate-900 focus:bg-white focus:border-indigo-600 focus:outline-none transition-colors"
+                className="w-full bg-slate-50 border border-slate-300 rounded-lg py-2.5 px-3 text-slate-900 focus:bg-white focus:border-emerald-600 focus:outline-none transition-colors"
               />
               <button
                 type="button"
@@ -207,7 +207,7 @@ export const SellerLoginModal: React.FC<SellerLoginModalProps> = ({
                 type="checkbox"
                 checked={rememberMe}
                 onChange={(e) => setRememberMe(e.target.checked)}
-                className="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
+                className="rounded border-slate-300 text-emerald-600 focus:ring-indigo-500"
               />
               <span>{isAr ? 'تذكر بيانات تسجيل الدخول' : 'Remember me'}</span>
             </label>
@@ -241,7 +241,7 @@ export const SellerLoginModal: React.FC<SellerLoginModalProps> = ({
           <span>{isAr ? 'ليس لديك متجر إلكتروني بعد؟ ' : "Don't have a store yet? "}</span>
           <button
             onClick={onSwitchToRegister}
-            className="font-bold text-indigo-600 hover:underline cursor-pointer"
+            className="font-bold text-emerald-600 hover:underline cursor-pointer"
           >
             {isAr ? 'أنشئ متجرك مجاناً الآن' : 'Create your free store now'}
           </button>

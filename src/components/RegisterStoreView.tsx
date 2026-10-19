@@ -74,23 +74,27 @@ export const RegisterStoreView: React.FC<RegisterStoreViewProps> = ({
         ownerName: ownerName.trim(),
         ownerEmail: ownerEmail.trim().toLowerCase(),
         plan: selectedPlan,
-        accentColor: selectedPlan === 'pro' ? '#4F46E5' : '#059669',
+        accentColor: '#059669',
         totalSales: 0,
         ordersCount: 0,
         createdAt: new Date().toISOString().split('T')[0],
         supabaseConnected: true,
         githubConnected: true,
         settings: {
-          subdomain: `${cleanSlug}.avanto.store`,
-          customDomain: selectedPlan === 'pro' ? `www.${cleanSlug}.com` : undefined,
-          themeColor: selectedPlan === 'pro' ? '#4F46E5' : '#059669',
-          shippingRate: 20,
-          freeShippingThreshold: 250,
-          taxRate: 15,
-          currency,
+          subdomain: `${cleanSlug}.wasladz.app`,
+          customDomain: selectedPlan === 'pro' ? `www.${cleanSlug}.dz` : undefined,
+          themeColor: '#059669',
+          shippingRate: 450,
+          freeShippingThreshold: 8000,
+          taxRate: 0,
+          currency: 'DZD',
           isPublished: true,
-          payoutBank: 'مصرف الراجحي',
-          payoutIban: 'SA9800000000000000000000'
+          payoutBank: 'بريد الجزائر (BaridiMob / CCP) / بنك BNA',
+          payoutIban: '00799999000123456789 (RIP BaridiMob)',
+          activeCarrier: 'yalidine',
+          defaultDeliveryType: 'home',
+          enableFakeOrderShield: true,
+          enableLandingPageDirectBuy: true
         }
       };
 
@@ -130,7 +134,7 @@ export const RegisterStoreView: React.FC<RegisterStoreViewProps> = ({
 
             <p className="text-xs sm:text-sm text-slate-600 max-w-xl mx-auto leading-relaxed">
               {isAr
-                ? 'تم إنشاء متجرك وفصله بالكامل عن المنصة. يملك متجرك الآن رابطه الخاص وشعاره وعربته وبوابته، ولن تظهر للزبائن أي عناصر من منصة أفانتو.'
+                ? 'تم إنشاء متجرك وفصله بالكامل عن المنصة. يملك متجرك الآن رابطه الخاص وشعاره وعربته وبوابته، ولن تظهر للزبائن أي عناصر من منصة وصلة ديزاد (WaslaDZ).'
                 : 'Your store has been created and fully separated from the platform. It has its own domain, branding, shopping cart, and catalog with zero platform branding for buyers.'}
             </p>
           </div>
@@ -164,7 +168,7 @@ export const RegisterStoreView: React.FC<RegisterStoreViewProps> = ({
               </div>
               <div>
                 <span className="text-slate-400 block">{isAr ? 'خطة الاشتراك' : 'Plan'}</span>
-                <span className="font-bold text-indigo-600 uppercase">{createdStore.plan}</span>
+                <span className="font-bold text-emerald-700 uppercase">{createdStore.plan}</span>
               </div>
               <div>
                 <span className="text-slate-400 block">{isAr ? 'التصنيف' : 'Category'}</span>
@@ -199,7 +203,7 @@ export const RegisterStoreView: React.FC<RegisterStoreViewProps> = ({
             {/* 2. Go to Merchant Dashboard */}
             <button
               onClick={() => onRegisterSuccess(createdStore, 'dashboard')}
-              className="p-5 rounded-2xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs flex flex-col items-center justify-center gap-2 shadow-lg shadow-indigo-600/20 transition-all hover:scale-102 active:scale-98 cursor-pointer group"
+              className="p-5 rounded-2xl bg-slate-800 hover:bg-slate-900 text-white font-bold text-xs flex flex-col items-center justify-center gap-2 shadow-lg shadow-slate-900/20 transition-all hover:scale-102 active:scale-98 cursor-pointer group"
             >
               <div className="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center group-hover:scale-110 transition-transform">
                 <BarChart2 className="w-5 h-5 text-white" />
@@ -232,9 +236,9 @@ export const RegisterStoreView: React.FC<RegisterStoreViewProps> = ({
       
       {/* Header */}
       <div className="text-center max-w-2xl mx-auto space-y-3">
-        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-bold bg-indigo-50 border border-indigo-200 text-indigo-700">
+        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-bold bg-emerald-50 border border-emerald-200 text-emerald-700">
           <StoreIcon className="w-3.5 h-3.5" />
-          <span>{isAr ? 'إنشاء متجر إلكتروني مستقل' : 'Create Your Independent Store'}</span>
+          <span>{isAr ? 'إنشاء متجر إلكتروني جزائري مستقل' : 'Create Algerian COD Store'}</span>
         </div>
 
         <h2 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-slate-900">
@@ -243,15 +247,15 @@ export const RegisterStoreView: React.FC<RegisterStoreViewProps> = ({
 
         <p className="text-xs sm:text-sm text-slate-600 leading-relaxed">
           {isAr
-            ? 'أدخل بيانات متجرك الأساسية، اختر خطتك (مجانية أو احترافية)، وسنطلق لك متجراً مستقلاً تماماً برابط خاص وهوية منفصلة عن المنصة.'
-            : 'Fill in your store details, select a plan, and get a 100% independent store with its own domain and identity.'}
+            ? 'أدخل بيانات متجرك الأساسية، اختر خطتك (مجانية أو احترافية بـ 0% عمولة)، وسنطلق لك متجراً مستقلاً تماماً برابط خاص وهوية منفصلة عن المنصة.'
+            : 'Fill in your store details, select a plan, and get a 100% independent store with 0% commission.'}
         </p>
 
         {/* Existing Store Shortcut */}
         <div className="pt-1">
           <button
             onClick={onGoToExistingStore}
-            className="text-xs text-indigo-600 hover:text-indigo-700 font-semibold flex items-center justify-center gap-1.5 mx-auto cursor-pointer"
+            className="text-xs text-emerald-600 hover:text-emerald-700 font-semibold flex items-center justify-center gap-1.5 mx-auto cursor-pointer"
           >
             <span>{isAr ? `لديك متجر مسجل مسبقاً (${existingStoreName})؟ التوجه للوحة التحكم مباشرة` : `Already have a store? Go to dashboard`}</span>
             {isAr ? <ArrowLeft className="w-3.5 h-3.5" /> : <ArrowRight className="w-3.5 h-3.5" />}
@@ -265,7 +269,7 @@ export const RegisterStoreView: React.FC<RegisterStoreViewProps> = ({
         {/* Step 1: Store Details */}
         <div className="space-y-4">
           <div className="flex items-center gap-2 border-b border-slate-100 pb-3">
-            <div className="w-7 h-7 rounded-lg bg-indigo-600 text-white font-bold flex items-center justify-center text-xs shadow-xs">
+            <div className="w-7 h-7 rounded-lg bg-emerald-600 text-white font-bold flex items-center justify-center text-xs shadow-xs">
               1
             </div>
             <div>
@@ -289,7 +293,7 @@ export const RegisterStoreView: React.FC<RegisterStoreViewProps> = ({
                 value={storeName}
                 onChange={(e) => handleStoreNameChange(e.target.value)}
                 placeholder="e.g. Royal Elegance"
-                className="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-slate-900 focus:bg-white focus:border-indigo-600 focus:outline-none transition-colors"
+                className="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-slate-900 focus:bg-white focus:border-emerald-600 focus:outline-none transition-colors"
               />
             </div>
 
@@ -302,7 +306,7 @@ export const RegisterStoreView: React.FC<RegisterStoreViewProps> = ({
                 value={storeNameAr}
                 onChange={(e) => setStoreNameAr(e.target.value)}
                 placeholder="مثال: متجر الأناقة الملكية"
-                className="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-slate-900 focus:bg-white focus:border-indigo-600 focus:outline-none transition-colors"
+                className="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-slate-900 focus:bg-white focus:border-emerald-600 focus:outline-none transition-colors"
               />
             </div>
 
@@ -317,10 +321,10 @@ export const RegisterStoreView: React.FC<RegisterStoreViewProps> = ({
                   value={subdomain}
                   onChange={(e) => setSubdomain(e.target.value.toLowerCase().replace(/[^a-z0-9]/g, '-'))}
                   placeholder="royal-elegance"
-                  className="w-full bg-slate-50 border border-slate-200 rounded-s-xl p-3 text-slate-900 font-mono focus:bg-white focus:border-indigo-600 focus:outline-none transition-colors"
+                  className="w-full bg-slate-50 border border-slate-200 rounded-s-xl p-3 text-slate-900 font-mono focus:bg-white focus:border-emerald-600 focus:outline-none transition-colors"
                 />
-                <span className="bg-slate-100 border border-slate-200 border-s-0 px-3 py-3 rounded-e-xl text-slate-600 font-mono text-[11px] font-bold whitespace-nowrap">
-                  .avanto.store
+                <span className="bg-slate-100 border border-slate-200 border-s-0 px-3 py-3 rounded-e-xl text-slate-700 font-mono text-[11px] font-bold whitespace-nowrap">
+                  .wasladz.app
                 </span>
               </div>
               <p className="text-[10px] text-emerald-600 mt-1">
@@ -335,7 +339,7 @@ export const RegisterStoreView: React.FC<RegisterStoreViewProps> = ({
               <select
                 value={category}
                 onChange={(e) => setCategory(e.target.value)}
-                className="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-slate-900 focus:bg-white focus:border-indigo-600 focus:outline-none transition-colors cursor-pointer"
+                className="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-slate-900 focus:bg-white focus:border-emerald-600 focus:outline-none transition-colors cursor-pointer"
               >
                 <option value="Fashion & Apparel">{isAr ? 'أزياء وملابس' : 'Fashion & Apparel'}</option>
                 <option value="Watches & Horology">{isAr ? 'ساعات وإكسسوارات' : 'Watches & Horology'}</option>
@@ -350,7 +354,7 @@ export const RegisterStoreView: React.FC<RegisterStoreViewProps> = ({
         {/* Step 2: Merchant / Owner Information */}
         <div className="space-y-4">
           <div className="flex items-center gap-2 border-b border-slate-100 pb-3">
-            <div className="w-7 h-7 rounded-lg bg-indigo-600 text-white font-bold flex items-center justify-center text-xs shadow-xs">
+            <div className="w-7 h-7 rounded-lg bg-emerald-600 text-white font-bold flex items-center justify-center text-xs shadow-xs">
               2
             </div>
             <div>
@@ -374,7 +378,7 @@ export const RegisterStoreView: React.FC<RegisterStoreViewProps> = ({
                 value={ownerName}
                 onChange={(e) => setOwnerName(e.target.value)}
                 placeholder={isAr ? 'مثال: خالد حسن' : 'e.g. Khalid Hassan'}
-                className="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-slate-900 focus:bg-white focus:border-indigo-600 focus:outline-none transition-colors"
+                className="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-slate-900 focus:bg-white focus:border-emerald-600 focus:outline-none transition-colors"
               />
             </div>
 
@@ -388,7 +392,7 @@ export const RegisterStoreView: React.FC<RegisterStoreViewProps> = ({
                 value={ownerEmail}
                 onChange={(e) => setOwnerEmail(e.target.value)}
                 placeholder="merchant@example.com"
-                className="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-slate-900 focus:bg-white focus:border-indigo-600 focus:outline-none transition-colors"
+                className="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-slate-900 focus:bg-white focus:border-emerald-600 focus:outline-none transition-colors"
               />
             </div>
           </div>
@@ -397,7 +401,7 @@ export const RegisterStoreView: React.FC<RegisterStoreViewProps> = ({
         {/* Step 3: Choose Plan */}
         <div className="space-y-4">
           <div className="flex items-center gap-2 border-b border-slate-100 pb-3">
-            <div className="w-7 h-7 rounded-lg bg-indigo-600 text-white font-bold flex items-center justify-center text-xs shadow-xs">
+            <div className="w-7 h-7 rounded-lg bg-emerald-600 text-white font-bold flex items-center justify-center text-xs shadow-xs">
               3
             </div>
             <div className="flex items-center justify-between flex-1">
@@ -425,14 +429,14 @@ export const RegisterStoreView: React.FC<RegisterStoreViewProps> = ({
                   onClick={() => setSelectedPlan(plan.id)}
                   className={`p-5 rounded-2xl border cursor-pointer transition-all ${
                     isSelected
-                      ? 'bg-indigo-50/50 border-indigo-600 ring-2 ring-indigo-600/15 shadow-sm'
+                      ? 'bg-emerald-50/60 border-emerald-600 ring-2 ring-emerald-600/15 shadow-sm'
                       : 'bg-white border-slate-200 hover:border-slate-300'
                   }`}
                 >
                   <div className="flex items-center justify-between mb-3">
                     <div className="flex items-center gap-2">
                       <div className={`w-4 h-4 rounded-full border flex items-center justify-center ${
-                        isSelected ? 'border-indigo-600 bg-indigo-600 text-white' : 'border-slate-300'
+                        isSelected ? 'border-emerald-600 bg-emerald-600 text-white' : 'border-slate-300'
                       }`}>
                         {isSelected && <Check className="w-2.5 h-2.5 stroke-[3]" />}
                       </div>
@@ -441,8 +445,8 @@ export const RegisterStoreView: React.FC<RegisterStoreViewProps> = ({
                       </span>
                     </div>
 
-                    <span className="font-extrabold text-slate-900 text-sm">
-                      {plan.priceSar === 0 ? (isAr ? '0 ر.س (مجاناً)' : 'Free') : `${plan.priceSar} ${isAr ? 'ر.س/شهر' : 'SAR/mo'}`}
+                    <span className="font-extrabold text-slate-900 text-sm font-mono">
+                      {plan.price === 0 ? (isAr ? '0 د.ج (30 طلب مجاناً)' : 'Free') : `${plan.price} ${isAr ? 'د.ج/شهر' : 'DZD/mo'}`}
                     </span>
                   </div>
 
@@ -468,13 +472,13 @@ export const RegisterStoreView: React.FC<RegisterStoreViewProps> = ({
         <div className="pt-4 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-2 text-xs text-slate-500">
             <ShieldCheck className="w-4 h-4 text-emerald-600" />
-            <span>{isAr ? 'متجر مستقل وفوري بدون تعقيد برمجيات' : 'Instant independent store launch'}</span>
+            <span>{isAr ? 'متجر مستقل وفوري بدون تعقيد برمجيات وبـ 0% عمولة' : 'Instant independent store launch with 0% commission'}</span>
           </div>
 
           <button
             type="submit"
             disabled={isSubmitting}
-            className="w-full sm:w-auto px-8 py-3.5 rounded-xl font-bold text-white bg-indigo-600 hover:bg-indigo-700 shadow-md shadow-indigo-600/20 text-xs flex items-center justify-center gap-2 transition-all active:scale-98 disabled:opacity-50 cursor-pointer"
+            className="w-full sm:w-auto px-8 py-3.5 rounded-xl font-bold text-white bg-emerald-600 hover:bg-emerald-700 shadow-md shadow-emerald-600/25 text-xs flex items-center justify-center gap-2 transition-all active:scale-98 disabled:opacity-50 cursor-pointer"
           >
             {isSubmitting ? (
               <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
