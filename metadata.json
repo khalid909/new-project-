@@ -1,0 +1,7 @@
+{
+  "name": "SOUQIFY — Luxury Multi-Store & Marketplace Platform",
+  "description": "منصة تجارة إلكترونية فاخرة متكاملة تجمع بين قوة متاجر Shopify وتنوع أسواق Amazon مع مزامنة متقدمة لـ Supabase و GitHub.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
+
