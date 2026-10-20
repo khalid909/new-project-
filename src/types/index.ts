@@ -124,6 +124,18 @@ export interface Product {
   isFeatured?: boolean;
 }
 
+export interface WilayaShippingRate {
+  code: string; // "01" to "69"
+  name: string; // Adrar, Alger, etc.
+  nameAr: string; // أدرار، الجزائر العاصمة...
+  deskPrice: number; // Price for desk pickup in DZD
+  homePrice: number; // Price for home delivery in DZD
+  estimatedDays: string; // "24-48h", "48-72h"
+  isEnabled: boolean; // active for shipping
+  isDeleted?: boolean; // removed by merchant
+  zone?: 'center' | 'north' | 'east' | 'west' | 'south' | 'sahara';
+}
+
 export interface OrderItem {
   id: string;
   product: Product;
