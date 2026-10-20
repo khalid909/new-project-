@@ -98,6 +98,12 @@ export interface Store {
   githubConnected: boolean;
 }
 
+export interface ProductColor {
+  name: string;
+  nameAr?: string;
+  hex: string;
+}
+
 export interface Product {
   id: string;
   storeId: string;
@@ -113,6 +119,8 @@ export interface Product {
   sku: string;
   isPublished: boolean;
   imageUrl?: string;
+  images?: string[]; // Up to 10 product images
+  colors?: (string | ProductColor)[]; // Available color options
   isFeatured?: boolean;
 }
 
@@ -120,6 +128,7 @@ export interface OrderItem {
   id: string;
   product: Product;
   quantity: number;
+  selectedColor?: string;
 }
 
 export interface Order {

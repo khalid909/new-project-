@@ -7,7 +7,8 @@ import {
   CreditCard, Search, Tag, Copy, ExternalLink, Eye, RotateCcw, 
   ChevronRight, Phone, Mail, HelpCircle, Package, ArrowUpRight, Globe,
   MessageCircle, AlertTriangle, Link2, Share2,
-  Edit3, Trash2, Power, Sliders, Sparkles, Layers, CheckSquare, Settings
+  Edit3, Trash2, Power, Sliders, Sparkles, Layers, CheckSquare, Settings,
+  Camera, Palette, Image as ImageIcon
 } from 'lucide-react';
 
 interface PublicStoreViewProps {
@@ -266,10 +267,12 @@ export const PublicStoreView: React.FC<PublicStoreViewProps> = ({
   };
 
   const [currency, setCurrency] = useState<Currency>(initialCurrency);
-  const [cart, setCart] = useState<{ product: Product; quantity: number }[]>([]);
+  const [cart, setCart] = useState<{ product: Product; quantity: number; selectedColor?: string }[]>([]);
   const [isCheckoutOpen, setIsCheckoutOpen] = useState<boolean>(false);
   const [orderConfirmed, setOrderConfirmed] = useState<Order | null>(null);
   const [quickViewProduct, setQuickViewProduct] = useState<Product | null>(null);
+  const [selectedGalleryImage, setSelectedGalleryImage] = useState<string | null>(null);
+  const [selectedColorVariant, setSelectedColorVariant] = useState<string | null>(null);
   const [isTrackingModalOpen, setIsTrackingModalOpen] = useState<boolean>(false);
   const [trackingNumberInput, setTrackingNumberInput] = useState<string>('');
   const [trackedOrderResult, setTrackedOrderResult] = useState<string | null>(null);
@@ -336,29 +339,47 @@ export const PublicStoreView: React.FC<PublicStoreViewProps> = ({
     return `${converted.toLocaleString()} ${isAr ? rateInfo.symbolAr : rateInfo.symbol}`;
   };
 
-  const handleAddToCart = (product: Product) => {
+  const handleOpenQuickView = (product: Product) => {
+    setQuickViewProduct(product);
+    const initialImg = (product.images && product.images.length > 0) ? product.images[0] : (product.imageUrl || null);
+    setSelectedGalleryImage(initialImg);
+    if (product.colors && product.colors.length > 0) {
+      const first = product.colors[0];
+      setSelectedColorVariant(typeof first === 'string' ? first : (isAr ? first.nameAr || first.name : first.name));
+    } else {
+      setSelectedColorVariant(null);
+    }
+  };
+
+  const handleAddToCart = (product: Product, chosenColor?: string) => {
+    let colorToUse = chosenColor;
+    if (!colorToUse && product.colors && product.colors.length > 0) {
+      const first = product.colors[0];
+      colorToUse = typeof first === 'string' ? first : (isAr ? first.nameAr || first.name : first.name);
+    }
+
     setCart((prev) => {
-      const idx = prev.findIndex((i) => i.product.id === product.id);
+      const idx = prev.findIndex((i) => i.product.id === product.id && i.selectedColor === colorToUse);
       if (idx > -1) {
         const copy = [...prev];
         copy[idx].quantity += 1;
         return copy;
       }
-      return [...prev, { product, quantity: 1 }];
+      return [...prev, { product, quantity: 1, selectedColor: colorToUse }];
     });
   };
 
-  const handleUpdateQuantity = (productId: string, delta: number) => {
+  const handleUpdateQuantity = (productId: string, delta: number, color?: string) => {
     setCart((prev) => {
       return prev
         .map((item) => {
-          if (item.product.id === productId) {
+          if (item.product.id === productId && item.selectedColor === color) {
             const newQty = item.quantity + delta;
             return newQty > 0 ? { ...item, quantity: newQty } : null;
           }
           return item;
         })
-        .filter(Boolean) as { product: Product; quantity: number }[];
+        .filter(Boolean) as { product: Product; quantity: number; selectedColor?: string }[];
     });
   };
 
@@ -429,9 +450,10 @@ export const PublicStoreView: React.FC<PublicStoreViewProps> = ({
       customerCity: custCity,
       customerAddress: custAddress,
       items: cart.map((c) => ({
-        id: `item_${c.product.id}`,
+        id: `item_${c.product.id}_${c.selectedColor || 'default'}`,
         product: c.product,
-        quantity: c.quantity
+        quantity: c.quantity,
+        selectedColor: c.selectedColor
       })),
       total: finalTotal,
       currency,
@@ -1010,36 +1032,67 @@ export const PublicStoreView: React.FC<PublicStoreViewProps> = ({
                 >
                   <div className="space-y-3">
                     {/* Visual Box */}
-                    <div className="w-full h-48 rounded-xl bg-gradient-to-br from-slate-50 to-slate-100 flex flex-col items-center justify-center p-4 border border-slate-200/70 relative overflow-hidden">
-                      <ShoppingBag 
-                        className="w-12 h-12 transition-transform duration-300 group-hover:scale-110" 
-                        style={{ color: store.accentColor || '#059669' }}
-                      />
-                      <span className="text-[11px] font-mono text-slate-500 mt-2 font-bold">
-                        {product.category}
-                      </span>
-                      
-                      {/* Stock Badge (Controlled by stockIndicator feature) */}
-                      {isStoreFeatureActive('stockIndicator') && (
-                        <span className="absolute top-3 end-3 text-[10px] bg-white/90 backdrop-blur-xs font-mono font-bold text-slate-700 px-2 py-0.5 rounded-full border border-slate-200 shadow-2xs">
-                          {product.stock > 0 ? (
-                            <span className="text-emerald-700">{product.stock} {isAr ? 'متوفر' : 'in stock'}</span>
-                          ) : (
-                            <span className="text-rose-600">{isAr ? 'نفذت الكمية' : 'Out of stock'}</span>
-                          )}
-                        </span>
-                      )}
-
-                      {/* Quick View Button (Controlled by quickView feature) */}
-                      {isStoreFeatureActive('quickView') && (
-                        <button
-                          onClick={() => setQuickViewProduct(product)}
-                          className="absolute bottom-3 inset-x-4 py-1.5 rounded-lg bg-white/95 text-slate-900 font-bold text-xs opacity-0 group-hover:opacity-100 transition-opacity shadow-sm text-center cursor-pointer"
+                    {(() => {
+                      const coverImg = (product.images && product.images.length > 0) ? product.images[0] : product.imageUrl;
+                      return (
+                        <div 
+                          onClick={() => handleOpenQuickView(product)}
+                          className="w-full h-52 rounded-xl bg-slate-100 flex flex-col items-center justify-center border border-slate-200/70 relative overflow-hidden group/img cursor-pointer"
                         >
-                          {isAr ? 'نظرة سريعة 👁️' : 'Quick View 👁️'}
-                        </button>
-                      )}
-                    </div>
+                          {coverImg ? (
+                            <img
+                              src={coverImg}
+                              alt={isAr ? product.nameAr : product.name}
+                              className="w-full h-full object-cover group-hover/img:scale-105 transition-transform duration-300"
+                              loading="lazy"
+                            />
+                          ) : (
+                            <div className="w-full h-full flex flex-col items-center justify-center p-4 bg-gradient-to-br from-slate-50 to-slate-100">
+                              <ShoppingBag 
+                                className="w-12 h-12 transition-transform duration-300 group-hover/img:scale-110" 
+                                style={{ color: store.accentColor || '#059669' }}
+                              />
+                              <span className="text-[11px] font-mono text-slate-500 mt-2 font-bold">
+                                {product.category}
+                              </span>
+                            </div>
+                          )}
+
+                          {/* 10-Image count badge */}
+                          {product.images && product.images.length > 1 && (
+                            <span className="absolute bottom-2.5 start-2.5 text-[10px] bg-slate-900/85 backdrop-blur-xs text-white px-2 py-0.5 rounded-full font-bold flex items-center gap-1 shadow-sm font-mono">
+                              <Camera className="w-3 h-3 text-amber-300" />
+                              <span>{product.images.length} {isAr ? 'صور' : 'photos'}</span>
+                            </span>
+                          )}
+                          
+                          {/* Stock Badge (Controlled by stockIndicator feature) */}
+                          {isStoreFeatureActive('stockIndicator') && (
+                            <span className="absolute top-2.5 end-2.5 text-[10px] bg-white/95 backdrop-blur-xs font-mono font-bold text-slate-700 px-2 py-0.5 rounded-full border border-slate-200 shadow-2xs">
+                              {product.stock > 0 ? (
+                                <span className="text-emerald-700">{product.stock} {isAr ? 'متوفر' : 'in stock'}</span>
+                              ) : (
+                                <span className="text-rose-600">{isAr ? 'نفذت الكمية' : 'Out of stock'}</span>
+                              )}
+                            </span>
+                          )}
+
+                          {/* Quick View Button (Controlled by quickView feature) */}
+                          {isStoreFeatureActive('quickView') && (
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleOpenQuickView(product);
+                              }}
+                              className="absolute bottom-2.5 inset-x-3 py-1.5 rounded-lg bg-white/95 text-slate-900 font-bold text-xs opacity-0 group-hover:opacity-100 transition-opacity shadow-md text-center cursor-pointer"
+                            >
+                              {isAr ? 'عرض التفاصيل والصور 👁️' : 'View Photos & Details 👁️'}
+                            </button>
+                          )}
+                        </div>
+                      );
+                    })()}
 
                     {/* Product Details */}
                     <div>
@@ -1052,13 +1105,37 @@ export const PublicStoreView: React.FC<PublicStoreViewProps> = ({
                         </div>
                       )}
 
-                      <h3 className="font-extrabold text-slate-900 text-sm line-clamp-1 group-hover:text-emerald-600 transition-colors">
+                      <h3 
+                        onClick={() => handleOpenQuickView(product)}
+                        className="font-extrabold text-slate-900 text-sm line-clamp-1 group-hover:text-emerald-600 transition-colors cursor-pointer"
+                      >
                         {isAr ? product.nameAr : product.name}
                       </h3>
 
                       <p className="text-xs text-slate-500 line-clamp-2 mt-1 leading-relaxed">
                         {isAr ? product.descriptionAr : product.description}
                       </p>
+
+                      {/* Color swatches preview */}
+                      {product.colors && product.colors.length > 0 && (
+                        <div className="flex items-center gap-1.5 pt-2">
+                          <span className="text-[10px] text-slate-400 font-bold">{isAr ? 'الألوان:' : 'Colors:'}</span>
+                          <div className="flex items-center gap-1">
+                            {product.colors.map((c, idx) => {
+                              const hex = typeof c === 'string' ? '#6B7280' : c.hex;
+                              const title = typeof c === 'string' ? c : (isAr ? c.nameAr || c.name : c.name);
+                              return (
+                                <span
+                                  key={idx}
+                                  className="w-3.5 h-3.5 rounded-full border border-slate-300 shadow-2xs inline-block"
+                                  style={{ backgroundColor: hex }}
+                                  title={title}
+                                />
+                              );
+                            })}
+                          </div>
+                        </div>
+                      )}
                     </div>
                   </div>
 
@@ -1334,21 +1411,37 @@ export const PublicStoreView: React.FC<PublicStoreViewProps> = ({
               ) : (
                 <div className="space-y-5">
                   {/* Cart Items List */}
-                  <div className="divide-y divide-slate-100 max-h-48 overflow-y-auto">
-                    {cart.map((item) => (
-                      <div key={item.product.id} className="py-3 flex items-center justify-between gap-3 text-xs">
-                        <div className="flex-1">
-                          <div className="font-bold text-slate-900">
-                            {isAr ? item.product.nameAr : item.product.name}
+                  <div className="divide-y divide-slate-100 max-h-56 overflow-y-auto">
+                    {cart.map((item, idx) => (
+                      <div key={`${item.product.id}_${item.selectedColor || idx}`} className="py-3 flex items-center justify-between gap-3 text-xs">
+                        <div className="flex items-center gap-2.5 flex-1 min-w-0">
+                          <div className="w-10 h-10 rounded-xl bg-slate-100 overflow-hidden shrink-0 border border-slate-200">
+                            <img
+                              src={item.product.images?.[0] || item.product.imageUrl || 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&w=120&q=80'}
+                              alt={isAr ? item.product.nameAr : item.product.name}
+                              className="w-full h-full object-cover"
+                            />
                           </div>
-                          <div className="text-slate-500 font-mono mt-0.5">
-                            {formatPrice(item.product.price)} × {item.quantity}
+                          <div className="min-w-0 flex-1">
+                            <div className="font-bold text-slate-900 truncate">
+                              {isAr ? item.product.nameAr : item.product.name}
+                            </div>
+                            <div className="flex items-center gap-2 mt-0.5">
+                              <span className="text-slate-500 font-mono text-[11px]">
+                                {formatPrice(item.product.price)} × {item.quantity}
+                              </span>
+                              {item.selectedColor && (
+                                <span className="text-[10px] bg-emerald-50 text-emerald-800 font-bold px-1.5 py-0.5 rounded border border-emerald-200">
+                                  {isAr ? `لون: ${item.selectedColor}` : `Color: ${item.selectedColor}`}
+                                </span>
+                              )}
+                            </div>
                           </div>
                         </div>
 
-                        <div className="flex items-center gap-1.5">
+                        <div className="flex items-center gap-1.5 shrink-0">
                           <button
-                            onClick={() => handleUpdateQuantity(item.product.id, -1)}
+                            onClick={() => handleUpdateQuantity(item.product.id, -1, item.selectedColor)}
                             className="w-6 h-6 rounded bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold flex items-center justify-center cursor-pointer"
                           >
                             <Minus className="w-3 h-3" />
@@ -1357,7 +1450,7 @@ export const PublicStoreView: React.FC<PublicStoreViewProps> = ({
                             {item.quantity}
                           </span>
                           <button
-                            onClick={() => handleUpdateQuantity(item.product.id, 1)}
+                            onClick={() => handleUpdateQuantity(item.product.id, 1, item.selectedColor)}
                             className="w-6 h-6 rounded bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold flex items-center justify-center cursor-pointer"
                           >
                             <Plus className="w-3 h-3" />
@@ -1604,55 +1697,174 @@ export const PublicStoreView: React.FC<PublicStoreViewProps> = ({
       )}
 
       {/* ─── 7. QUICK VIEW PRODUCT MODAL ─── */}
-      {quickViewProduct && (
-        <div className="fixed inset-0 z-60 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="relative w-full max-w-lg bg-white border border-slate-200 rounded-3xl shadow-2xl p-6 space-y-5 animate-in zoom-in-95 duration-200">
-            <button
-              onClick={() => setQuickViewProduct(null)}
-              className="absolute top-4 end-4 p-1.5 rounded-xl text-slate-400 hover:text-slate-700 bg-slate-100 cursor-pointer"
-            >
-              <X className="w-5 h-5" />
-            </button>
+      {/* ─── 7. QUICK VIEW PRODUCT MODAL (WITH 10-IMAGE GALLERY & COLOR SELECTOR) ─── */}
+      {quickViewProduct && (() => {
+        const allImages = quickViewProduct.images && quickViewProduct.images.length > 0 
+          ? quickViewProduct.images 
+          : (quickViewProduct.imageUrl ? [quickViewProduct.imageUrl] : []);
+        const currentImg = selectedGalleryImage || allImages[0];
 
-            <div className="w-full h-48 rounded-2xl bg-gradient-to-br from-slate-50 to-slate-100 flex flex-col items-center justify-center border border-slate-200">
-              <ShoppingBag className="w-14 h-14" style={{ color: store.accentColor || '#4F46E5' }} />
-              <span className="text-xs font-mono text-slate-500 mt-2 font-bold">{quickViewProduct.category}</span>
-            </div>
+        return (
+          <div className="fixed inset-0 z-60 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4">
+            <div className="relative w-full max-w-xl bg-white border border-slate-200 rounded-3xl shadow-2xl p-5 sm:p-7 space-y-5 animate-in zoom-in-95 duration-200 max-h-[92vh] overflow-y-auto text-start">
+              
+              <button
+                onClick={() => setQuickViewProduct(null)}
+                className="absolute top-4 end-4 w-8 h-8 rounded-xl text-slate-400 hover:text-slate-700 bg-slate-100 flex items-center justify-center cursor-pointer transition-colors z-10"
+              >
+                <X className="w-5 h-5" />
+              </button>
 
-            <div>
-              <div className="flex items-center justify-between">
-                <h3 className="text-xl font-extrabold text-slate-900">
-                  {isAr ? quickViewProduct.nameAr : quickViewProduct.name}
-                </h3>
-                <span className="font-black text-xl text-slate-900 font-mono">
-                  {formatPrice(quickViewProduct.price)}
+              {/* 1. Interactive Image Gallery */}
+              <div className="space-y-2">
+                <div className="w-full h-64 sm:h-72 rounded-2xl bg-slate-100 border border-slate-200 overflow-hidden relative flex items-center justify-center">
+                  {currentImg ? (
+                    <img
+                      src={currentImg}
+                      alt={isAr ? quickViewProduct.nameAr : quickViewProduct.name}
+                      className="w-full h-full object-cover transition-all duration-300"
+                    />
+                  ) : (
+                    <ShoppingBag className="w-16 h-16" style={{ color: store.accentColor || '#059669' }} />
+                  )}
+
+                  {allImages.length > 1 && (
+                    <span className="absolute bottom-3 start-3 bg-slate-900/85 backdrop-blur-xs text-white text-[11px] font-mono px-2.5 py-1 rounded-full font-bold flex items-center gap-1 shadow-md">
+                      <Camera className="w-3.5 h-3.5 text-amber-300" />
+                      <span>{allImages.length} {isAr ? 'صور متوفرة' : 'photos'}</span>
+                    </span>
+                  )}
+                </div>
+
+                {/* Thumbnails Strip (Up to 10 images) */}
+                {allImages.length > 1 && (
+                  <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none pt-1">
+                    {allImages.map((img, idx) => (
+                      <button
+                        key={idx}
+                        type="button"
+                        onClick={() => setSelectedGalleryImage(img)}
+                        className={`w-14 h-14 rounded-xl overflow-hidden shrink-0 border-2 transition-all cursor-pointer ${
+                          currentImg === img
+                            ? 'border-emerald-600 ring-2 ring-emerald-400/50 scale-102 shadow-xs'
+                            : 'border-slate-200 hover:border-slate-400 opacity-70 hover:opacity-100'
+                        }`}
+                      >
+                        <img src={img} alt={`View ${idx + 1}`} className="w-full h-full object-cover" />
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* 2. Product Name, Category & Price */}
+              <div className="space-y-1">
+                <div className="flex items-center justify-between gap-3">
+                  <span className="text-[11px] font-bold text-slate-400 font-mono">
+                    {quickViewProduct.category}
+                  </span>
+                  <div className="flex items-center gap-1 text-amber-500 text-xs font-bold">
+                    <Star className="w-3.5 h-3.5 fill-amber-400 stroke-amber-400" />
+                    <span>4.9</span>
+                    <span className="text-slate-400 font-normal">({isAr ? 'تقييم ممتاز' : 'Top rated'})</span>
+                  </div>
+                </div>
+
+                <div className="flex items-baseline justify-between gap-4">
+                  <h3 className="text-lg sm:text-xl font-extrabold text-slate-900 leading-snug">
+                    {isAr ? quickViewProduct.nameAr : quickViewProduct.name}
+                  </h3>
+                  <span className="font-black text-xl text-slate-900 font-mono shrink-0">
+                    {formatPrice(quickViewProduct.price)}
+                  </span>
+                </div>
+
+                <p className="text-xs text-slate-600 pt-1 leading-relaxed">
+                  {isAr ? quickViewProduct.descriptionAr : quickViewProduct.description}
+                </p>
+              </div>
+
+              {/* 3. Color Swatches Selection */}
+              {quickViewProduct.colors && quickViewProduct.colors.length > 0 && (
+                <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200 space-y-2.5">
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="font-extrabold text-slate-900 flex items-center gap-1.5">
+                      <Palette className="w-4 h-4 text-emerald-600" />
+                      <span>{isAr ? 'الألوان المتوفرة (اضغط للاختيار):' : 'Available Colors:'}</span>
+                    </span>
+                    {selectedColorVariant && (
+                      <span className="font-bold text-emerald-800 bg-emerald-100/80 px-2.5 py-0.5 rounded-full border border-emerald-300 text-[11px]">
+                        {isAr ? `اللون: ${selectedColorVariant}` : `Color: ${selectedColorVariant}`}
+                      </span>
+                    )}
+                  </div>
+
+                  <div className="flex flex-wrap items-center gap-2">
+                    {quickViewProduct.colors.map((c, idx) => {
+                      const hex = typeof c === 'string' ? '#6B7280' : c.hex;
+                      const name = typeof c === 'string' ? c : (isAr ? c.nameAr || c.name : c.name);
+                      const isSelected = selectedColorVariant === name;
+
+                      return (
+                        <button
+                          key={idx}
+                          type="button"
+                          onClick={() => setSelectedColorVariant(name)}
+                          className={`flex items-center gap-2 px-3 py-1.5 rounded-xl border text-xs font-bold transition-all cursor-pointer ${
+                            isSelected
+                              ? 'bg-slate-900 text-white border-slate-900 shadow-sm ring-2 ring-emerald-500/40'
+                              : 'bg-white hover:bg-slate-100 text-slate-800 border-slate-200'
+                          }`}
+                        >
+                          <span
+                            className="w-3.5 h-3.5 rounded-full border border-white/60 shadow-inner"
+                            style={{ backgroundColor: hex }}
+                          />
+                          <span>{name}</span>
+                          {isSelected && <Check className="w-3.5 h-3.5 text-emerald-400 ms-0.5" />}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+
+              {/* Stock and Shipping Guarantee */}
+              <div className="flex items-center justify-between p-3 bg-emerald-50/60 rounded-xl border border-emerald-200 text-xs">
+                <span className="text-emerald-950 flex items-center gap-1 font-bold">
+                  <Truck className="w-4 h-4 text-emerald-600" />
+                  <span>{isAr ? 'شحن سريع لـ 58 ولاية والدفع بعد المعاينة' : 'Fast shipping to 58 wilayas'}</span>
+                </span>
+                <span className="font-bold text-emerald-700">
+                  {quickViewProduct.stock > 0 
+                    ? (isAr ? `${quickViewProduct.stock} قطعة بالمخزون` : `${quickViewProduct.stock} in stock`)
+                    : (isAr ? 'نفذت الكمية' : 'Out of stock')}
                 </span>
               </div>
-              <p className="text-xs text-slate-600 mt-2 leading-relaxed">
-                {isAr ? quickViewProduct.descriptionAr : quickViewProduct.description}
-              </p>
-            </div>
 
-            <div className="p-3 bg-slate-50 rounded-xl border border-slate-200 text-xs flex justify-between">
-              <span className="text-slate-500">{isAr ? 'الكمية المتوفرة بالمخزون:' : 'In stock:'}</span>
-              <span className="font-bold text-emerald-700">{quickViewProduct.stock} {isAr ? 'قطعة' : 'units'}</span>
+              {/* Add to Cart & Checkout Button */}
+              <button
+                type="button"
+                onClick={() => {
+                  handleAddToCart(quickViewProduct, selectedColorVariant || undefined);
+                  setQuickViewProduct(null);
+                  setIsCheckoutOpen(true);
+                }}
+                disabled={quickViewProduct.stock <= 0}
+                className="w-full py-3.5 rounded-xl text-white font-extrabold text-xs flex items-center justify-center gap-2 cursor-pointer shadow-md hover:scale-101 active:scale-99 transition-all disabled:opacity-40 disabled:cursor-not-allowed"
+                style={{ backgroundColor: store.accentColor || '#059669' }}
+              >
+                <Plus className="w-4 h-4" />
+                <span>
+                  {selectedColorVariant 
+                    ? (isAr ? `إضافة (${selectedColorVariant}) للسلة والدفع 🛍️` : `Add (${selectedColorVariant}) to Cart 🛍️`)
+                    : (isAr ? 'إضافة للسلة والذهاب للدفع 🛍️' : 'Add to Cart & Checkout 🛍️')}
+                </span>
+              </button>
             </div>
-
-            <button
-              onClick={() => {
-                handleAddToCart(quickViewProduct);
-                setQuickViewProduct(null);
-                setIsCheckoutOpen(true);
-              }}
-              className="w-full py-3.5 rounded-xl text-white font-bold text-xs flex items-center justify-center gap-2 cursor-pointer shadow-md"
-              style={{ backgroundColor: store.accentColor || '#4F46E5' }}
-            >
-              <Plus className="w-4 h-4" />
-              <span>{isAr ? 'إضافة للسلة والذهاب للدفع 🛍️' : 'Add to Cart & Checkout 🛍️'}</span>
-            </button>
           </div>
-        </div>
-      )}
+        );
+      })()}
 
       {/* ─── 8. ORDER TRACKING MODAL ─── */}
       {isTrackingModalOpen && (

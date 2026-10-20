@@ -225,7 +225,18 @@ export const INITIAL_PRODUCTS: Product[] = [
     sku: 'WATCH-ULTRA-DZ',
     isPublished: true,
     isFeatured: true,
-    imageUrl: 'https://images.unsplash.com/photo-1579586337278-3befd40fd17a?auto=format&fit=crop&w=600&q=80'
+    imageUrl: 'https://images.unsplash.com/photo-1579586337278-3befd40fd17a?auto=format&fit=crop&w=600&q=80',
+    images: [
+      'https://images.unsplash.com/photo-1579586337278-3befd40fd17a?auto=format&fit=crop&w=800&q=80',
+      'https://images.unsplash.com/photo-1508685096489-7aacd43bd3b1?auto=format&fit=crop&w=800&q=80',
+      'https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&w=800&q=80',
+      'https://images.unsplash.com/photo-1434493789847-2f02dc6ca35d?auto=format&fit=crop&w=800&q=80'
+    ],
+    colors: [
+      { name: 'Titanium Black', nameAr: 'تيتانيوم أسود', hex: '#111827' },
+      { name: 'Silver Gray', nameAr: 'فضي معدني', hex: '#9CA3AF' },
+      { name: 'Sport Orange', nameAr: 'برتقالي رياضي', hex: '#EA580C' }
+    ]
   },
   {
     id: 'prod_2',
@@ -242,7 +253,17 @@ export const INITIAL_PRODUCTS: Product[] = [
     sku: 'BAG-LEATH-02',
     isPublished: true,
     isFeatured: true,
-    imageUrl: 'https://images.unsplash.com/photo-1553062407-98eeb64c6a62?auto=format&fit=crop&w=600&q=80'
+    imageUrl: 'https://images.unsplash.com/photo-1553062407-98eeb64c6a62?auto=format&fit=crop&w=600&q=80',
+    images: [
+      'https://images.unsplash.com/photo-1553062407-98eeb64c6a62?auto=format&fit=crop&w=800&q=80',
+      'https://images.unsplash.com/photo-1622560480605-d83c853bc5c3?auto=format&fit=crop&w=800&q=80',
+      'https://images.unsplash.com/photo-1548036328-c9fa89d128fa?auto=format&fit=crop&w=800&q=80'
+    ],
+    colors: [
+      { name: 'Dark Brown', nameAr: 'بني شوكولاته', hex: '#451A03' },
+      { name: 'Matte Black', nameAr: 'أسود مطفي', hex: '#1F2937' },
+      { name: 'Camel Tan', nameAr: 'جملي كلاسيك', hex: '#B45309' }
+    ]
   },
   {
     id: 'prod_3',
@@ -259,7 +280,15 @@ export const INITIAL_PRODUCTS: Product[] = [
     sku: 'TRIM-PRO-DZ',
     isPublished: true,
     isFeatured: false,
-    imageUrl: 'https://images.unsplash.com/photo-1621607512214-68297480165e?auto=format&fit=crop&w=600&q=80'
+    imageUrl: 'https://images.unsplash.com/photo-1621607512214-68297480165e?auto=format&fit=crop&w=600&q=80',
+    images: [
+      'https://images.unsplash.com/photo-1621607512214-68297480165e?auto=format&fit=crop&w=800&q=80',
+      'https://images.unsplash.com/photo-1503951914875-452162b0f3f1?auto=format&fit=crop&w=800&q=80'
+    ],
+    colors: [
+      { name: 'Vintage Gold', nameAr: 'ذهبي نحاسي عتيق', hex: '#D97706' },
+      { name: 'Silver Chrome', nameAr: 'فضي كروم', hex: '#64748B' }
+    ]
   },
   {
     id: 'prod_4',
@@ -276,7 +305,16 @@ export const INITIAL_PRODUCTS: Product[] = [
     sku: 'EAR-ANC-04',
     isPublished: true,
     isFeatured: false,
-    imageUrl: 'https://images.unsplash.com/photo-1590658268037-6bf12165a8df?auto=format&fit=crop&w=600&q=80'
+    imageUrl: 'https://images.unsplash.com/photo-1590658268037-6bf12165a8df?auto=format&fit=crop&w=600&q=80',
+    images: [
+      'https://images.unsplash.com/photo-1590658268037-6bf12165a8df?auto=format&fit=crop&w=800&q=80',
+      'https://images.unsplash.com/photo-1572536147248-ac59a8abfa4b?auto=format&fit=crop&w=800&q=80'
+    ],
+    colors: [
+      { name: 'Pure White', nameAr: 'أبيض لؤلؤي', hex: '#F9FAFB' },
+      { name: 'Midnight Black', nameAr: 'أسود ليلي', hex: '#111827' },
+      { name: 'Navy Blue', nameAr: 'أزرق كحلي', hex: '#1E3A8A' }
+    ]
   }
 ];
 

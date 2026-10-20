@@ -3,7 +3,7 @@ import {
   Store, Product, Order, Customer, Coupon, PlanType, 
   Currency, Language, SupabaseConfig, GitHubConfig, SellerUser, 
   PlatformFeatureItem, StoreFeatureItem, AbandonedCart, LandingPageFunnel,
-  WilayaDeliveryRate, CarrierConfig
+  WilayaDeliveryRate, CarrierConfig, ProductColor
 } from '../types';
 import { 
   CURRENCY_RATES, PLANS, ALGERIA_58_WILAYAS, 
@@ -19,7 +19,8 @@ import {
   Edit3, Users, Tag, DollarSign, Printer, Lock, LogOut, Sparkles,
   BarChart3, RefreshCw, Eye, Sliders, RotateCcw, ShoppingBag,
   Link2, Share2, QrCode, Smartphone, CheckCheck, Truck, UploadCloud,
-  MessageCircle, Zap, PhoneCall, Filter, HelpCircle
+  MessageCircle, Zap, PhoneCall, Filter, HelpCircle,
+  Image as ImageIcon, Palette, Camera, X
 } from 'lucide-react';
 
 interface StoreDashboardViewProps {
@@ -168,12 +169,24 @@ export const StoreDashboardView: React.FC<StoreDashboardViewProps> = ({
   // New Product Form State
   const [newProdName, setNewProdName] = useState('');
   const [newProdNameAr, setNewProdNameAr] = useState('');
-  const [newProdPrice, setNewProdPrice] = useState(250);
-  const [newProdCost, setNewProdCost] = useState(120);
-  const [newProdStock, setNewProdStock] = useState(20);
+  const [newProdPrice, setNewProdPrice] = useState(3500);
+  const [newProdCost, setNewProdCost] = useState(1500);
+  const [newProdStock, setNewProdStock] = useState(25);
   const [newProdCategory, setNewProdCategory] = useState('Fashion & Apparel');
   const [newProdSku, setNewProdSku] = useState('');
   const [newProdDesc, setNewProdDesc] = useState('');
+
+  // Up to 10 Product Images State
+  const [newProdImages, setNewProdImages] = useState<string[]>([]);
+  const [imageInputUrl, setImageInputUrl] = useState('');
+
+  // Available Product Colors State
+  const [newProdColors, setNewProdColors] = useState<ProductColor[]>([
+    { name: 'Black', nameAr: 'أسود ملكي', hex: '#111827' }
+  ]);
+  const [customColorName, setCustomColorName] = useState('');
+  const [customColorNameAr, setCustomColorNameAr] = useState('');
+  const [customColorHex, setCustomColorHex] = useState('#059669');
 
   // New Coupon Form State
   const [couponCode, setCouponCode] = useState('');
@@ -229,32 +242,169 @@ export const StoreDashboardView: React.FC<StoreDashboardViewProps> = ({
     }
   };
 
+  const handleAddImageFile = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+
+    const remaining = 10 - newProdImages.length;
+    if (remaining <= 0) {
+      showToast(isAr ? 'وصلت للحد الأقصى (10 صور للمنتج)!' : 'Maximum 10 images reached!');
+      return;
+    }
+
+    const filesToRead = Array.from(files).slice(0, remaining);
+    filesToRead.forEach((file) => {
+      const reader = new FileReader();
+      reader.onload = (loadEvt) => {
+        const res = loadEvt.target?.result as string;
+        if (res) {
+          setNewProdImages((prev) => prev.length < 10 ? [...prev, res] : prev);
+        }
+      };
+      reader.readAsDataURL(file);
+    });
+  };
+
+  const handleAddImageUrl = () => {
+    if (!imageInputUrl.trim()) return;
+    if (newProdImages.length >= 10) {
+      showToast(isAr ? 'وصلت للحد الأقصى (10 صور للمنتج)!' : 'Maximum 10 images reached!');
+      return;
+    }
+    setNewProdImages((prev) => [...prev, imageInputUrl.trim()]);
+    setImageInputUrl('');
+    showToast(isAr ? 'تمت إضافة رابط الصورة بنجاح!' : 'Image URL added!');
+  };
+
+  const handleRemoveImage = (index: number) => {
+    setNewProdImages((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  const handleSetPrimaryImage = (index: number) => {
+    if (index === 0) return;
+    setNewProdImages((prev) => {
+      const selected = prev[index];
+      const rest = prev.filter((_, i) => i !== index);
+      return [selected, ...rest];
+    });
+    showToast(isAr ? 'تم تعيينها كصورة رئيسية للمنتج ⭐' : 'Set as primary image ⭐');
+  };
+
+  const handleAddPresetImages = (category: string) => {
+    const PRESETS: Record<string, string[]> = {
+      watches: [
+        'https://images.unsplash.com/photo-1579586337278-3befd40fd17a?auto=format&fit=crop&w=800&q=80',
+        'https://images.unsplash.com/photo-1508685096489-7aacd43bd3b1?auto=format&fit=crop&w=800&q=80',
+        'https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&w=800&q=80',
+        'https://images.unsplash.com/photo-1434493789847-2f02dc6ca35d?auto=format&fit=crop&w=800&q=80'
+      ],
+      fashion: [
+        'https://images.unsplash.com/photo-1521572267360-ee0c2909d518?auto=format&fit=crop&w=800&q=80',
+        'https://images.unsplash.com/photo-1503342217505-b0a15ec3261c?auto=format&fit=crop&w=800&q=80',
+        'https://images.unsplash.com/photo-1576995853123-5a10305d93c0?auto=format&fit=crop&w=800&q=80'
+      ],
+      bags: [
+        'https://images.unsplash.com/photo-1553062407-98eeb64c6a62?auto=format&fit=crop&w=800&q=80',
+        'https://images.unsplash.com/photo-1622560480605-d83c853bc5c3?auto=format&fit=crop&w=800&q=80',
+        'https://images.unsplash.com/photo-1548036328-c9fa89d128fa?auto=format&fit=crop&w=800&q=80'
+      ],
+      perfume: [
+        'https://images.unsplash.com/photo-1541643600914-78b084683601?auto=format&fit=crop&w=800&q=80',
+        'https://images.unsplash.com/photo-1592945403244-b3fbafd7f539?auto=format&fit=crop&w=800&q=80',
+        'https://images.unsplash.com/photo-1588405748880-12d1d2a59f75?auto=format&fit=crop&w=800&q=80'
+      ]
+    };
+    const chosen = PRESETS[category] || PRESETS.watches;
+    const remaining = 10 - newProdImages.length;
+    const toAdd = chosen.slice(0, remaining);
+    setNewProdImages((prev) => [...prev, ...toAdd]);
+    showToast(isAr ? `تمت إضافة ${toAdd.length} صور جاهزة!` : `Added ${toAdd.length} photos!`);
+  };
+
+  const handleToggleColorPreset = (color: ProductColor) => {
+    setNewProdColors((prev) => {
+      const exists = prev.some((c) => c.hex.toLowerCase() === color.hex.toLowerCase());
+      if (exists) {
+        if (prev.length <= 1) {
+          showToast(isAr ? 'يجب الإبقاء على لون واحد على الأقل' : 'Keep at least one color');
+          return prev;
+        }
+        return prev.filter((c) => c.hex.toLowerCase() !== color.hex.toLowerCase());
+      }
+      return [...prev, color];
+    });
+  };
+
+  const handleAddCustomColor = () => {
+    if (!customColorNameAr.trim() && !customColorName.trim()) {
+      showToast(isAr ? 'يرجى كتابة اسم اللون أولاً' : 'Please provide color name');
+      return;
+    }
+    const newColor: ProductColor = {
+      name: customColorName.trim() || customColorNameAr.trim(),
+      nameAr: customColorNameAr.trim() || customColorName.trim(),
+      hex: customColorHex
+    };
+    if (newProdColors.some((c) => c.hex.toLowerCase() === customColorHex.toLowerCase())) {
+      showToast(isAr ? 'هذا اللون مضاف بالفعل!' : 'Color already exists!');
+      return;
+    }
+    setNewProdColors((prev) => [...prev, newColor]);
+    setCustomColorName('');
+    setCustomColorNameAr('');
+    showToast(isAr ? 'تمت إضافة اللون المخصص بنجاح!' : 'Custom color added!');
+  };
+
+  const handleRemoveColor = (hex: string) => {
+    if (newProdColors.length <= 1) {
+      showToast(isAr ? 'يجب إبقاء لون واحد على الأقل للمنتج' : 'Must keep at least one color');
+      return;
+    }
+    setNewProdColors((prev) => prev.filter((c) => c.hex.toLowerCase() !== hex.toLowerCase()));
+  };
+
   const handleCreateProductSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!newProdName.trim()) return;
+
+    const defaultImages = [
+      'https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&w=800&q=80'
+    ];
+    const finalImages = newProdImages.length > 0 ? newProdImages : defaultImages;
 
     const prod: Product = {
       id: `prod_${Date.now()}`,
       storeId: store.id,
       name: newProdName,
       nameAr: newProdNameAr || newProdName,
-      description: newProdDesc || 'منتج عالي الجودة متوفر للطلب الفوري.',
-      descriptionAr: newProdDesc || 'منتج عالي الجودة متوفر للطلب الفوري.',
+      description: newProdDesc || (isAr ? 'منتج عالي الجودة متوفر للطلب الفوري مع شحن سريع لـ 58 ولاية والدفع عند الاستلام.' : 'Premium product available for immediate order.'),
+      descriptionAr: newProdDesc || 'منتج عالي الجودة متوفر للطلب الفوري مع شحن سريع لـ 58 ولاية والدفع عند الاستلام.',
       price: Number(newProdPrice),
       costPrice: Number(newProdCost),
       category: newProdCategory,
       stock: Number(newProdStock),
       sku: newProdSku || `SKU-${Math.random().toString(36).substring(2, 7).toUpperCase()}`,
-      isPublished: true
+      isPublished: true,
+      imageUrl: finalImages[0],
+      images: finalImages,
+      colors: newProdColors.length > 0 ? newProdColors : [
+        { name: 'Black', nameAr: 'أسود كلاسيك', hex: '#111827' }
+      ]
     };
 
     onAddProduct(prod);
     setShowAddProductModal(false);
     setNewProdName('');
     setNewProdNameAr('');
-    setNewProdPrice(250);
-    setNewProdCost(120);
-    setNewProdStock(20);
+    setNewProdPrice(3500);
+    setNewProdCost(1500);
+    setNewProdStock(25);
+    setNewProdDesc('');
+    setNewProdSku('');
+    setNewProdImages([]);
+    setImageInputUrl('');
+    setNewProdColors([{ name: 'Black', nameAr: 'أسود ملكي', hex: '#111827' }]);
+    showToast(isAr ? 'تمت إضافة المنتج بنجاح مع الصور المتعددة والألوان! 🚀' : 'Product added successfully with images and colors! 🚀');
   };
 
   const handleCreateCouponSubmit = (e: React.FormEvent) => {
@@ -839,8 +989,51 @@ CREATE POLICY "Public read products" ON public.store_products FOR SELECT USING (
                   {storeProducts.map((prod) => (
                     <tr key={prod.id} className="hover:bg-slate-50/70 transition-colors">
                       <td className="py-3">
-                        <div className="font-bold text-slate-900">{isAr ? prod.nameAr : prod.name}</div>
-                        <div className="text-[11px] text-slate-400">{prod.category}</div>
+                        <div className="flex items-center gap-3">
+                          <div className="w-12 h-12 rounded-xl bg-slate-100 border border-slate-200 overflow-hidden shrink-0 relative flex items-center justify-center">
+                            {prod.imageUrl || (prod.images && prod.images[0]) ? (
+                              <img 
+                                src={prod.images?.[0] || prod.imageUrl} 
+                                alt={isAr ? prod.nameAr : prod.name} 
+                                className="w-full h-full object-cover" 
+                              />
+                            ) : (
+                              <Package className="w-6 h-6 text-slate-400" />
+                            )}
+                            {prod.images && prod.images.length > 1 && (
+                              <span className="absolute bottom-0.5 end-0.5 bg-slate-900/80 text-white font-mono text-[9px] px-1 rounded font-bold">
+                                {prod.images.length}
+                              </span>
+                            )}
+                          </div>
+                          <div className="space-y-1">
+                            <div className="font-bold text-slate-900">{isAr ? prod.nameAr : prod.name}</div>
+                            <div className="flex items-center gap-2">
+                              <span className="text-[11px] text-slate-400">{prod.category}</span>
+                              {prod.images && prod.images.length > 0 && (
+                                <span className="text-[10px] text-slate-500 font-mono bg-slate-100 px-1.5 py-0.2 rounded">
+                                  📷 {prod.images.length} {isAr ? 'صور' : 'photos'}
+                                </span>
+                              )}
+                            </div>
+                            {prod.colors && prod.colors.length > 0 && (
+                              <div className="flex items-center gap-1 mt-0.5">
+                                {prod.colors.map((c, i) => {
+                                  const hex = typeof c === 'string' ? '#6B7280' : c.hex;
+                                  const title = typeof c === 'string' ? c : (isAr ? c.nameAr || c.name : c.name);
+                                  return (
+                                    <span 
+                                      key={i} 
+                                      className="w-2.5 h-2.5 rounded-full border border-slate-300 shadow-2xs inline-block"
+                                      style={{ backgroundColor: hex }}
+                                      title={title}
+                                    />
+                                  );
+                                })}
+                              </div>
+                            )}
+                          </div>
+                        </div>
                       </td>
                       <td className="py-3 font-mono text-slate-500">
                         {prod.sku}
@@ -1680,120 +1873,466 @@ CREATE POLICY "Public read products" ON public.store_products FOR SELECT USING (
         </div>
       )}
 
-      {/* ─── MODAL: ADD PRODUCT ─── */}
+      {/* ─── MODAL: ADD PRODUCT WITH 10 IMAGES & COLOR VARIANTS ─── */}
       {showAddProductModal && (
-        <div className="fixed inset-0 z-50 overflow-y-auto bg-slate-900/50 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="relative w-full max-w-lg bg-white border border-slate-200 rounded-2xl shadow-2xl p-6 sm:p-8 space-y-6">
+        <div className="fixed inset-0 z-50 overflow-y-auto bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4">
+          <div className="relative w-full max-w-2xl bg-white border border-slate-200 rounded-3xl shadow-2xl p-5 sm:p-7 space-y-6 max-h-[92vh] overflow-y-auto text-start">
+            
+            {/* Modal Header */}
             <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-              <h3 className="text-lg font-bold text-slate-900">
-                {isAr ? 'إضافة منتج جديد للمتجر' : 'Add New Product'}
-              </h3>
+              <div className="flex items-center gap-2.5">
+                <div className="w-10 h-10 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-700 flex items-center justify-center">
+                  <Package className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="text-base sm:text-lg font-black text-slate-900">
+                    {isAr ? 'إضافة منتج جديد (مع 10 صور وتعدد الألوان)' : 'Add New Product (10 Images & Colors)'}
+                  </h3>
+                  <p className="text-[11px] text-slate-500">
+                    {isAr ? 'ارفع حتى 10 صور عالية الجودة وحدد الألوان المتاحة لزبائن متجرك' : 'Upload up to 10 images and set available colors'}
+                  </p>
+                </div>
+              </div>
               <button
                 onClick={() => setShowAddProductModal(false)}
-                className="text-slate-400 hover:text-slate-600 cursor-pointer"
+                className="w-8 h-8 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-500 flex items-center justify-center cursor-pointer transition-colors"
               >
                 ✕
               </button>
             </div>
 
-            <form onSubmit={handleCreateProductSubmit} className="space-y-4 text-xs">
-              <div>
-                <label className="block text-slate-700 font-bold mb-1">
-                  {isAr ? 'اسم المنتج (بالإنجليزية)' : 'Product Name (English)'} *
-                </label>
-                <input
-                  type="text"
-                  required
-                  value={newProdName}
-                  onChange={(e) => setNewProdName(e.target.value)}
-                  placeholder="e.g. Leather Travel Backpack"
-                  className="w-full bg-slate-50 border border-slate-200 rounded-lg p-2.5 text-slate-900 focus:bg-white focus:border-indigo-600 focus:outline-none"
-                />
-              </div>
-
-              <div>
-                <label className="block text-slate-700 font-bold mb-1">
-                  {isAr ? 'اسم المنتج (بالعربية)' : 'Product Name (Arabic)'}
-                </label>
-                <input
-                  type="text"
-                  value={newProdNameAr}
-                  onChange={(e) => setNewProdNameAr(e.target.value)}
-                  placeholder="مثال: حقيبة سفر جلدية فاخرة"
-                  className="w-full bg-slate-50 border border-slate-200 rounded-lg p-2.5 text-slate-900 focus:bg-white focus:border-indigo-600 focus:outline-none"
-                />
-              </div>
-
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-slate-700 font-bold mb-1">
-                    {isAr ? 'سعر البيع (ر.س)' : 'Selling Price'} *
-                  </label>
-                  <input
-                    type="number"
-                    required
-                    value={newProdPrice}
-                    onChange={(e) => setNewProdPrice(Number(e.target.value))}
-                    className="w-full bg-slate-50 border border-slate-200 rounded-lg p-2.5 text-slate-900 focus:bg-white focus:border-indigo-600 focus:outline-none"
-                  />
+            <form onSubmit={handleCreateProductSubmit} className="space-y-6 text-xs">
+              
+              {/* ─── 1. SECTION: UPLOAD UP TO 10 IMAGES ─── */}
+              <div className="p-4 sm:p-5 rounded-2xl bg-slate-50/80 border border-slate-200 space-y-3.5">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-200/80 pb-2.5">
+                  <div className="flex items-center gap-2">
+                    <Camera className="w-4 h-4 text-emerald-600" />
+                    <span className="font-extrabold text-slate-900 text-xs sm:text-sm">
+                      {isAr ? '1. تحميل حتى 10 صور للمنتج:' : '1. Upload Up to 10 Product Photos:'}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className={`px-2.5 py-1 rounded-full text-xs font-bold font-mono ${
+                      newProdImages.length === 10
+                        ? 'bg-amber-100 text-amber-900 border border-amber-300'
+                        : newProdImages.length > 0
+                        ? 'bg-emerald-100 text-emerald-900 border border-emerald-300'
+                        : 'bg-slate-200 text-slate-700'
+                    }`}>
+                      {newProdImages.length} / 10 {isAr ? 'صور' : 'photos'}
+                    </span>
+                  </div>
                 </div>
 
-                <div>
-                  <label className="block text-slate-700 font-bold mb-1">
-                    {isAr ? 'سعر التكلفة (ر.س)' : 'Cost Price'}
+                {/* Upload Options: Local File Browse + URL Input */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  
+                  {/* File Upload Button */}
+                  <label className="p-3.5 rounded-xl border-2 border-dashed border-emerald-300 hover:border-emerald-500 bg-white hover:bg-emerald-50/40 text-center flex flex-col items-center justify-center gap-1.5 cursor-pointer transition-all shadow-2xs group">
+                    <UploadCloud className="w-6 h-6 text-emerald-600 group-hover:scale-110 transition-transform" />
+                    <span className="font-extrabold text-slate-800 text-xs">
+                      {isAr ? 'اختر صور من جهازك (متعدد)' : 'Browse Device Photos'}
+                    </span>
+                    <span className="text-[10px] text-slate-400">
+                      {isAr ? 'اختر حتى 10 صور دفعة واحدة' : 'Select up to 10 photos'}
+                    </span>
+                    <input
+                      type="file"
+                      multiple
+                      accept="image/*"
+                      onChange={handleAddImageFile}
+                      className="hidden"
+                      disabled={newProdImages.length >= 10}
+                    />
                   </label>
-                  <input
-                    type="number"
-                    value={newProdCost}
-                    onChange={(e) => setNewProdCost(Number(e.target.value))}
-                    className="w-full bg-slate-50 border border-slate-200 rounded-lg p-2.5 text-slate-900 focus:bg-white focus:border-indigo-600 focus:outline-none"
-                  />
-                </div>
-              </div>
 
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-slate-700 font-bold mb-1">
-                    {isAr ? 'الكمية المتوفرة بالمخزون' : 'Stock Quantity'}
-                  </label>
-                  <input
-                    type="number"
-                    value={newProdStock}
-                    onChange={(e) => setNewProdStock(Number(e.target.value))}
-                    className="w-full bg-slate-50 border border-slate-200 rounded-lg p-2.5 text-slate-900 focus:bg-white focus:border-indigo-600 focus:outline-none"
-                  />
+                  {/* Add via URL */}
+                  <div className="p-3.5 rounded-xl bg-white border border-slate-200 space-y-2 flex flex-col justify-between">
+                    <span className="font-bold text-slate-700 text-[11px] block">
+                      {isAr ? 'أو أضف رابط صورة مباشر (URL):' : 'Or enter direct image URL:'}
+                    </span>
+                    <div className="flex items-center gap-1.5">
+                      <input
+                        type="url"
+                        value={imageInputUrl}
+                        onChange={(e) => setImageInputUrl(e.target.value)}
+                        placeholder="https://example.com/photo.jpg"
+                        className="flex-1 bg-slate-50 border border-slate-200 rounded-lg p-2 text-[11px] font-mono text-slate-900 focus:bg-white focus:outline-none focus:border-emerald-600"
+                        disabled={newProdImages.length >= 10}
+                      />
+                      <button
+                        type="button"
+                        onClick={handleAddImageUrl}
+                        disabled={!imageInputUrl.trim() || newProdImages.length >= 10}
+                        className="px-3 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-700 disabled:opacity-40 text-white font-bold text-xs cursor-pointer transition-colors"
+                      >
+                        {isAr ? 'إضافة' : 'Add'}
+                      </button>
+                    </div>
+                  </div>
                 </div>
 
-                <div>
-                  <label className="block text-slate-700 font-bold mb-1">
-                    {isAr ? 'التصنيف' : 'Category'}
-                  </label>
-                  <select
-                    value={newProdCategory}
-                    onChange={(e) => setNewProdCategory(e.target.value)}
-                    className="w-full bg-slate-50 border border-slate-200 rounded-lg p-2.5 text-slate-900 focus:bg-white focus:border-indigo-600 focus:outline-none"
+                {/* Quick Presets Row */}
+                <div className="flex flex-wrap items-center gap-2 pt-1 text-[11px]">
+                  <span className="text-slate-500 font-bold">{isAr ? 'صور سريعة جاهزة:' : 'Sample photo sets:'}</span>
+                  <button
+                    type="button"
+                    onClick={() => handleAddPresetImages('watches')}
+                    className="px-2.5 py-1 rounded-lg bg-white hover:bg-slate-100 border border-slate-200 text-slate-700 font-medium cursor-pointer"
                   >
-                    <option value="Fashion & Apparel">{isAr ? 'أزياء وملابس' : 'Fashion & Apparel'}</option>
-                    <option value="Accessories">{isAr ? 'إكسسوارات وساعات' : 'Accessories'}</option>
-                    <option value="Perfumes">{isAr ? 'عطور وبخور' : 'Perfumes'}</option>
-                    <option value="Electronics">{isAr ? 'إلكترونيات' : 'Electronics'}</option>
-                  </select>
+                    ⌚ {isAr ? 'ساعات وإلكترونيات' : 'Watches'}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleAddPresetImages('fashion')}
+                    className="px-2.5 py-1 rounded-lg bg-white hover:bg-slate-100 border border-slate-200 text-slate-700 font-medium cursor-pointer"
+                  >
+                    👕 {isAr ? 'أزياء وملابس' : 'Fashion'}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleAddPresetImages('bags')}
+                    className="px-2.5 py-1 rounded-lg bg-white hover:bg-slate-100 border border-slate-200 text-slate-700 font-medium cursor-pointer"
+                  >
+                    🎒 {isAr ? 'حقائب وإكسسوارات' : 'Bags'}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleAddPresetImages('perfume')}
+                    className="px-2.5 py-1 rounded-lg bg-white hover:bg-slate-100 border border-slate-200 text-slate-700 font-medium cursor-pointer"
+                  >
+                    🧴 {isAr ? 'عطور وتجميل' : 'Perfumes'}
+                  </button>
+                </div>
+
+                {/* 10-Image Visual Grid */}
+                <div className="space-y-2 pt-2">
+                  <div className="flex items-center justify-between text-[11px] text-slate-500">
+                    <span>{isAr ? 'معاينة الصور (اضغط على أي صورة لجعلها الرئيسية ⭐):' : 'Click any photo to set as primary ⭐:'}</span>
+                    {newProdImages.length > 0 && (
+                      <button
+                        type="button"
+                        onClick={() => setNewProdImages([])}
+                        className="text-rose-600 hover:underline font-bold cursor-pointer"
+                      >
+                        {isAr ? 'حذف الكل' : 'Clear all'}
+                      </button>
+                    )}
+                  </div>
+
+                  <div className="grid grid-cols-5 sm:grid-cols-5 gap-2.5">
+                    {/* Render uploaded slots */}
+                    {newProdImages.map((img, idx) => (
+                      <div
+                        key={idx}
+                        className={`relative aspect-square rounded-xl overflow-hidden border-2 transition-all group ${
+                          idx === 0
+                            ? 'border-emerald-600 ring-2 ring-emerald-400/40 shadow-xs'
+                            : 'border-slate-200 hover:border-slate-400'
+                        }`}
+                      >
+                        <img
+                          src={img}
+                          alt={`Product view ${idx + 1}`}
+                          className="w-full h-full object-cover cursor-pointer"
+                          onClick={() => handleSetPrimaryImage(idx)}
+                        />
+                        
+                        {/* Primary Badge */}
+                        {idx === 0 && (
+                          <span className="absolute top-1 start-1 bg-emerald-600 text-white font-black text-[9px] px-1.5 py-0.5 rounded shadow-xs">
+                            {isAr ? 'رئيسية ⭐' : 'Main ⭐'}
+                          </span>
+                        )}
+
+                        {/* Remove Button */}
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleRemoveImage(idx);
+                          }}
+                          className="absolute top-1 end-1 w-5 h-5 rounded-full bg-slate-900/80 hover:bg-rose-600 text-white flex items-center justify-center text-[10px] cursor-pointer shadow-xs transition-colors"
+                          title={isAr ? 'حذف الصورة' : 'Remove image'}
+                        >
+                          ✕
+                        </button>
+
+                        <span className="absolute bottom-1 end-1 bg-slate-900/70 text-white text-[9px] font-mono px-1 rounded">
+                          #{idx + 1}
+                        </span>
+                      </div>
+                    ))}
+
+                    {/* Render Remaining Empty Slots up to 10 */}
+                    {Array.from({ length: Math.max(0, 10 - newProdImages.length) }).map((_, emptyIdx) => {
+                      const slotNum = newProdImages.length + emptyIdx + 1;
+                      return (
+                        <div
+                          key={`empty_${emptyIdx}`}
+                          className="aspect-square rounded-xl border border-dashed border-slate-300 bg-white/50 flex flex-col items-center justify-center text-slate-300 text-[10px] font-mono"
+                        >
+                          <ImageIcon className="w-4 h-4 mb-0.5 opacity-50" />
+                          <span>{slotNum}</span>
+                        </div>
+                      );
+                    })}
+                  </div>
                 </div>
               </div>
 
-              <div className="pt-3 border-t border-slate-100 flex justify-end gap-3">
+              {/* ─── 2. SECTION: PRODUCT COLOR VARIANTS ─── */}
+              <div className="p-4 sm:p-5 rounded-2xl bg-slate-50/80 border border-slate-200 space-y-3.5">
+                <div className="flex items-center justify-between border-b border-slate-200/80 pb-2.5">
+                  <div className="flex items-center gap-2">
+                    <Palette className="w-4 h-4 text-indigo-600" />
+                    <span className="font-extrabold text-slate-900 text-xs sm:text-sm">
+                      {isAr ? '2. ألوان وخيارات المنتج (Colors):' : '2. Product Color Options:'}
+                    </span>
+                  </div>
+                  <span className="text-[11px] font-bold text-slate-600">
+                    {newProdColors.length} {isAr ? 'ألوان محددة' : 'colors selected'}
+                  </span>
+                </div>
+
+                {/* Preset Popular Colors */}
+                <div className="space-y-1.5">
+                  <span className="text-[11px] text-slate-500 font-bold block">
+                    {isAr ? 'ألوان سريعة شائعة (اضغط للتحديد أو الإلغاء):' : 'Quick popular color swatches:'}
+                  </span>
+                  <div className="flex flex-wrap items-center gap-2">
+                    {[
+                      { name: 'Black', nameAr: 'أسود', hex: '#111827' },
+                      { name: 'White', nameAr: 'أبيض', hex: '#FFFFFF' },
+                      { name: 'Navy Blue', nameAr: 'أزرق كحلي', hex: '#1E3A8A' },
+                      { name: 'Beige', nameAr: 'بيج جملي', hex: '#D4B996' },
+                      { name: 'Gray', nameAr: 'رمادي', hex: '#6B7280' },
+                      { name: 'Brown', nameAr: 'بني', hex: '#78350F' },
+                      { name: 'Burgundy', nameAr: 'عنابي', hex: '#991B1B' },
+                      { name: 'Olive Green', nameAr: 'أخضر زيتي', hex: '#3F6212' },
+                      { name: 'Gold', nameAr: 'ذهبي', hex: '#D97706' },
+                      { name: 'Pink', nameAr: 'وردي', hex: '#EC4899' }
+                    ].map((c) => {
+                      const isSelected = newProdColors.some(nc => nc.hex.toLowerCase() === c.hex.toLowerCase());
+                      return (
+                        <button
+                          key={c.hex}
+                          type="button"
+                          onClick={() => handleToggleColorPreset(c)}
+                          className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl border text-xs font-bold transition-all cursor-pointer ${
+                            isSelected
+                              ? 'bg-indigo-50 border-indigo-500 text-indigo-950 ring-2 ring-indigo-200 shadow-2xs'
+                              : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-100'
+                          }`}
+                        >
+                          <span
+                            className="w-3.5 h-3.5 rounded-full border border-slate-300 shadow-inner"
+                            style={{ backgroundColor: c.hex }}
+                          />
+                          <span>{isAr ? c.nameAr : c.name}</span>
+                          {isSelected && <Check className="w-3 h-3 text-indigo-600" />}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* Custom Color Adder */}
+                <div className="pt-2 border-t border-slate-200/80 space-y-2">
+                  <span className="text-[11px] text-slate-500 font-bold block">
+                    {isAr ? 'أو اختر لوناً مخصصاً بالدرجة واسم اللون:' : 'Or pick custom color & name:'}
+                  </span>
+                  <div className="flex flex-wrap sm:flex-nowrap items-center gap-2">
+                    <div className="flex items-center gap-2 p-1.5 bg-white border border-slate-200 rounded-xl">
+                      <input
+                        type="color"
+                        value={customColorHex}
+                        onChange={(e) => setCustomColorHex(e.target.value)}
+                        className="w-8 h-8 rounded-lg cursor-pointer border-none bg-transparent"
+                        title="Pick color"
+                      />
+                      <span className="font-mono text-xs font-bold text-slate-700 uppercase pe-1">
+                        {customColorHex}
+                      </span>
+                    </div>
+
+                    <input
+                      type="text"
+                      value={customColorNameAr}
+                      onChange={(e) => setCustomColorNameAr(e.target.value)}
+                      placeholder={isAr ? 'اسم اللون (مثال: أزرق سماوي)' : 'Color name in Arabic'}
+                      className="flex-1 bg-white border border-slate-200 rounded-xl p-2.5 text-xs text-slate-900 focus:outline-none focus:border-indigo-600"
+                    />
+
+                    <button
+                      type="button"
+                      onClick={handleAddCustomColor}
+                      className="px-4 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs shrink-0 cursor-pointer transition-colors"
+                    >
+                      {isAr ? '+ إضافة اللون' : '+ Add Color'}
+                    </button>
+                  </div>
+                </div>
+
+                {/* Selected Colors Chips */}
+                {newProdColors.length > 0 && (
+                  <div className="pt-2 flex flex-wrap items-center gap-2">
+                    <span className="text-[11px] text-slate-400 font-bold">{isAr ? 'الألوان المعتمدة للمنتج:' : 'Active colors:'}</span>
+                    {newProdColors.map((color) => (
+                      <span
+                        key={color.hex}
+                        className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white border border-slate-300 text-slate-800 font-bold text-xs shadow-2xs"
+                      >
+                        <span
+                          className="w-3 h-3 rounded-full border border-slate-300"
+                          style={{ backgroundColor: color.hex }}
+                        />
+                        <span>{isAr ? color.nameAr || color.name : color.name}</span>
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveColor(color.hex)}
+                          className="text-slate-400 hover:text-rose-600 ms-1 cursor-pointer"
+                          title={isAr ? 'إزالة اللون' : 'Remove'}
+                        >
+                          ✕
+                        </button>
+                      </span>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* ─── 3. SECTION: BASIC PRODUCT DETAILS ─── */}
+              <div className="space-y-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-slate-700 font-bold mb-1">
+                      {isAr ? 'اسم المنتج (بالعربية)' : 'Product Name (Arabic)'} *
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      value={newProdNameAr}
+                      onChange={(e) => setNewProdNameAr(e.target.value)}
+                      placeholder="مثال: ساعة يد ذكية ألترا مقاومة للماء"
+                      className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-slate-900 focus:bg-white focus:border-emerald-600 focus:outline-none"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-slate-700 font-bold mb-1">
+                      {isAr ? 'اسم المنتج (بالإنجليزية)' : 'Product Name (English)'}
+                    </label>
+                    <input
+                      type="text"
+                      value={newProdName}
+                      onChange={(e) => setNewProdName(e.target.value)}
+                      placeholder="e.g. Ultra Smart Sports Watch"
+                      className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-slate-900 focus:bg-white focus:border-emerald-600 focus:outline-none"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                  <div>
+                    <label className="block text-slate-700 font-bold mb-1">
+                      {isAr ? 'سعر البيع (د.ج)' : 'Selling Price (DZD)'} *
+                    </label>
+                    <input
+                      type="number"
+                      required
+                      value={newProdPrice}
+                      onChange={(e) => setNewProdPrice(Number(e.target.value))}
+                      className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-slate-900 font-mono font-bold focus:bg-white focus:border-emerald-600 focus:outline-none"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-slate-700 font-bold mb-1">
+                      {isAr ? 'سعر التكلفة (د.ج)' : 'Cost Price (DZD)'}
+                    </label>
+                    <input
+                      type="number"
+                      value={newProdCost}
+                      onChange={(e) => setNewProdCost(Number(e.target.value))}
+                      className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-slate-900 font-mono focus:bg-white focus:border-emerald-600 focus:outline-none"
+                    />
+                  </div>
+
+                  <div className="col-span-2 sm:col-span-1">
+                    <label className="block text-slate-700 font-bold mb-1">
+                      {isAr ? 'الكمية بالمخزون' : 'Stock Quantity'} *
+                    </label>
+                    <input
+                      type="number"
+                      value={newProdStock}
+                      onChange={(e) => setNewProdStock(Number(e.target.value))}
+                      className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-slate-900 font-mono font-bold focus:bg-white focus:border-emerald-600 focus:outline-none"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-slate-700 font-bold mb-1">
+                      {isAr ? 'التصنيف' : 'Category'}
+                    </label>
+                    <select
+                      value={newProdCategory}
+                      onChange={(e) => setNewProdCategory(e.target.value)}
+                      className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-slate-900 font-bold focus:bg-white focus:border-emerald-600 focus:outline-none cursor-pointer"
+                    >
+                      <option value="Fashion & Apparel">{isAr ? 'أزياء وملابس' : 'Fashion & Apparel'}</option>
+                      <option value="Bags & Accessories">{isAr ? 'حقائب وإكسسوارات' : 'Bags & Accessories'}</option>
+                      <option value="Electronics">{isAr ? 'إلكترونيات وساعات' : 'Electronics & Watches'}</option>
+                      <option value="Perfumes">{isAr ? 'عطور وتجميل' : 'Perfumes & Beauty'}</option>
+                      <option value="Personal Care">{isAr ? 'عناية شخصية' : 'Personal Care'}</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-slate-700 font-bold mb-1">
+                      {isAr ? 'رمز التخزين SKU (اختياري)' : 'SKU Code'}
+                    </label>
+                    <input
+                      type="text"
+                      value={newProdSku}
+                      onChange={(e) => setNewProdSku(e.target.value)}
+                      placeholder="e.g. WATCH-ULTRA-DZ"
+                      className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-slate-900 font-mono focus:bg-white focus:border-emerald-600 focus:outline-none"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-slate-700 font-bold mb-1">
+                    {isAr ? 'وصف المنتج وتفاصيل التوصيل' : 'Description & Details'}
+                  </label>
+                  <textarea
+                    rows={2}
+                    value={newProdDesc}
+                    onChange={(e) => setNewProdDesc(e.target.value)}
+                    placeholder={isAr ? 'أدخل تفاصيل ومواصفات المنتج ومميزاته مع التوصيل لـ 58 ولاية...' : 'Product specifications and details...'}
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-slate-900 focus:bg-white focus:border-emerald-600 focus:outline-none resize-none"
+                  />
+                </div>
+              </div>
+
+              {/* Submit / Cancel Strip */}
+              <div className="pt-4 border-t border-slate-100 flex items-center justify-end gap-3">
                 <button
                   type="button"
                   onClick={() => setShowAddProductModal(false)}
-                  className="px-4 py-2 rounded-lg bg-slate-100 text-slate-700 font-bold cursor-pointer"
+                  className="px-5 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold cursor-pointer transition-colors"
                 >
                   {isAr ? 'إلغاء' : 'Cancel'}
                 </button>
                 <button
                   type="submit"
-                  className="px-5 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white font-bold cursor-pointer"
+                  className="px-6 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs shadow-md shadow-emerald-600/20 cursor-pointer transition-all hover:scale-102 active:scale-98"
                 >
-                  {isAr ? 'حفظ المنتج' : 'Save Product'}
+                  {isAr ? 'حفظ المنتج بالصور والألوان 🚀' : 'Save Product with Photos & Colors 🚀'}
                 </button>
               </div>
             </form>
