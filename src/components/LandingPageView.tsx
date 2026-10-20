@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Store, PlanType, Language, Currency } from '../types';
-import { PLANS, ALGERIA_58_WILAYAS, ALGERIA_CARRIERS } from '../data/initialData';
+import { ALGERIA_58_WILAYAS, ALGERIA_CARRIERS } from '../data/initialData';
 import { 
   Store as StoreIcon, ArrowRight, ArrowLeft, Check, ShieldCheck, 
   Package, Truck, Sparkles, Globe, Database, 
@@ -38,7 +38,6 @@ export const LandingPageView: React.FC<LandingPageViewProps> = ({
   const [category, setCategory] = useState('Fashion & Apparel');
   const [ownerName, setOwnerName] = useState('');
   const [ownerPhone, setOwnerPhone] = useState('');
-  const [selectedPlan, setSelectedPlan] = useState<PlanType>('pro');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Interactive 58-Wilayas Calculator State
@@ -113,7 +112,7 @@ export const LandingPageView: React.FC<LandingPageViewProps> = ({
         categoryAr: category,
         ownerName,
         ownerEmail: 'seller@wasladz.com',
-        plan: selectedPlan,
+        plan: 'free',
         accentColor: '#059669',
         totalSales: 0,
         ordersCount: 0,
@@ -122,7 +121,7 @@ export const LandingPageView: React.FC<LandingPageViewProps> = ({
         githubConnected: true,
         settings: {
           subdomain: `${cleanSlug}.wasladz.app`,
-          customDomain: selectedPlan === 'enterprise' ? `www.${cleanSlug}.dz` : undefined,
+          customDomain: undefined,
           themeColor: '#059669',
           shippingRate: 450,
           freeShippingThreshold: 8000,
@@ -788,52 +787,7 @@ export const LandingPageView: React.FC<LandingPageViewProps> = ({
               </div>
             </div>
 
-            {/* Plan Selector */}
-            <div className="pt-4 border-t border-slate-100 space-y-3">
-              <label className="block text-slate-700 font-bold">
-                {isAr ? 'اختر خطة الاشتراك لبداية متجرك:' : 'Select Your Initial Plan:'}
-              </label>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                {PLANS.map((plan) => {
-                  const isSelected = selectedPlan === plan.id;
-                  return (
-                    <div
-                      key={plan.id}
-                      onClick={() => setSelectedPlan(plan.id)}
-                      className={`p-4 rounded-2xl border-2 transition-all cursor-pointer flex flex-col justify-between ${
-                        isSelected
-                          ? 'border-emerald-600 bg-emerald-50/50 shadow-xs'
-                          : 'border-slate-200 bg-white hover:border-slate-300'
-                      }`}
-                    >
-                      <div className="space-y-1">
-                        <div className="flex items-center justify-between">
-                          <span className="font-extrabold text-slate-900 text-sm">
-                            {isAr ? plan.nameAr : plan.name}
-                          </span>
-                          <span className={`w-4 h-4 rounded-full border flex items-center justify-center ${
-                            isSelected ? 'border-emerald-600 bg-emerald-600 text-white' : 'border-slate-300'
-                          }`}>
-                            {isSelected && <Check className="w-2.5 h-2.5 stroke-[3]" />}
-                          </span>
-                        </div>
-                        <p className="text-[11px] text-slate-500">{isAr ? plan.descriptionAr : plan.description}</p>
-                      </div>
-
-                      <div className="pt-3 mt-2 border-t border-slate-100 flex items-baseline justify-between font-mono">
-                        <span className="text-base font-bold text-slate-900">
-                          {plan.price === 0 ? (isAr ? '0 د.ج (30 طلب مجاناً)' : '0 DZD Free') : `${plan.price} ${isAr ? 'د.ج / شهرياً' : 'DZD / mo'}`}
-                        </span>
-                        <span className="text-[10px] text-emerald-700 font-sans font-bold">
-                          0% {isAr ? 'عمولة' : 'fee'}
-                        </span>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
 
             {/* Submit */}
             <div className="pt-4 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-4">
@@ -925,81 +879,7 @@ export const LandingPageView: React.FC<LandingPageViewProps> = ({
         </div>
       </section>
 
-      {/* ─── 7. PRICING PLANS SECTION (In DZD, 0% Commission) ─── */}
-      <section className="px-4 sm:px-6 lg:px-8 max-w-5xl mx-auto space-y-10">
-        <div className="text-center space-y-2">
-          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-50 text-emerald-800 text-xs font-bold">
-            <Sparkles className="w-3.5 h-3.5" />
-            <span>{isAr ? 'باقات الاشتراك الشهرية (دينار جزائري)' : 'SUBSCRIPTION PLANS IN DZD'}</span>
-          </div>
-          <h2 className="text-3xl font-black text-slate-900">
-            {isAr ? 'أسعار شفافة وبسيطة بالدينار الجزائري وبـ 0% عمولة' : 'Simple Pricing in Algerian Dinars & 0% Fee'}
-          </h2>
-          <p className="text-sm text-slate-500">
-            {isAr ? '0% عمولة على المبيعات. ابدأ بـ 30 طلب مجاناً تماماً للتجربة.' : '0% commission on sales. Start with 30 free orders.'}
-          </p>
-        </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-stretch">
-          {PLANS.map((plan) => (
-            <div
-              key={plan.id}
-              className={`p-7 rounded-3xl border flex flex-col justify-between ${
-                plan.isPopular
-                  ? 'bg-white border-emerald-600 shadow-xl ring-2 ring-emerald-600/15 relative'
-                  : 'bg-white border-slate-200 shadow-xs'
-              }`}
-            >
-              {plan.isPopular && (
-                <span className="absolute -top-3.5 end-6 px-3.5 py-1 rounded-full text-[11px] font-extrabold bg-emerald-600 text-white shadow-sm">
-                  {isAr ? 'الأكثر طلباً للتجار' : 'Most Popular'}
-                </span>
-              )}
-
-              <div className="space-y-4">
-                <h3 className="text-lg font-bold text-slate-900">
-                  {isAr ? plan.nameAr : plan.name}
-                </h3>
-                <p className="text-xs text-slate-500 min-h-[32px]">
-                  {isAr ? plan.descriptionAr : plan.description}
-                </p>
-
-                <div className="flex items-baseline gap-1.5 pt-2 font-mono">
-                  <span className="text-3xl font-black text-slate-900">
-                    {plan.price === 0 ? (isAr ? '0 د.ج' : '0 DZD') : `${plan.price} ${isAr ? 'د.ج' : 'DZD'}`}
-                  </span>
-                  <span className="text-xs text-slate-500 font-sans">
-                    {plan.price === 0 ? (isAr ? 'تجربة مجانية' : 'free trial') : (isAr ? '/ شهرياً' : '/ month')}
-                  </span>
-                </div>
-
-                <ul className="space-y-2.5 pt-4 border-t border-slate-100 text-xs text-slate-600">
-                  {(isAr ? plan.featuresAr : plan.features).map((feat, i) => (
-                    <li key={i} className="flex items-start gap-2">
-                      <Check className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
-                      <span>{feat}</span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-
-              <div className="pt-6 mt-6 border-t border-slate-100">
-                <a
-                  href="#create-store"
-                  className={`w-full py-3 rounded-xl font-bold text-xs flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
-                    plan.isPopular
-                      ? 'bg-emerald-600 hover:bg-emerald-700 text-white shadow-md shadow-emerald-600/25'
-                      : 'bg-slate-100 hover:bg-slate-200 text-slate-800'
-                  }`}
-                >
-                  <span>{isAr ? 'اختيار هذه الخطة' : 'Select Plan'}</span>
-                  {isAr ? <ArrowLeft className="w-3.5 h-3.5" /> : <ArrowRight className="w-3.5 h-3.5" />}
-                </a>
-              </div>
-            </div>
-          ))}
-        </div>
-      </section>
 
       {/* ─── 8. FAQ SECTION ─── */}
       <section className="px-4 sm:px-6 lg:px-8 max-w-4xl mx-auto space-y-8">

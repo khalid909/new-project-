@@ -4,7 +4,7 @@ import { ShieldCheck, Database, GitBranch, ArrowRight, ArrowLeft } from 'lucide-
 
 interface FooterProps {
   language: Language;
-  onNavigateTab: (tab: 'landing' | 'dashboard' | 'register' | 'pricing') => void;
+  onNavigateTab: (tab: 'landing' | 'dashboard' | 'register' | 'store') => void;
 }
 
 export const Footer: React.FC<FooterProps> = ({ language, onNavigateTab }) => {
@@ -16,7 +16,6 @@ export const Footer: React.FC<FooterProps> = ({ language, onNavigateTab }) => {
         
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8 pb-10 border-b border-slate-100">
           
-          {/* Brand Col */}
           {/* Brand Col */}
           <div className="space-y-3 md:col-span-1">
             <div className="flex items-center gap-2.5">
@@ -48,7 +47,7 @@ export const Footer: React.FC<FooterProps> = ({ language, onNavigateTab }) => {
               <li>
                 <button
                   onClick={() => onNavigateTab('landing')}
-                  className="hover:text-emerald-600 transition-colors"
+                  className="hover:text-emerald-600 transition-colors cursor-pointer"
                 >
                   {isAr ? 'الصفحة الرئيسية' : 'Homepage'}
                 </button>
@@ -56,7 +55,7 @@ export const Footer: React.FC<FooterProps> = ({ language, onNavigateTab }) => {
               <li>
                 <button
                   onClick={() => onNavigateTab('dashboard')}
-                  className="hover:text-emerald-600 transition-colors"
+                  className="hover:text-emerald-600 transition-colors cursor-pointer"
                 >
                   {isAr ? 'لوحة تحكم المتجر' : 'Store Dashboard'}
                 </button>
@@ -64,17 +63,17 @@ export const Footer: React.FC<FooterProps> = ({ language, onNavigateTab }) => {
               <li>
                 <button
                   onClick={() => onNavigateTab('register')}
-                  className="hover:text-emerald-600 transition-colors"
+                  className="hover:text-emerald-600 transition-colors cursor-pointer"
                 >
                   {isAr ? 'إنشاء متجر جديد' : 'Create New Store'}
                 </button>
               </li>
               <li>
                 <button
-                  onClick={() => onNavigateTab('pricing')}
-                  className="hover:text-emerald-600 transition-colors"
+                  onClick={() => onNavigateTab('store')}
+                  className="hover:text-emerald-600 transition-colors cursor-pointer"
                 >
-                  {isAr ? 'الباقات والأسعار (0% عمولة)' : 'Pricing & Plans (0% Commission)'}
+                  {isAr ? 'معاينة المتجر المستقل' : 'Independent Storefront'}
                 </button>
               </li>
             </ul>

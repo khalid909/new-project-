@@ -233,11 +233,6 @@ export const StoreDashboardView: React.FC<StoreDashboardViewProps> = ({
     e.preventDefault();
     if (!newProdName.trim()) return;
 
-    if (isFreePlan && storeProducts.length >= 10) {
-      showToast(isAr ? 'وصلت للحد الأقصى للمنتجات في الخطة المجانية (10 منتجات). قم بالترقية للخطة الاحترافية للحصول على عدد غير محدود!' : 'Free plan limit reached (10 products). Upgrade to Pro for unlimited products!');
-      return;
-    }
-
     const prod: Product = {
       id: `prod_${Date.now()}`,
       storeId: store.id,
@@ -342,12 +337,8 @@ CREATE POLICY "Public read products" ON public.store_products FOR SELECT USING (
             </h1>
             
             {/* Plan Badge */}
-            <span className={`px-2.5 py-0.5 rounded-full text-xs font-bold uppercase ${
-              isFreePlan
-                ? 'bg-slate-100 text-slate-700 border border-slate-200'
-                : 'bg-indigo-50 text-indigo-700 border border-indigo-200'
-            }`}>
-              {isAr ? currentPlanDetails.nameAr : currentPlanDetails.name}
+            <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-50 text-emerald-800 border border-emerald-200">
+              {isAr ? 'منصة مجانية 100%' : '100% Free Platform'}
             </span>
 
             {/* Online Status */}
@@ -371,17 +362,7 @@ CREATE POLICY "Public read products" ON public.store_products FOR SELECT USING (
 
         {/* Quick Action Buttons */}
         <div className="flex flex-wrap items-center gap-2.5">
-          {/* Back to SaaS Platform */}
-          {onBackToPlatform && (
-            <button
-              onClick={onBackToPlatform}
-              className="flex items-center gap-1.5 px-3.5 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition-all cursor-pointer shadow-2xs"
-              title={isAr ? 'العودة لصفحة المنصة السحابية الرئيسية' : 'Return to main platform'}
-            >
-              <Globe className="w-3.5 h-3.5 text-indigo-600" />
-              <span>{isAr ? 'المنصة الرئيسية' : 'Platform'}</span>
-            </button>
-          )}
+
 
           {/* Visit Standalone Independent Store */}
           <button
@@ -477,11 +458,10 @@ CREATE POLICY "Public read products" ON public.store_products FOR SELECT USING (
           { id: 'pixels', label: isAr ? 'بكسلات التتبع (Meta / TikTok)' : 'Pixels Engine', icon: Zap, show: true },
           { id: 'customers', label: isAr ? `العملاء (${storeCustomers.length})` : `Customers (${storeCustomers.length})`, icon: Users, show: isFeatureActive('customersCRM') },
           { id: 'coupons', label: isAr ? `الكوبونات (${storeCoupons.length})` : `Coupons (${storeCoupons.length})`, icon: Tag, show: isFeatureActive('coupons') },
-          { id: 'plans', label: isAr ? 'الباقات (0% عمولة)' : 'Plans & 0% Fee', icon: Sparkles, show: isFeatureActive('plansAndUpgrades') },
-          { id: 'storeFeatures', label: isAr ? `خصائص وإعدادات المتجر (${activeStoreFeaturesCount})` : `Store Features & Settings (${activeStoreFeaturesCount})`, icon: Sliders, show: true },
+
+          { id: 'storeFeatures', label: isAr ? `خصائص ومظهر المتجر (الأزرار والتعديل والحذف) (${activeStoreFeaturesCount})` : `Store Features & Appearance (Buttons, Edit & Delete) (${activeStoreFeaturesCount})`, icon: Sliders, show: true },
           { id: 'settings', label: isAr ? 'إعدادات المتجر والرابط' : 'Store Settings', icon: Settings, show: true },
-          { id: 'developer', label: isAr ? 'بوابة المطورين والـ API' : 'Integrations & API', icon: Database, show: isFeatureActive('developerIntegrations') },
-          { id: 'features', label: isAr ? `خصائص المنصة (${activeFeaturesCount})` : `Platform Features (${activeFeaturesCount})`, icon: Sliders, show: true }
+          { id: 'developer', label: isAr ? 'بوابة المطورين والـ API' : 'Integrations & API', icon: Database, show: isFeatureActive('developerIntegrations') }
         ].filter(t => t.show).map((tab) => {
           const Icon = tab.icon;
           const isActive = activeTab === tab.id;
@@ -595,6 +575,20 @@ CREATE POLICY "Public read products" ON public.store_products FOR SELECT USING (
               >
                 <Share2 className="w-3.5 h-3.5 text-indigo-600" />
                 <span>{isAr ? 'مشاركة وتفاصيل الرابط 📲' : 'Share & Details 📲'}</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  const portalUrl = typeof window !== 'undefined' ? `${window.location.origin}${window.location.pathname}?portal=platform` : 'https://wasladz.app/?portal=platform';
+                  navigator.clipboard?.writeText(portalUrl);
+                  showToast(isAr ? 'تم نسخ رابط المنصة المستقل (?portal=platform) بنجاح!' : 'Platform portal URL copied!');
+                }}
+                className="px-3.5 py-2.5 rounded-xl bg-amber-50 hover:bg-amber-100 border border-amber-200 text-amber-900 text-xs font-bold transition-all cursor-pointer shadow-2xs flex items-center gap-1.5"
+                title={isAr ? 'نسخ رابط المنصة المستقل للعودة للمنصة الأم (?portal=platform)' : 'Copy independent platform link'}
+              >
+                <ExternalLink className="w-3.5 h-3.5 text-amber-700" />
+                <span>{isAr ? 'رابط المنصة 🌐' : 'Platform Link 🌐'}</span>
               </button>
 
               <button
@@ -1282,6 +1276,52 @@ CREATE POLICY "Public read products" ON public.store_products FOR SELECT USING (
                   </button>
                 </div>
               </div>
+
+              {/* 3. Independent Platform Portal Link */}
+              <div className="p-4 rounded-xl border border-slate-200 bg-white/70 space-y-2 sm:col-span-2">
+                <div className="flex items-center justify-between gap-2">
+                  <div className="flex items-center gap-1.5">
+                    <ExternalLink className="w-3.5 h-3.5 text-emerald-600" />
+                    <span className="font-bold text-slate-900 text-xs">
+                      {isAr ? '3. رابط منصة وصلة ديزاد الأم (رابط مستقل)' : '3. WaslaDZ Platform Portal Link'}
+                    </span>
+                  </div>
+                  <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-slate-100 text-slate-700">
+                    {isAr ? 'بوابة مستقلة' : 'Independent Portal'}
+                  </span>
+                </div>
+                <div className="p-2 rounded-lg bg-slate-900 text-amber-300 font-mono text-[11px] truncate select-all">
+                  {typeof window !== 'undefined' ? `${window.location.origin}${window.location.pathname}?portal=platform` : 'https://wasladz.app/?portal=platform'}
+                </div>
+                <p className="text-[11px] text-slate-600 leading-relaxed">
+                  {isAr 
+                    ? 'هذا هو الرابط المستقل الدائم للوصول لمنصة وصلة ديزاد الرئيسية لإنشاء متاجر أخرى أو تصفح البوابة الأم.'
+                    : 'Permanent independent portal link to access the main platform for registering other stores or accessing the landing portal.'}
+                </p>
+                <div className="flex items-center gap-2 pt-1">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const portalUrl = typeof window !== 'undefined' ? `${window.location.origin}${window.location.pathname}?portal=platform` : 'https://wasladz.app/?portal=platform';
+                      navigator.clipboard?.writeText(portalUrl);
+                      showToast(isAr ? 'تم نسخ رابط المنصة المستقل بنجاح!' : 'Platform portal URL copied!');
+                    }}
+                    className="py-1.5 px-3 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-800 font-bold text-xs flex items-center justify-center gap-1.5 cursor-pointer"
+                  >
+                    <Copy className="w-3.5 h-3.5" />
+                    <span>{isAr ? 'نسخ رابط المنصة' : 'Copy Platform Link'}</span>
+                  </button>
+                  <a
+                    href={typeof window !== 'undefined' ? `${window.location.origin}${window.location.pathname}?portal=platform` : '?portal=platform'}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="py-1.5 px-3 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs flex items-center justify-center gap-1.5 cursor-pointer"
+                  >
+                    <ExternalLink className="w-3.5 h-3.5" />
+                    <span>{isAr ? 'فتح المنصة في تبويب جديد' : 'Open in New Tab'}</span>
+                  </a>
+                </div>
+              </div>
             </div>
           </div>
 
@@ -1610,15 +1650,19 @@ CREATE POLICY "Public read products" ON public.store_products FOR SELECT USING (
                   : 'Toggle, edit, or delete any section directly on the live homepage via the 3-button control system.'}
               </p>
             </div>
-            {(onOpenStandaloneStore || onOpenLivePreview) && (
-              <button
-                onClick={onOpenStandaloneStore || onOpenLivePreview}
-                className="px-4 py-2.5 rounded-xl bg-white text-emerald-800 hover:bg-slate-100 font-extrabold text-xs flex items-center justify-center gap-1.5 shrink-0 shadow-sm transition-all cursor-pointer hover:scale-102"
-              >
-                <Sliders className="w-4 h-4 text-emerald-600" />
-                <span>{isAr ? 'فتح الصفحة الرئيسية للتحكم الآن' : 'Control Homepage Now'}</span>
-              </button>
-            )}
+            <button
+              onClick={() => {
+                if (onOpenStandaloneStore) {
+                  onOpenStandaloneStore();
+                } else {
+                  onOpenLivePreview();
+                }
+              }}
+              className="px-4 py-2.5 rounded-xl bg-white text-emerald-800 hover:bg-slate-100 font-extrabold text-xs flex items-center justify-center gap-1.5 shrink-0 shadow-sm transition-all cursor-pointer hover:scale-102"
+            >
+              <Sliders className="w-4 h-4 text-emerald-600" />
+              <span>{isAr ? 'فتح الصفحة الرئيسية للتحكم الآن' : 'Control Homepage Now'}</span>
+            </button>
           </div>
 
           <StoreFeaturesManager

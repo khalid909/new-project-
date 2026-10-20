@@ -12,7 +12,7 @@ import {
 import { LandingPageView } from './components/LandingPageView';
 import { RegisterStoreView } from './components/RegisterStoreView';
 import { StoreDashboardView } from './components/StoreDashboardView';
-import { PlansPricingView } from './components/PlansPricingView';
+
 import { SellerLoginModal } from './components/SellerLoginModal';
 import { PublicStoreView } from './components/PublicStoreView';
 import { PlatformFeaturesModal } from './components/PlatformFeaturesModal';
@@ -29,12 +29,35 @@ export default function App() {
   const [currency, setCurrency] = useState<Currency>('DZD');
   
   // Navigation mode: 
-  // 'landing' (SaaS Platform Homepage) 
-  // 'dashboard' (Seller Merchant Admin) 
+  // 'landing' (SaaS Platform Homepage - only accessible via independent ?portal=platform link or for fresh visitors) 
+  // 'dashboard' (Seller Merchant Admin - 100% independent from platform) 
   // 'register' (Register New Store) 
-  // 'pricing' (SaaS Platform Plans)
   // 'store' (100% Independent Standalone Storefront, completely separated from the platform)
-  const [appMode, setAppMode] = useState<'landing' | 'dashboard' | 'register' | 'pricing' | 'store'>('landing');
+  const [appMode, setAppMode] = useState<'landing' | 'dashboard' | 'register' | 'pricing' | 'store'>(() => {
+    try {
+      const urlParams = new URLSearchParams(window.location.search);
+      const portal = urlParams.get('portal');
+      const modeParam = urlParams.get('mode') || urlParams.get('view');
+      const storeSlug = urlParams.get('store');
+
+      // Explicit independent link to the platform portal: ?portal=platform or ?mode=platform
+      if (portal === 'platform' || modeParam === 'platform') {
+        return 'landing';
+      }
+
+      if (storeSlug || modeParam === 'store') return 'store';
+      if (modeParam === 'dashboard') return 'dashboard';
+      if (modeParam === 'register') return 'register';
+
+      // If the merchant has already created a store, NEVER show the platform again!
+      // Like major platforms (Shopify, Salla, YouCan), they load straight into their independent store!
+      const hasCreatedStore = localStorage.getItem('has_created_store') === 'true';
+      if (hasCreatedStore) {
+        return 'store';
+      }
+    } catch (e) {}
+    return 'landing';
+  });
   
   // Auth State
   const [currentUser, setCurrentUser] = useState<SellerUser | null>(() => {
@@ -54,7 +77,9 @@ export default function App() {
       const saved = localStorage.getItem('avanto_platform_features');
       if (saved) {
         const parsed = JSON.parse(saved);
-        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          return parsed.map((f: PlatformFeatureItem) => f.id === 'plansAndUpgrades' ? { ...f, isEnabled: false, isRemoved: true } : f);
+        }
       }
     } catch (e) {}
     return INITIAL_PLATFORM_FEATURES;
@@ -206,23 +231,27 @@ export default function App() {
     document.documentElement.lang = language;
   }, [language]);
 
-  // Check URL parameters for cross-browser direct navigation (?mode=store, ?mode=dashboard, ?mode=landing, ?store=slug)
+  // Check URL parameters for cross-browser direct navigation (?mode=store, ?mode=dashboard, ?store=slug, ?portal=platform)
   useEffect(() => {
     try {
       const urlParams = new URLSearchParams(window.location.search);
+      const portal = urlParams.get('portal');
       const modeParam = urlParams.get('mode') || urlParams.get('view');
       const storeSlug = urlParams.get('store');
 
-      if (modeParam === 'store' || window.location.hash === '#store') {
+      if (portal === 'platform' || modeParam === 'platform') {
+        setAppMode('landing');
+      } else if (modeParam === 'store' || window.location.hash === '#store') {
         setAppMode('store');
       } else if (modeParam === 'dashboard' || window.location.hash === '#dashboard') {
         setAppMode('dashboard');
       } else if (modeParam === 'register' || window.location.hash === '#register') {
         setAppMode('register');
-      } else if (modeParam === 'pricing' || window.location.hash === '#pricing') {
-        setAppMode('pricing');
-      } else if (modeParam === 'landing' || modeParam === 'platform') {
-        setAppMode('landing');
+      } else {
+        const hasCreatedStore = localStorage.getItem('has_created_store') === 'true';
+        if (hasCreatedStore) {
+          setAppMode('store');
+        }
       }
 
       if (storeSlug) {
@@ -260,12 +289,19 @@ export default function App() {
     try {
       const url = new URL(window.location.href);
       if (newMode === 'landing') {
+        url.searchParams.set('portal', 'platform');
         url.searchParams.delete('mode');
         url.searchParams.delete('store');
       } else if (newMode === 'store') {
+        url.searchParams.delete('portal');
         url.searchParams.set('mode', 'store');
         if (activeStore?.slug) url.searchParams.set('store', activeStore.slug);
+      } else if (newMode === 'dashboard') {
+        url.searchParams.delete('portal');
+        url.searchParams.set('mode', 'dashboard');
+        if (activeStore?.slug) url.searchParams.set('store', activeStore.slug);
       } else {
+        url.searchParams.delete('portal');
         url.searchParams.set('mode', newMode);
         url.searchParams.delete('store');
       }
@@ -372,6 +408,11 @@ export default function App() {
       storeId: newStore.id
     };
     setCurrentUser(seller);
+    try {
+      localStorage.setItem('has_created_store', 'true');
+      localStorage.setItem('merchant_store_id', newStore.id);
+      localStorage.setItem('avanto_active_store_id', newStore.id);
+    } catch (e) {}
     switchMode(targetMode);
   };
 
@@ -505,8 +546,7 @@ export default function App() {
   // ══════════════════════════════════════════════════════════════════════
   // 100% INDEPENDENT STANDALONE STORE MODE:
   // When in 'store' mode, the store is completely isolated from the platform!
-  // No Avanto Navbar, no Avanto Footer, pure merchant storefront!
-  // Has a prominent top switcher button to return to the SaaS platform anytime.
+  // Pure merchant storefront with zero SaaS platform branding!
   // ══════════════════════════════════════════════════════════════════════
   if (appMode === 'store') {
     return (
@@ -520,7 +560,6 @@ export default function App() {
           currentUser={currentUser}
           isStandalonePage={true}
           onBackToDashboard={() => switchMode('dashboard')}
-          onBackToPlatform={() => switchMode('landing')}
           onNewCustomerOrder={handleNewCustomerOrder}
           onToggleStoreFeature={handleToggleStoreFeature}
           onRemoveStoreFeature={handleRemoveStoreFeature}
@@ -531,6 +570,148 @@ export default function App() {
           onEnableAllStoreFeatures={handleEnableAllStoreFeatures}
           isOnlinePaymentsEnabled={isFeatureActive('onlinePayments')}
         />
+      </div>
+    );
+  }
+
+  // ══════════════════════════════════════════════════════════════════════
+  // 100% INDEPENDENT MERCHANT ADMIN DASHBOARD:
+  // Completely isolated from the SaaS platform homepage!
+  // Branded strictly for the merchant's store, with direct link to storefront!
+  // ══════════════════════════════════════════════════════════════════════
+  if (appMode === 'dashboard') {
+    return (
+      <div className="min-h-screen bg-[#F8FAFC] flex flex-col text-slate-800">
+        {/* Independent Merchant Admin Top Bar */}
+        <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-slate-200/90 shadow-2xs">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="flex items-center justify-between gap-4 h-16">
+              
+              {/* Store Identity Lockup */}
+              <div className="flex items-center gap-3">
+                <button
+                  onClick={() => switchMode('store')}
+                  className="flex items-center gap-2.5 text-start group cursor-pointer"
+                  title={isAr ? 'زيارة المتجر المستقل' : 'View Store'}
+                >
+                  <div
+                    className="w-9 h-9 rounded-xl flex items-center justify-center text-white font-extrabold text-sm shadow-xs"
+                    style={{ backgroundColor: activeStore?.accentColor || '#059669' }}
+                  >
+                    {(activeStore.nameAr || activeStore.name).charAt(0)}
+                  </div>
+                  <div className="flex flex-col">
+                    <span className="font-extrabold text-sm text-slate-900 group-hover:text-emerald-700 transition-colors">
+                      {isAr ? activeStore.nameAr : activeStore.name}
+                    </span>
+                    <span className="text-[10px] text-slate-400 font-mono">
+                      {activeStore.settings.subdomain}
+                    </span>
+                  </div>
+                </button>
+
+                <span className="hidden sm:inline-block px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                  {isAr ? 'لوحة تحكم المتجر المستقل' : 'Independent Store Admin'}
+                </span>
+              </div>
+
+              {/* Actions: View Store, Currency, Language, Logout */}
+              <div className="flex items-center gap-2.5">
+                <button
+                  onClick={() => switchMode('store')}
+                  className="px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold flex items-center gap-1.5 shadow-sm transition-all cursor-pointer"
+                >
+                  <ShoppingBag className="w-3.5 h-3.5" />
+                  <span>{isAr ? 'عرض المتجر المستقل 🛍️' : 'View Store 🛍️'}</span>
+                </button>
+
+                {/* Independent Platform Portal Link Button */}
+                <button
+                  onClick={() => setIsGlobalShareModalOpen(true)}
+                  className="px-3 py-2 rounded-xl bg-amber-50 hover:bg-amber-100 border border-amber-200 text-amber-900 text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer shadow-2xs"
+                  title={isAr ? 'عرض ونسخ رابط منصة وصلة ديزاد المستقل (?portal=platform)' : 'View & copy independent platform link'}
+                >
+                  <ExternalLink className="w-3.5 h-3.5 text-amber-700" />
+                  <span className="hidden md:inline">{isAr ? 'رابط المنصة 🌐' : 'Platform Link 🌐'}</span>
+                </button>
+
+                {/* Currency Selector */}
+                <select
+                  value={currency}
+                  onChange={(e) => setCurrency(e.target.value as Currency)}
+                  className="bg-slate-100 border border-slate-200 text-xs font-bold rounded-xl px-2.5 py-2 text-slate-700 focus:outline-none cursor-pointer"
+                  aria-label="Currency"
+                >
+                  <option value="DZD">د.ج (DZD)</option>
+                  <option value="EUR">€ (EUR)</option>
+                  <option value="USD">$ (USD)</option>
+                  <option value="SAR">ر.س (SAR)</option>
+                </select>
+
+                {/* Language Switcher */}
+                <button
+                  onClick={() => setLanguage(language === 'ar' ? 'en' : 'ar')}
+                  className="px-2.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 border border-slate-200 text-xs font-bold text-slate-700 cursor-pointer"
+                >
+                  {language === 'ar' ? 'EN' : 'عربي'}
+                </button>
+
+                {/* Logout */}
+                <button
+                  onClick={handleLogout}
+                  className="p-2 rounded-xl bg-slate-100 hover:bg-rose-50 hover:text-rose-600 text-slate-500 cursor-pointer transition-colors"
+                  title={isAr ? 'تسجيل الخروج' : 'Logout'}
+                >
+                  <LogOut className="w-4 h-4" />
+                </button>
+              </div>
+
+            </div>
+          </div>
+        </header>
+
+        {/* Dashboard Content */}
+        <main className="flex-1">
+          <StoreDashboardView
+            store={activeStore}
+            products={products}
+            orders={orders}
+            customers={customers}
+            coupons={coupons}
+            currentUser={currentUser}
+            currency={currency}
+            language={language}
+            supabaseConfig={supabaseConfig}
+            gitHubConfig={gitHubConfig}
+            features={features}
+            storeFeatures={storeFeatures}
+            onToggleFeature={handleToggleFeature}
+            onRemoveFeature={handleRemoveFeature}
+            onRestoreFeature={handleRestoreFeature}
+            onOpenFeaturesModal={() => setIsFeaturesModalOpen(true)}
+            onToggleStoreFeature={handleToggleStoreFeature}
+            onRemoveStoreFeature={handleRemoveStoreFeature}
+            onRestoreStoreFeature={handleRestoreStoreFeature}
+            onEnableAllStoreFeatures={handleEnableAllStoreFeatures}
+            onResetDefaultStoreFeatures={handleResetDefaultStoreFeatures}
+            onAddStoreFeature={handleAddStoreFeature}
+            onUpdateStoreFeature={handleUpdateStoreFeature}
+            onUpdateStoreSettings={handleUpdateStoreSettings}
+            onUpdateStorePlan={handleUpdateStorePlan}
+            onAddProduct={handleAddProduct}
+            onDeleteProduct={handleDeleteProduct}
+            onUpdateProductStock={handleUpdateProductStock}
+            onUpdateOrderStatus={handleUpdateOrderStatus}
+            onUpdateOrderCallStatus={handleUpdateOrderCallStatus}
+            onDispatchOrderToCarrier={handleDispatchOrderToCarrier}
+            onAddCoupon={handleAddCoupon}
+            onToggleCoupon={handleToggleCoupon}
+            onOpenLivePreview={() => switchMode('store')}
+            onOpenStandaloneStore={() => switchMode('store')}
+            onOpenCreateNewStore={() => switchMode('register')}
+            onLogout={handleLogout}
+          />
+        </main>
       </div>
     );
   }
@@ -582,23 +763,12 @@ export default function App() {
 
                 <button
                   onClick={() => switchMode('dashboard')}
-                  className={`px-3 py-2 rounded-lg transition-colors cursor-pointer ${
-                    appMode === 'dashboard' ? 'text-emerald-700 bg-emerald-50/90 font-extrabold' : 'hover:text-slate-900 hover:bg-slate-50'
-                  }`}
+                  className="px-3 py-2 rounded-lg transition-colors cursor-pointer text-slate-600 hover:text-slate-900 hover:bg-slate-50"
                 >
                   {isAr ? 'لوحة تحكم المتجر' : 'Dashboard'}
                 </button>
 
-                {isFeatureActive('plansAndUpgrades') && (
-                  <button
-                    onClick={() => switchMode('pricing')}
-                    className={`px-3 py-2 rounded-lg transition-colors cursor-pointer ${
-                      appMode === 'pricing' ? 'text-emerald-700 bg-emerald-50/90 font-extrabold' : 'hover:text-slate-900 hover:bg-slate-50'
-                    }`}
-                  >
-                    {isAr ? 'الباقات والأسعار' : 'Pricing'}
-                  </button>
-                )}
+
 
                 {/* Independent Standalone Store Direct Access Button */}
                 <button
@@ -719,9 +889,7 @@ export default function App() {
           </button>
           <button
             onClick={() => switchMode('dashboard')}
-            className={`px-2.5 py-1.5 rounded-lg whitespace-nowrap cursor-pointer ${
-              appMode === 'dashboard' ? 'bg-white text-emerald-700 shadow-2xs font-extrabold' : 'text-slate-600'
-            }`}
+            className="px-2.5 py-1.5 rounded-lg whitespace-nowrap cursor-pointer text-slate-600 hover:text-slate-900"
           >
             {isAr ? 'لوحة التحكم' : 'Dashboard'}
           </button>
@@ -731,14 +899,7 @@ export default function App() {
           >
             <span>{isAr ? 'المتجر المستقل 🛍️' : 'Store 🛍️'}</span>
           </button>
-          <button
-            onClick={() => switchMode('pricing')}
-            className={`px-2.5 py-1.5 rounded-lg whitespace-nowrap cursor-pointer ${
-              appMode === 'pricing' ? 'bg-white text-emerald-700 shadow-2xs font-extrabold' : 'text-slate-600'
-            }`}
-          >
-            {isAr ? 'الباقات' : 'Pricing'}
-          </button>
+
         </div>
       </header>
 
@@ -756,48 +917,6 @@ export default function App() {
           />
         )}
 
-        {appMode === 'dashboard' && (
-          <StoreDashboardView
-            store={activeStore}
-            products={products}
-            orders={orders}
-            customers={customers}
-            coupons={coupons}
-            currentUser={currentUser}
-            currency={currency}
-            language={language}
-            supabaseConfig={supabaseConfig}
-            gitHubConfig={gitHubConfig}
-            features={features}
-            storeFeatures={storeFeatures}
-            onToggleFeature={handleToggleFeature}
-            onRemoveFeature={handleRemoveFeature}
-            onRestoreFeature={handleRestoreFeature}
-            onOpenFeaturesModal={() => setIsFeaturesModalOpen(true)}
-            onToggleStoreFeature={handleToggleStoreFeature}
-            onRemoveStoreFeature={handleRemoveStoreFeature}
-            onRestoreStoreFeature={handleRestoreStoreFeature}
-            onEnableAllStoreFeatures={handleEnableAllStoreFeatures}
-            onResetDefaultStoreFeatures={handleResetDefaultStoreFeatures}
-            onAddStoreFeature={handleAddStoreFeature}
-            onUpdateStoreFeature={handleUpdateStoreFeature}
-            onUpdateStoreSettings={handleUpdateStoreSettings}
-            onUpdateStorePlan={handleUpdateStorePlan}
-            onAddProduct={handleAddProduct}
-            onDeleteProduct={handleDeleteProduct}
-            onUpdateProductStock={handleUpdateProductStock}
-            onUpdateOrderStatus={handleUpdateOrderStatus}
-            onUpdateOrderCallStatus={handleUpdateOrderCallStatus}
-            onDispatchOrderToCarrier={handleDispatchOrderToCarrier}
-            onAddCoupon={handleAddCoupon}
-            onToggleCoupon={handleToggleCoupon}
-            onOpenLivePreview={() => setPreviewingStore(activeStore)}
-            onOpenStandaloneStore={() => switchMode('store')}
-            onOpenCreateNewStore={() => switchMode('register')}
-            onBackToPlatform={() => switchMode('landing')}
-            onLogout={handleLogout}
-          />
-        )}
 
         {appMode === 'register' && (
           <RegisterStoreView
@@ -810,18 +929,15 @@ export default function App() {
         )}
 
         {appMode === 'pricing' && (
-          <div className="py-12">
-            <PlansPricingView
-              currentPlan={activeStore.plan}
-              onChangePlan={handleUpdateStorePlan}
-              language={language}
-              currency={currency}
-              onSelectRegisterPlan={(planId) => {
-                handleUpdateStorePlan(planId);
-                switchMode('register');
-              }}
-            />
-          </div>
+          <LandingPageView
+            language={language}
+            currency={currency}
+            onRegisterSuccess={(store) => handleRegisterSuccess(store, 'store')}
+            onOpenLogin={() => setIsLoginModalOpen(true)}
+            onGoToDashboard={() => switchMode('dashboard')}
+            onOpenLivePreview={() => switchMode('store')}
+            existingStore={activeStore}
+          />
         )}
       </main>
 
@@ -906,12 +1022,12 @@ export default function App() {
                   <input
                     type="text"
                     readOnly
-                    value={typeof window !== 'undefined' ? window.location.origin : 'https://ais-pre-dpfft72pkywmphfmost32j-8726732667.europe-west2.run.app'}
+                    value={typeof window !== 'undefined' ? `${window.location.origin}${window.location.pathname}?portal=platform` : 'https://wasladz.app/?portal=platform'}
                     className="flex-1 bg-slate-900 text-emerald-300 font-mono text-xs rounded-xl p-2.5 border border-slate-800 select-all focus:outline-none"
                   />
                   <button
                     onClick={() => {
-                      const url = typeof window !== 'undefined' ? window.location.origin : 'https://ais-pre-dpfft72pkywmphfmost32j-8726732667.europe-west2.run.app';
+                      const url = typeof window !== 'undefined' ? `${window.location.origin}${window.location.pathname}?portal=platform` : 'https://wasladz.app/?portal=platform';
                       navigator.clipboard?.writeText(url);
                       setCopiedLinkType('platform');
                       setTimeout(() => setCopiedLinkType(null), 2500);

@@ -41,15 +41,15 @@ export const PlansPricingView: React.FC<PlansPricingViewProps> = ({
       <div className="text-center max-w-2xl mx-auto space-y-3">
         <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-semibold">
           <Sparkles className="w-3.5 h-3.5 text-emerald-600" />
-          <span>{isAr ? 'باقات الاشتراك الشهرية بالدينار الجزائري' : 'SUBSCRIPTION PLANS IN DZD'}</span>
+          <span>{isAr ? 'منصة مجانية 100% ودون أي اشتراكات' : '100% FREE - NO SUBSCRIPTIONS'}</span>
         </div>
         <h2 className="text-3xl font-extrabold text-slate-900 tracking-tight">
-          {isAr ? 'باقات واضحة وشفافة لنمو تجارتك مع 0% عمولة' : 'Transparent Pricing for Growing Merchants with 0% Commission'}
+          {isAr ? 'تجارة إلكترونية مجانية بالكامل لجميع التجار وبدون قيود' : '100% Free E-Commerce Platform with Zero Subscriptions'}
         </h2>
         <p className="text-sm text-slate-600 leading-relaxed">
           {isAr
-            ? 'ابدأ مجاناً تماماً لتجربة أول 30 طلباً، وقم بالترقية للخطة الاحترافية في أي وقت للحصول على طلبات غير محدودة، دومين خاص، وربط تلقائي مع 102 شركة توصيل وبـ 0% عمولة على المبيعات.'
-            : 'Start free with 30 trial orders, and scale with our Pro plan for unlimited orders, custom domains, 102+ courier integrations, and 0% sales commission.'}
+            ? 'تم إلغاء كافة الاشتراكات الشهرية! المنصة الآن مجانية 100% لجميع التجار مع تحكم كامل في مظهر وخصائص المتجر بنظام الزر والتعديل والحذف، وبـ 0% عمولة على المبيعات.'
+            : 'All subscription fees removed! The platform is now 100% free for all merchants with unlimited orders, full 3-button storefront controls, and 0% sales commission.'}
         </p>
       </div>
 
@@ -102,14 +102,10 @@ export const PlansPricingView: React.FC<PlansPricingViewProps> = ({
                 {/* Price Display in DZD */}
                 <div className="flex items-baseline gap-1.5 font-mono">
                   <span className="text-3xl sm:text-4xl font-black text-slate-900 tracking-tight">
-                    {plan.price === 0 ? (
-                      isAr ? '0 د.ج' : '0 DZD'
-                    ) : (
-                      `${plan.price.toLocaleString()} ${isAr ? 'د.ج' : 'DZD'}`
-                    )}
+                    {isAr ? '0 د.ج' : '0 DZD'}
                   </span>
-                  <span className="text-xs text-slate-500 font-sans font-medium">
-                    {plan.price === 0 ? (isAr ? 'تجربة مجانية' : 'free trial') : (isAr ? '/ شهرياً' : '/ month')}
+                  <span className="text-xs text-emerald-600 font-sans font-bold bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200">
+                    {isAr ? 'مجاني للأبد بدون اشتراك' : 'Free Forever - 0 Subs'}
                   </span>
                 </div>
 
@@ -118,7 +114,7 @@ export const PlansPricingView: React.FC<PlansPricingViewProps> = ({
                   <div>
                     <span className="text-slate-500 block text-[11px]">{isAr ? 'سعة المنتجات' : 'Products Limit'}</span>
                     <span className="font-bold text-slate-800">
-                      {plan.maxProducts === -1 ? (isAr ? 'غير محدود' : 'Unlimited') : `${plan.maxProducts} ${isAr ? 'منتجات' : 'products'}`}
+                      {isAr ? 'غير محدود 🚀' : 'Unlimited 🚀'}
                     </span>
                   </div>
                   <div>
@@ -155,22 +151,18 @@ export const PlansPricingView: React.FC<PlansPricingViewProps> = ({
                   onClick={() => handleSelect(plan.id)}
                   className={`w-full py-3.5 px-4 rounded-xl font-bold text-xs flex items-center justify-center gap-2 transition-all cursor-pointer ${
                     isCurrent
-                      ? 'bg-slate-100 text-slate-400 cursor-default border border-slate-200'
+                      ? 'bg-emerald-50 text-emerald-800 border-2 border-emerald-300 font-black cursor-default'
                       : isPro
                       ? 'bg-emerald-600 hover:bg-emerald-700 text-white shadow-md shadow-emerald-600/20 active:scale-98'
                       : 'bg-slate-900 hover:bg-slate-800 text-white active:scale-98 shadow-sm'
                   }`}
                 >
                   {isCurrent ? (
-                    <span>{isAr ? 'الخطة النشطة حالياً' : 'Current Active Plan'}</span>
+                    <span>{isAr ? 'خطة متجرك النشطة (مجانية 100% ✓)' : 'Current Active Plan (Free 100% ✓)'}</span>
                   ) : (
                     <>
                       <span>
-                        {plan.id === 'enterprise'
-                          ? isAr ? 'الترقية لخطة الشركات' : 'Upgrade to Enterprise'
-                          : isPro
-                          ? isAr ? 'الترقية إلى الخطة الاحترافية' : 'Upgrade to Pro'
-                          : isAr ? 'اختيار الخطة المجانية' : 'Choose Free Plan'}
+                        {isAr ? 'تفعيل هذه الباقة المجانية فوراً ⚡' : 'Activate Free Plan ⚡'}
                       </span>
                       {isAr ? <ArrowLeft className="w-4 h-4" /> : <ArrowRight className="w-4 h-4" />}
                     </>

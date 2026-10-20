@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
 import { PlanType, Store, Language, Currency } from '../types';
-import { PLANS } from '../data/initialData';
+
 import { 
   Store as StoreIcon, Sparkles, Check, ArrowRight, ArrowLeft, 
   ShieldCheck, Globe, Zap, CheckCircle2, Copy, ExternalLink,
-  Laptop, ShoppingBag, BarChart2
+  Laptop, ShoppingBag, BarChart2, Sliders
 } from 'lucide-react';
 
 interface RegisterStoreViewProps {
@@ -31,7 +31,6 @@ export const RegisterStoreView: React.FC<RegisterStoreViewProps> = ({
   const [category, setCategory] = useState('Fashion & Apparel');
   const [ownerName, setOwnerName] = useState('');
   const [ownerEmail, setOwnerEmail] = useState('');
-  const [selectedPlan, setSelectedPlan] = useState<PlanType>('free');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [copiedLink, setCopiedLink] = useState(false);
 
@@ -73,7 +72,7 @@ export const RegisterStoreView: React.FC<RegisterStoreViewProps> = ({
         categoryAr: category,
         ownerName: ownerName.trim(),
         ownerEmail: ownerEmail.trim().toLowerCase(),
-        plan: selectedPlan,
+        plan: 'free',
         accentColor: '#059669',
         totalSales: 0,
         ordersCount: 0,
@@ -82,7 +81,7 @@ export const RegisterStoreView: React.FC<RegisterStoreViewProps> = ({
         githubConnected: true,
         settings: {
           subdomain: `${cleanSlug}.wasladz.app`,
-          customDomain: selectedPlan === 'pro' ? `www.${cleanSlug}.dz` : undefined,
+          customDomain: undefined,
           themeColor: '#059669',
           shippingRate: 450,
           freeShippingThreshold: 8000,
@@ -141,10 +140,11 @@ export const RegisterStoreView: React.FC<RegisterStoreViewProps> = ({
 
           {/* Store Independence Details Box */}
           <div className="p-6 rounded-2xl bg-slate-50 border border-slate-200 text-start space-y-4">
+            {/* 1. Customer Store URL */}
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-200 pb-4">
               <div>
-                <span className="text-xs text-slate-500 font-medium block">
-                  {isAr ? 'رابط متجرك المستقل المخصص للزبائن:' : 'Independent Store Public URL:'}
+                <span className="text-xs text-slate-500 font-bold block">
+                  {isAr ? '1. رابط متجرك المستقل المخصص للزبائن:' : '1. Independent Store Public URL (For Customers):'}
                 </span>
                 <span className="font-mono font-bold text-slate-900 text-sm sm:text-base flex items-center gap-2 mt-0.5">
                   <Globe className="w-4 h-4 text-emerald-600" />
@@ -153,22 +153,80 @@ export const RegisterStoreView: React.FC<RegisterStoreViewProps> = ({
               </div>
 
               <button
+                type="button"
                 onClick={handleCopyStoreUrl}
                 className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-white hover:bg-slate-100 text-slate-700 border border-slate-300 text-xs font-bold transition-all cursor-pointer self-start sm:self-auto"
               >
                 <Copy className="w-3.5 h-3.5" />
-                <span>{copiedLink ? (isAr ? 'تم النسخ بنجاح ✓' : 'Copied ✓') : (isAr ? 'نسخ الرابط' : 'Copy URL')}</span>
+                <span>{copiedLink ? (isAr ? 'تم النسخ بنجاح ✓' : 'Copied ✓') : (isAr ? 'نسخ رابط المتجر' : 'Copy Store URL')}</span>
               </button>
             </div>
 
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-xs">
+            {/* 2. Merchant Admin Dashboard Direct Link */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-200 pb-4">
+              <div>
+                <span className="text-xs text-slate-500 font-bold block">
+                  {isAr ? '2. رابط لوحة تحكم وإدارة المتجر (للتاجر فقط):' : '2. Store Admin Dashboard Direct URL:'}
+                </span>
+                <span className="font-mono font-bold text-slate-900 text-xs sm:text-sm flex items-center gap-2 mt-0.5">
+                  <Sliders className="w-4 h-4 text-indigo-600" />
+                  <span>https://{createdStore.settings.subdomain}/admin</span>
+                </span>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => {
+                  const adminUrl = `${window.location.origin}${window.location.pathname}?mode=dashboard&store=${createdStore.slug}`;
+                  navigator.clipboard?.writeText(adminUrl);
+                  alert(isAr ? 'تم نسخ رابط لوحة تحكم المتجر بنجاح!' : 'Admin URL copied!');
+                }}
+                className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-white hover:bg-slate-100 text-slate-700 border border-slate-300 text-xs font-bold transition-all cursor-pointer self-start sm:self-auto"
+              >
+                <Copy className="w-3.5 h-3.5" />
+                <span>{isAr ? 'نسخ رابط الإدارة' : 'Copy Admin URL'}</span>
+              </button>
+            </div>
+
+            {/* 3. Independent Platform Portal Link (If ever needed) */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-200 pb-4">
+              <div>
+                <span className="text-xs text-slate-500 font-bold block">
+                  {isAr ? '3. رابط منصة وصلة ديزاد (رابط مستقل تماماً):' : '3. WaslaDZ Platform Portal (Independent Link):'}
+                </span>
+                <span className="font-mono text-slate-600 text-xs flex items-center gap-2 mt-0.5">
+                  <ExternalLink className="w-3.5 h-3.5 text-slate-400" />
+                  <span>https://wasladz.app/?portal=platform</span>
+                </span>
+                <p className="text-[11px] text-emerald-700 font-semibold mt-1">
+                  {isAr 
+                    ? '✨ متجرك مستقل تماماً الآن مثل كبرى المتاجر العالمية ولن ترى واجهة المنصة بعد الآن إلا عبر هذا الرابط المستقل.' 
+                    : '✨ Your store is completely independent. You will not see the platform again except via this independent link.'}
+                </p>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => {
+                  const portalUrl = `${window.location.origin}${window.location.pathname}?portal=platform`;
+                  navigator.clipboard?.writeText(portalUrl);
+                  alert(isAr ? 'تم نسخ رابط منصة المتاجر المستقل!' : 'Platform portal URL copied!');
+                }}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition-all cursor-pointer self-start sm:self-auto"
+              >
+                <Copy className="w-3.5 h-3.5" />
+                <span>{isAr ? 'نسخ رابط المنصة' : 'Copy Platform Link'}</span>
+              </button>
+            </div>
+
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-xs pt-1">
               <div>
                 <span className="text-slate-400 block">{isAr ? 'التاجر' : 'Merchant'}</span>
                 <span className="font-bold text-slate-800">{createdStore.ownerName}</span>
               </div>
               <div>
-                <span className="text-slate-400 block">{isAr ? 'خطة الاشتراك' : 'Plan'}</span>
-                <span className="font-bold text-emerald-700 uppercase">{createdStore.plan}</span>
+                <span className="text-slate-400 block">{isAr ? 'حالة الحساب' : 'Account Status'}</span>
+                <span className="font-bold text-emerald-700">{isAr ? 'مجاني 100%' : '100% Free'}</span>
               </div>
               <div>
                 <span className="text-slate-400 block">{isAr ? 'التصنيف' : 'Category'}</span>
@@ -176,7 +234,7 @@ export const RegisterStoreView: React.FC<RegisterStoreViewProps> = ({
               </div>
               <div>
                 <span className="text-slate-400 block">{isAr ? 'حالة الاستقلالية' : 'Independence'}</span>
-                <span className="font-bold text-emerald-600">{isAr ? 'مستقل 100%' : '100% Standalone'}</span>
+                <span className="font-bold text-emerald-600">{isAr ? 'مستقل 100% 🚀' : '100% Standalone 🚀'}</span>
               </div>
             </div>
           </div>
@@ -437,75 +495,7 @@ export const RegisterStoreView: React.FC<RegisterStoreViewProps> = ({
           </div>
         </div>
 
-        {/* Step 3: Choose Plan */}
-        <div className="space-y-4">
-          <div className="flex items-center gap-2 border-b border-slate-100 pb-3">
-            <div className="w-7 h-7 rounded-lg bg-emerald-600 text-white font-bold flex items-center justify-center text-xs shadow-xs">
-              3
-            </div>
-            <div className="flex items-center justify-between flex-1">
-              <div>
-                <h3 className="text-base font-bold text-slate-900">
-                  {isAr ? 'اختر خطة المتجر' : 'Select Initial Store Plan'}
-                </h3>
-                <p className="text-[11px] text-slate-500">
-                  {isAr ? 'كلا الخطتين تمنحانك متجراً مستقلاً تماماً' : 'Both plans include a 100% independent store'}
-                </p>
-              </div>
-              <span className="text-xs text-slate-500 hidden sm:inline">
-                {isAr ? 'يمكنك الترقية لاحقاً' : 'Changeable anytime'}
-              </span>
-            </div>
-          </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {PLANS.map((plan) => {
-              const isSelected = selectedPlan === plan.id;
-
-              return (
-                <div
-                  key={plan.id}
-                  onClick={() => setSelectedPlan(plan.id)}
-                  className={`p-5 rounded-2xl border cursor-pointer transition-all ${
-                    isSelected
-                      ? 'bg-emerald-50/60 border-emerald-600 ring-2 ring-emerald-600/15 shadow-sm'
-                      : 'bg-white border-slate-200 hover:border-slate-300'
-                  }`}
-                >
-                  <div className="flex items-center justify-between mb-3">
-                    <div className="flex items-center gap-2">
-                      <div className={`w-4 h-4 rounded-full border flex items-center justify-center ${
-                        isSelected ? 'border-emerald-600 bg-emerald-600 text-white' : 'border-slate-300'
-                      }`}>
-                        {isSelected && <Check className="w-2.5 h-2.5 stroke-[3]" />}
-                      </div>
-                      <span className="font-bold text-slate-900 text-sm">
-                        {isAr ? plan.nameAr : plan.name}
-                      </span>
-                    </div>
-
-                    <span className="font-extrabold text-slate-900 text-sm font-mono">
-                      {plan.price === 0 ? (isAr ? '0 د.ج (30 طلب مجاناً)' : 'Free') : `${plan.price} ${isAr ? 'د.ج/شهر' : 'DZD/mo'}`}
-                    </span>
-                  </div>
-
-                  <p className="text-xs text-slate-600 mb-3">
-                    {isAr ? plan.descriptionAr : plan.description}
-                  </p>
-
-                  <ul className="space-y-1.5 text-xs text-slate-600 border-t border-slate-100 pt-3">
-                    {(isAr ? plan.featuresAr : plan.features).slice(0, 3).map((feat, i) => (
-                      <li key={i} className="flex items-center gap-2">
-                        <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
-                        <span>{feat}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              );
-            })}
-          </div>
-        </div>
 
         {/* Submit Button */}
         <div className="pt-4 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-4">

@@ -77,87 +77,84 @@ export const ALGERIA_CARRIERS: CarrierConfig[] = [
 export const PLANS: PlanDetails[] = [
   {
     id: 'free',
-    name: 'Starter Trial',
-    nameAr: 'خطة البداية المجانية (30 طلب مجاني)',
+    name: 'Free Forever Plan',
+    nameAr: 'الخطة المجانية الشاملة (0 د.ج مدى الحياة)',
     price: 0,
     priceSar: 0,
-    description: 'Perfect for launching and testing your first COD store in Algeria with 0 DZD upfront.',
-    descriptionAr: 'ابدأ تجارتك وجرب المنصة بدون دفع أي دينار مسبقاً، حتى 30 طلباً مجانياً وبـ 0% عمولة.',
-    maxProducts: 10,
+    description: '100% Free forever with no subscriptions, no credit card, and 0% commission.',
+    descriptionAr: 'مجانية 100% مدى الحياة بدون أي اشتراكات شهرية، بدون بطاقة بنكية، وبـ 0% عمولة على المبيعات.',
+    maxProducts: -1,
     transactionFee: '0%',
+    isPopular: true,
     features: [
-      'Up to 30 free orders included',
-      'Free yourstore.wasladz.app subdomain',
-      'All 58 Algerian Wilayas delivery engine',
-      'Cash on Delivery (COD) 1-click checkout',
-      'Basic fraud detection',
-      'Orders and inventory manager'
+      '100% Free Forever - No subscriptions needed',
+      'Unlimited products & unlimited orders',
+      '0% sales commission',
+      'Free yourstore.wasladz.app subdomain + custom domain support',
+      'All 58 Algerian Wilayas delivery engine with Yalidine & ZR Express',
+      'Instant Cash on Delivery (COD) 1-click checkout',
+      '3-in-1 Homepage Control: Toggle, Edit & Delete all sections live',
+      'WhatsApp direct support and order notifications'
     ],
     featuresAr: [
-      'حتى 30 طلب مجاني لتجربة المنصة بدون بطاقة بنكية',
-      'نطاق فرعي مجاني yourstore.wasladz.app',
-      'نظام شحن الـ 58 ولاية (توصيل للمنزل أو المكتب)',
-      'نموذج الدفع عند الاستلام (COD) بنقرة واحدة',
-      'حماية أساسية من الطلبات الوهمية والمكررة',
-      'إدارة المنتجات والمخزون والطلبات'
+      'مجانية 100% مدى الحياة بدون أي اشتراكات أو رسوم',
+      'عدد منتجات غير محدود وطلبات غير محدودة',
+      '0% عمولة على كافة المبيعات والأرباح لك بالكامل',
+      'نطاق فرعي مجاني مع دعم ربط النطاقات الخاصة',
+      'نظام شحن الـ 58 ولاية كامل مع ياليدين وزد آر إكسبريس',
+      'نموذج الدفع عند الاستلام (COD) بنقرة واحدة سريعة',
+      'نظام التحكم الثلاثي بالصفحة الرئيسية: زر تفعيل، زر تعديل، وزر حذف',
+      'زر دعم ومحادثة واتساب مدمج مع تتبع الطلبات'
     ]
   },
   {
     id: 'pro',
-    name: 'Pro Merchant Plan',
-    nameAr: 'الخطة الاحترافية (الأكثر طلباً)',
-    price: 1000,
-    priceSar: 28,
-    description: 'Unlimited orders, zero commission, and full courier integration for scale.',
-    descriptionAr: 'طلبات غير محدودة و0% عمولة مع ربط ياليدين وزد آر وإيكوتراك وصفحات هبوط بالذكاء الاصطناعي.',
-    maxProducts: -1, // Unlimited
+    name: 'Pro Unlocked (Free)',
+    nameAr: 'الباقة المتقدمة غير المحدودة (مجاناً 0 د.ج)',
+    price: 0,
+    priceSar: 0,
+    description: 'All advanced features unlocked for all merchants at 0 DZD cost.',
+    descriptionAr: 'جميع الخصائص المتقدمة مفتوحة مجاناً لكافة التجار بدون أي رسوم اشتراك.',
+    maxProducts: -1,
     transactionFee: '0%',
-    isPopular: true,
+    isPopular: false,
     features: [
-      'Unlimited orders & 0% sales commission',
-      'Native Yalidine, ZR Express & Ecotrack integration',
-      'AI-Powered Landing Page builder (Darija, FR, AR)',
+      'All Pro features included at 0 DZD',
+      'Unlimited orders & unlimited stores',
+      'AI-Powered Landing Page builder',
       'Smart Anti-Fraud & Phone Verification Shield',
       'Multi-Pixel Engine (Meta, TikTok, Snapchat, Google)',
-      'Call center confirmation logging (No answer, closed)',
-      'Custom domain connection (e.g. www.mystore.dz)',
-      'Automated thermal waybill (Bordereau) printing'
+      'Automated thermal waybill printing'
     ],
     featuresAr: [
-      'طلبات غير محدودة و 0% عمولة على المبيعات',
-      'ربط وتتبع تلقائي مع Yalidine و ZR Express و Ecotrack',
-      'منشئ صفحات الهبوط السريعة بالذكاء الاصطناعي (بالدارجة والفرنسية)',
+      'جميع ميزات Pro مشمولة مجاناً بـ 0 د.ج',
+      'طلبات غير محدودة ومتاجر متعددة',
+      'منشئ صفحات الهبوط السريعة بالذكاء الاصطناعي',
       'نظام فحص وتصفية الطلبات الوهمية وأرقام الهواتف',
       'ربط بكسلات التتبع (Facebook, TikTok, Snapchat, Google)',
-      'نظام تسجيل محاولات الاتصال (لم يرد، مغلق، مؤكد)',
-      'ربط نطاق خاص مخصص بك (مثال: www.mystore.dz أو .com)',
       'طباعة بوالص الشحن الحرارية (Bordereau) بالباركود'
     ]
   },
   {
     id: 'enterprise',
-    name: 'Enterprise Scale',
-    nameAr: 'خطة الشركات ومراكز الاتصال',
-    price: 5500,
-    priceSar: 150,
-    description: 'Designed for scaling e-commerce brands, call centers, and multi-staff teams.',
-    descriptionAr: 'مخصصة للعلامات التجارية وفرق العمل ومراكز الاتصال لعمليات شحن ضخمة مع مدير حساب VIP.',
+    name: 'Enterprise Unlocked (Free)',
+    nameAr: 'باقة الشركات والفرق (مجاناً 0 د.ج)',
+    price: 0,
+    priceSar: 0,
+    description: 'Call centers, staff accounts and API integrations at 0 DZD.',
+    descriptionAr: 'حسابات موظفي الكول سنتر وواجهات API مفتوحة مجاناً لجميع المستخدمين.',
     maxProducts: -1,
     transactionFee: '0%',
     features: [
-      'Up to 25 staff & call-center team accounts',
+      'Multi-staff & call-center team accounts included free',
       'Multi-carrier automated routing & bulk waybills',
       'Unlimited landing pages & custom stores',
-      'Dedicated VIP account manager via WhatsApp',
-      'Priority delivery rates & carrier API sync',
-      'Developer REST API (21 permissions) & Webhooks'
+      'Developer REST API & Webhooks'
     ],
     featuresAr: [
-      'حتى 25 حساب لفريق العمل وموظفي الكول سنتر',
+      'حسابات موظفي الكول سنتر وفريق العمل مجانية',
       'توجيه الشحنات الذكي وطباعة البوالص بالجملة',
       'عدد غير محدود من صفحات الهبوط والمتاجر',
-      'مدير حساب خاص ودعم VIP عبر واتساب',
-      'أسعار شحن تفضيلية ومزامنة سحابية مخصصة',
       'بوابة المطورين وواجهة API متقدمة مع Webhooks'
     ]
   }
@@ -646,8 +643,8 @@ export const INITIAL_PLATFORM_FEATURES: PlatformFeatureItem[] = [
     description: 'Switch between Free Starter, Pro Merchant (1,000 DZD), and Enterprise Scale (5,500 DZD).',
     descriptionAr: 'الترقية بين الباقات بدون أي اقتطاع أو نسبة من مبيعاتك وأرباحك.',
     category: 'marketing',
-    isEnabled: true,
-    isRemoved: false
+    isEnabled: false,
+    isRemoved: true
   },
   {
     id: 'abandonedCartRecovery',
@@ -692,6 +689,17 @@ export const INITIAL_PLATFORM_FEATURES: PlatformFeatureItem[] = [
 ];
 
 export const INITIAL_STORE_FEATURES: StoreFeatureItem[] = [
+  {
+    id: 'storeAppearance',
+    name: 'Store Appearance, Colors & Theme',
+    nameAr: 'مظهر وهوية المتجر والألوان الرئيسية',
+    description: 'Customize brand accent color, header style, and storefront layout.',
+    descriptionAr: 'التحكم في لون الهوية الرئيسي للمتجر، نمط الترويسة، ومظهر بطاقات المنتجات.',
+    category: 'storefront',
+    isEnabled: true,
+    isRemoved: false,
+    customValue: '#059669'
+  },
   {
     id: 'topAnnouncement',
     name: 'Top Flash Promo Announcement Bar',

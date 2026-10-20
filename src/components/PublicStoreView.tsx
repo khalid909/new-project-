@@ -151,6 +151,120 @@ export const PublicStoreView: React.FC<PublicStoreViewProps> = ({
     showToast(isAr ? `تم حفظ وتطبيق تعديل قسم "${updated.nameAr}" في الصفحة الرئيسية بنجاح ✓` : `Section updated successfully ✓`);
   };
 
+  // Appearance & Theme State (Color, Name, Slogan)
+  const [isAppearanceModalOpen, setIsAppearanceModalOpen] = useState<boolean>(false);
+  const [appearanceColor, setAppearanceColor] = useState<string>(store.accentColor || '#059669');
+  const [appearanceNameAr, setAppearanceNameAr] = useState<string>(store.nameAr);
+  const [appearanceSloganAr, setAppearanceSloganAr] = useState<string>(store.sloganAr);
+
+  const handleOpenAppearanceModal = () => {
+    setAppearanceColor(store.accentColor || '#059669');
+    setAppearanceNameAr(store.nameAr);
+    setAppearanceSloganAr(store.sloganAr);
+    setIsAppearanceModalOpen(true);
+  };
+
+  const handleSaveAppearance = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (onUpdateStore) {
+      onUpdateStore({
+        accentColor: appearanceColor,
+        nameAr: appearanceNameAr.trim() || store.nameAr,
+        name: appearanceNameAr.trim() || store.name,
+        sloganAr: appearanceSloganAr.trim() || store.sloganAr
+      });
+    }
+    const appFeat = getFeature('storeAppearance');
+    if (appFeat && onUpdateStoreFeature) {
+      onUpdateStoreFeature({
+        ...appFeat,
+        customValue: appearanceColor
+      });
+    }
+    setIsAppearanceModalOpen(false);
+    showToast(isAr ? 'تم تحديث هوية ومظهر المتجر والألوان بنجاح ✓' : 'Store appearance updated successfully ✓');
+  };
+
+  // 3-Button Control Bar Renderer for Sections
+  const renderSectionControlStrip = (
+    featureId: string,
+    defaultNameAr: string,
+    defaultDescAr: string,
+    defaultCustomVal: string = ''
+  ) => {
+    if (!isMerchantMode) return null;
+    const feat = getFeature(featureId) || {
+      id: featureId,
+      name: defaultNameAr,
+      nameAr: defaultNameAr,
+      description: defaultDescAr,
+      descriptionAr: defaultDescAr,
+      category: 'storefront' as const,
+      isEnabled: true,
+      isRemoved: false,
+      customValue: defaultCustomVal
+    };
+
+    const isEnabled = feat.isEnabled && !feat.isRemoved;
+
+    return (
+      <div className="bg-slate-900 text-white px-3 sm:px-4 py-2 border-y-2 border-emerald-500/40 flex flex-wrap items-center justify-between gap-2 shadow-md relative z-30 transition-all select-none">
+        <div className="flex items-center gap-2">
+          <span className={`w-2 h-2 rounded-full ${isEnabled ? 'bg-emerald-400 animate-pulse' : 'bg-slate-500'}`} />
+          <span className="text-xs font-black text-slate-100 flex items-center gap-1.5">
+            <Sliders className="w-3.5 h-3.5 text-emerald-400" />
+            <span>{feat.nameAr || defaultNameAr}</span>
+          </span>
+          <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
+            isEnabled ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30' : 'bg-slate-800 text-slate-400'
+          }`}>
+            {isEnabled ? (isAr ? 'مُفعّل بالمتجر' : 'Active') : (isAr ? 'معطّل مؤقتاً' : 'Disabled')}
+          </span>
+        </div>
+
+        {/* The 3 Core Control Buttons: Toggle | Edit | Delete */}
+        <div className="flex items-center gap-1.5">
+          {/* Button 1: Toggle (الزر الأول للتفعيل أو التعطيل) */}
+          <button
+            type="button"
+            onClick={() => handleToggleFeature(featureId)}
+            className={`px-3 py-1 rounded-lg text-xs font-bold flex items-center gap-1 cursor-pointer transition-all ${
+              isEnabled 
+                ? 'bg-emerald-600 hover:bg-emerald-500 text-white shadow-xs'
+                : 'bg-slate-700 hover:bg-slate-600 text-slate-300'
+            }`}
+            title={isEnabled ? (isAr ? 'انقر لإلغاء تفعيل هذا القسم' : 'Click to deactivate') : (isAr ? 'انقر لتفعيل هذا القسم' : 'Click to activate')}
+          >
+            <Power className="w-3.5 h-3.5" />
+            <span>{isEnabled ? (isAr ? 'مُفعّل ✓' : 'Active') : (isAr ? 'معطّل ⏸️' : 'Off')}</span>
+          </button>
+
+          {/* Button 2: Edit Button (وامام هذا الزر زر آخر للتعديل) */}
+          <button
+            type="button"
+            onClick={() => handleOpenEditModal(feat)}
+            className="px-3 py-1 rounded-lg bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs flex items-center gap-1 cursor-pointer transition-all shadow-xs"
+            title={isAr ? 'تعديل نصوص وبيانات ومظهر هذا القسم' : 'Edit section content'}
+          >
+            <Edit3 className="w-3.5 h-3.5" />
+            <span>{isAr ? 'تعديل ✏️' : 'Edit'}</span>
+          </button>
+
+          {/* Button 3: Delete Button (وزر للحذف) */}
+          <button
+            type="button"
+            onClick={() => handleRemoveFeature(featureId)}
+            className="px-3 py-1 rounded-lg bg-rose-600 hover:bg-rose-500 text-white font-bold text-xs flex items-center gap-1 cursor-pointer transition-all shadow-xs"
+            title={isAr ? 'حذف هذا القسم من الصفحة الرئيسية (يمكن استعادته في أي وقت)' : 'Delete section from homepage'}
+          >
+            <Trash2 className="w-3.5 h-3.5" />
+            <span>{isAr ? 'حذف 🗑️' : 'Delete'}</span>
+          </button>
+        </div>
+      </div>
+    );
+  };
+
   const [currency, setCurrency] = useState<Currency>(initialCurrency);
   const [cart, setCart] = useState<{ product: Product; quantity: number }[]>([]);
   const [isCheckoutOpen, setIsCheckoutOpen] = useState<boolean>(false);
@@ -348,6 +462,152 @@ export const PublicStoreView: React.FC<PublicStoreViewProps> = ({
   const renderStoreContent = () => (
     <div className="min-h-screen bg-[#F8FAFC] text-slate-800 flex flex-col selection:bg-indigo-100 selection:text-indigo-900">
       
+      {/* ─── Top Merchant 3-in-1 Live Control Hub (Bar for Seller) ─── */}
+      {isMerchantMode && (
+        <aside aria-label="Merchant 3-in-1 Live Control Hub" className="bg-gradient-to-r from-slate-950 via-slate-900 to-emerald-950 text-white border-b-2 border-emerald-500/50 p-3 sm:px-6 shadow-xl relative z-40">
+          <div className="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-3 text-xs">
+            
+            {/* Left: Mode Title & Info */}
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 rounded-xl bg-emerald-500/20 border border-emerald-400/40 flex items-center justify-center text-emerald-400 shadow-inner">
+                <Sliders className="w-4 h-4" />
+              </div>
+              <div>
+                <div className="flex items-center gap-2">
+                  <span className="font-extrabold text-white text-sm">
+                    {isAr ? 'نظام التحكم المباشر بالمتجر (3 أزرار)' : 'Storefront 3-in-1 Live Control'}
+                  </span>
+                  <span className="bg-emerald-500/20 text-emerald-300 font-mono text-[10px] px-2 py-0.5 rounded-full border border-emerald-500/30 font-bold">
+                    {isAr ? 'زر تفعيل • تعديل • حذف' : 'Toggle • Edit • Delete'}
+                  </span>
+                </div>
+                <p className="text-[11px] text-slate-300 hidden sm:block">
+                  {isAr ? 'تحكّم في كل قسم بمفرده: زر التفعيل/التعطيل، وأمامه زر التعديل ✏️ وزر الحذف 🗑️' : 'Control every section directly: Toggle, Edit, and Delete.'}
+                </p>
+              </div>
+            </div>
+
+            {/* Right: Appearance Button, Trash/Restore Dropdown, Reset, and Customer Preview Toggle */}
+            <div className="flex flex-wrap items-center gap-2">
+              
+              {/* Store Appearance 3-Button Controller */}
+              <button
+                type="button"
+                onClick={handleOpenAppearanceModal}
+                className="px-3 py-1.5 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-black text-xs flex items-center gap-1.5 cursor-pointer transition-all shadow-md shadow-emerald-900/30 border border-emerald-400/40"
+              >
+                <Sparkles className="w-3.5 h-3.5 text-amber-300" />
+                <span>{isAr ? 'مظهر وهوية المتجر والألوان 🎨' : 'Store Theme & Colors 🎨'}</span>
+              </button>
+
+              {/* Removed Sections Restorer Dropdown */}
+              {removedFeaturesCount > 0 && (
+                <div className="relative">
+                  <button
+                    type="button"
+                    onClick={() => setShowRestoreDropdown(!showRestoreDropdown)}
+                    className="px-2.5 py-1.5 rounded-xl bg-rose-600/80 hover:bg-rose-600 text-white font-bold text-xs flex items-center gap-1 cursor-pointer transition-all shadow-xs border border-rose-400/50"
+                  >
+                    <Trash2 className="w-3 h-3" />
+                    <span>{isAr ? `المحذوفات (${removedFeaturesCount})` : `Trash (${removedFeaturesCount})`}</span>
+                  </button>
+
+                  {showRestoreDropdown && (
+                    <div className="absolute end-0 top-full mt-2 w-72 bg-slate-900 border border-slate-700 rounded-2xl shadow-2xl p-3 z-50 space-y-2 text-start">
+                      <div className="flex items-center justify-between border-b border-slate-800 pb-2">
+                        <span className="font-bold text-slate-200 text-xs">{isAr ? 'الأقسام المحذوفة' : 'Removed Sections'}</span>
+                        <button
+                          onClick={() => setShowRestoreDropdown(false)}
+                          className="text-slate-400 hover:text-white text-xs cursor-pointer"
+                        >
+                          ✕
+                        </button>
+                      </div>
+                      <div className="max-h-48 overflow-y-auto divide-y divide-slate-800/60">
+                        {removedFeatures.map((rf) => (
+                          <div key={rf.id} className="py-2 flex items-center justify-between gap-2 text-xs">
+                            <span className="text-slate-300 truncate font-medium">{rf.nameAr || rf.name}</span>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                handleRestoreFeature(rf.id);
+                                setShowRestoreDropdown(false);
+                              }}
+                              className="px-2 py-0.5 rounded bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-[10px] shrink-0 cursor-pointer"
+                            >
+                              {isAr ? 'استعادة ↩️' : 'Restore'}
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Enable All Features */}
+              {onEnableAllStoreFeatures && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    onEnableAllStoreFeatures();
+                    showToast(isAr ? 'تم تفعيل واستعادة كافة أقسام المتجر بنجاح ⚡' : 'All sections enabled ⚡');
+                  }}
+                  className="px-2.5 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold transition-all cursor-pointer border border-slate-700"
+                  title={isAr ? 'تفعيل جميع الأقسام دفعة واحدة' : 'Enable all sections'}
+                >
+                  <span>{isAr ? 'تفعيل الكل ⚡' : 'Enable All'}</span>
+                </button>
+              )}
+
+              {/* Store Operations Dashboard Button */}
+              {onBackToDashboard && (
+                <button
+                  type="button"
+                  onClick={onBackToDashboard}
+                  className="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-emerald-400 font-extrabold text-xs flex items-center gap-1.5 cursor-pointer transition-all border border-slate-700 shadow-xs"
+                  title={isAr ? 'لوحة تحكم المتجر (إدارة الطلبات والمنتجات والشحن)' : 'Store Operations Dashboard'}
+                >
+                  <Sliders className="w-3.5 h-3.5" />
+                  <span>{isAr ? 'لوحة التحكم ⚙️' : 'Dashboard ⚙️'}</span>
+                </button>
+              )}
+
+              {/* Mode Switcher: Switch to Customer View */}
+              <button
+                type="button"
+                onClick={() => {
+                  setIsMerchantMode(false);
+                  showToast(isAr ? 'تم الانتقال لمعاينة المتجر كما يراه المشتري تماماً 👁️' : 'Switched to buyer view');
+                }}
+                className="px-3 py-1.5 rounded-xl bg-white text-slate-900 hover:bg-slate-100 text-xs font-black flex items-center gap-1.5 cursor-pointer shadow-sm transition-all hover:scale-102"
+                title={isAr ? 'إخفاء أزرار التحكم لتجربة مظهر المتجر العادي' : 'Preview as normal customer'}
+              >
+                <Eye className="w-3.5 h-3.5 text-indigo-600" />
+                <span>{isAr ? 'معاينة كزبون 👁️' : 'Buyer Preview'}</span>
+              </button>
+
+            </div>
+
+          </div>
+        </aside>
+      )}
+
+      {/* Floating Button to re-enable Merchant Mode when in Buyer Preview */}
+      {!isMerchantMode && (
+        <button
+          type="button"
+          onClick={() => {
+            setIsMerchantMode(true);
+            showToast(isAr ? 'تم تفعيل وضع تحكم التاجر المباشر (3 أزرار) 🛠️' : 'Merchant control mode enabled');
+          }}
+          className="fixed bottom-6 end-6 z-50 px-4 py-2.5 rounded-full bg-slate-900 text-white border-2 border-emerald-400 font-extrabold text-xs flex items-center gap-2 shadow-2xl hover:scale-105 transition-all cursor-pointer group"
+        >
+          <Sliders className="w-4 h-4 text-emerald-400 group-hover:rotate-45 transition-transform" />
+          <span>{isAr ? 'وضع تحكم التاجر (3 أزرار) 🛠️' : 'Merchant Controls 🛠️'}</span>
+        </button>
+      )}
+      
       {/* Maintenance Mode Banner (Controlled by maintenanceMode feature) */}
       {isStoreFeatureActive('maintenanceMode') && (
         <div className="bg-amber-400 text-slate-950 font-bold px-4 py-2.5 text-xs text-center border-b border-amber-500 shadow-xs flex items-center justify-center gap-2">
@@ -361,13 +621,15 @@ export const PublicStoreView: React.FC<PublicStoreViewProps> = ({
       )}
 
       {/* ─── 1. INDEPENDENT STORE HEADER ─── */}
+      {renderSectionControlStrip('topAnnouncement', 'شريط الإعلانات الترويجي العلوي', 'شريط علوي بارز للإعلان عن العروض الحصرية وشحن الـ 58 ولاية', '🚚 توصيل سريع لـ 58 ولاية جزائرية + الدفع عند الاستلام!')}
+      
       <header className="sticky top-0 z-30 bg-white/95 backdrop-blur-md border-b border-slate-200/90 shadow-2xs">
         
         {/* Top Mini Announcement Bar (Controlled by topAnnouncement feature) */}
         {isStoreFeatureActive('topAnnouncement') && (
           <div 
             className="text-white text-[11px] font-bold py-1.5 px-4 text-center transition-colors"
-            style={{ backgroundColor: store.accentColor || '#4F46E5' }}
+            style={{ backgroundColor: store.accentColor || '#059669' }}
           >
             <div className="max-w-7xl mx-auto flex items-center justify-between gap-4">
               <span className="hidden sm:inline">
@@ -376,10 +638,10 @@ export const PublicStoreView: React.FC<PublicStoreViewProps> = ({
               <span className="mx-auto sm:mx-0">
                 {isStoreFeatureActive('shippingThreshold') ? (
                   isAr
-                    ? `🚚 شحن مجاني لكافة الطلبات فوق ${store.settings.freeShippingThreshold || 300} ر.س!`
-                    : `🚚 Free shipping on orders over ${store.settings.freeShippingThreshold || 300} SAR!`
+                    ? `🚚 شحن مجاني لكافة الطلبات فوق ${store.settings.freeShippingThreshold || 300} د.ج!`
+                    : `🚚 Free shipping on orders over ${store.settings.freeShippingThreshold || 300} DZD!`
                 ) : (
-                  isAr ? '🚚 توصيل لكافة المناطق' : '🚚 Fast shipping available'
+                  isAr ? '🚚 توصيل لكافة الولايات' : '🚚 Fast shipping available'
                 )}
               </span>
               {isStoreFeatureActive('orderTracking') && (
@@ -395,7 +657,11 @@ export const PublicStoreView: React.FC<PublicStoreViewProps> = ({
           </div>
         )}
 
+        {/* ─── Header Section Controls ─── */}
+        {renderSectionControlStrip('storeHeader', 'رأس الصفحة وشعار واسم المتجر', 'شعار المتجر، الاسم التجاري، وأزرار السلة والبحث', 'متجر مستقل معتمد - تشغيل مباشر')}
+
         {/* Main Store Navbar */}
+        {isStoreFeatureActive('storeHeader') && (
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between gap-4 h-20">
             
@@ -510,8 +776,10 @@ export const PublicStoreView: React.FC<PublicStoreViewProps> = ({
 
           </div>
         </div>
+        )}
 
         {/* Mobile Search Bar (Controlled by storeSearch feature) */}
+        {renderSectionControlStrip('storeSearch', 'شريط البحث المباشر في منتجات المتجر', 'يتيح للزبائن البحث الفوري والفلترة بالاسم والتفاصيل', 'ابحث عن منتج...')}
         {isStoreFeatureActive('storeSearch') && (
           <div className="md:hidden px-4 pb-3">
             <div className="relative w-full">
@@ -529,6 +797,8 @@ export const PublicStoreView: React.FC<PublicStoreViewProps> = ({
       </header>
 
       {/* ─── 2. STORE HERO BANNER ─── */}
+      {renderSectionControlStrip('heroBanner', 'البانر الترويجي وقسم الترحيب بالمتجر', 'العنوان الرئيسي الترويجي ونبذة المتجر وأزرار الشحن', 'أفضل المنتجات الأصلية بأفضل الأسعار مع ضمان الاستبدال السريع')}
+      {isStoreFeatureActive('heroBanner') && (
       <section className="relative overflow-hidden bg-white border-b border-slate-200/80">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-14">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
@@ -550,15 +820,15 @@ export const PublicStoreView: React.FC<PublicStoreViewProps> = ({
               <div className="flex flex-wrap items-center gap-6 pt-2 text-xs font-bold text-slate-700">
                 <div className="flex items-center gap-2">
                   <Truck className="w-4 h-4 text-emerald-600" />
-                  <span>{isAr ? 'شحن فوري لباب البيت' : 'Fast Doorstep Delivery'}</span>
+                  <span>{isAr ? 'شحن فوري لباب البيت (58 ولاية)' : 'Fast Doorstep Delivery (58 Wilayas)'}</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <CreditCard className="w-4 h-4 text-indigo-600" />
-                  <span>{isAr ? 'دفع آمن بالبطاقة ومدى' : 'Secure Mada & Card Payments'}</span>
+                  <CreditCard className="w-4 h-4 text-emerald-600" />
+                  <span>{isAr ? 'الدفع عند الاستلام بعد المعاينة' : 'COD After Inspection'}</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <RotateCcw className="w-4 h-4 text-amber-600" />
-                  <span>{isAr ? 'استرجاع مضمون 14 يوماً' : '14-Day Easy Returns'}</span>
+                  <span>{isAr ? 'استرجاع مضمون 48 ساعة' : '48h Easy Returns'}</span>
                 </div>
               </div>
             </div>
@@ -598,11 +868,71 @@ export const PublicStoreView: React.FC<PublicStoreViewProps> = ({
           </div>
         </div>
       </section>
+      )}
+
+      {/* ─── TRUST & GUARANTEES BADGES SECTION ─── */}
+      {renderSectionControlStrip('trustBadges', 'شارات الثقة ومزايا التوصيل والضمان', 'شريط مزايا الشحن للـ 58 ولاية والدفع بعد المعاينة والاسترجاع', 'شحن فوري لباب البيت • فحص المنتج قبل الدفع • استبدال مضمون')}
+      {isStoreFeatureActive('trustBadges') && (
+        <section className="bg-slate-50 border-b border-slate-200 py-6 px-4">
+          <div className="max-w-7xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
+            <div className="p-3 bg-white rounded-2xl border border-slate-200 shadow-2xs space-y-1">
+              <Truck className="w-5 h-5 text-emerald-600 mx-auto" />
+              <div className="font-extrabold text-xs text-slate-900">{isAr ? 'توصيل لـ 58 ولاية' : '58 Wilayas Delivery'}</div>
+              <div className="text-[11px] text-slate-500">{isAr ? 'توصيل للمنزل أو المكتب' : 'Home or Desk pickup'}</div>
+            </div>
+            <div className="p-3 bg-white rounded-2xl border border-slate-200 shadow-2xs space-y-1">
+              <CheckCircle2 className="w-5 h-5 text-emerald-600 mx-auto" />
+              <div className="font-extrabold text-xs text-slate-900">{isAr ? 'الدفع عند الاستلام' : 'COD Payment'}</div>
+              <div className="text-[11px] text-slate-500">{isAr ? 'افحص طلبك ثم ادفع' : 'Inspect before paying'}</div>
+            </div>
+            <div className="p-3 bg-white rounded-2xl border border-slate-200 shadow-2xs space-y-1">
+              <RotateCcw className="w-5 h-5 text-amber-600 mx-auto" />
+              <div className="font-extrabold text-xs text-slate-900">{isAr ? 'استبدال مضمون' : 'Easy Returns'}</div>
+              <div className="text-[11px] text-slate-500">{isAr ? 'خلال 48 ساعة من الاستلام' : 'Within 48 hours'}</div>
+            </div>
+            <div className="p-3 bg-white rounded-2xl border border-slate-200 shadow-2xs space-y-1">
+              <ShieldCheck className="w-5 h-5 text-indigo-600 mx-auto" />
+              <div className="font-extrabold text-xs text-slate-900">{isAr ? 'منتجات أصلية 100%' : '100% Genuine'}</div>
+              <div className="text-[11px] text-slate-500">{isAr ? 'جودة عالية وضمان' : 'Premium quality'}</div>
+            </div>
+          </div>
+        </section>
+      )}
 
       {/* ─── 3. STORE PRODUCTS CATALOG ─── */}
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
         
+        {/* Free Shipping Dynamic Progress Bar (shippingThreshold) */}
+        {renderSectionControlStrip('shippingThreshold', 'شريط تقدم الشحن والتوصيل المجاني', 'عرض شريط تفاعلي لحساب المبلغ المتبقي للحصول على شحن مجاني', 'أضف منتجات بقيمة 5,000 د.ج للحصول على شحن مجاني!')}
+        {isStoreFeatureActive('shippingThreshold') && (
+          <div className="p-4 rounded-2xl bg-emerald-50 border border-emerald-200 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs">
+            <div className="flex items-center gap-2">
+              <Truck className="w-5 h-5 text-emerald-600" />
+              <div>
+                <span className="font-extrabold text-emerald-950">
+                  {rawCartTotal >= (store.settings.freeShippingThreshold || 5000)
+                    ? (isAr ? '🎉 تهانينا! لقد حصلت على شحن مجاني لكافة الـ 58 ولاية!' : '🎉 Free shipping unlocked for all wilayas!')
+                    : (isAr ? `🚚 أضف منتجات بقيمة ${((store.settings.freeShippingThreshold || 5000) - rawCartTotal).toLocaleString()} د.ج إضافية للحصول على توصيل مجاني!` : `Add more for free delivery!`)}
+                </span>
+                <p className="text-[11px] text-emerald-800">
+                  {isAr ? 'توصيل سريع مع ياليدين وزد آر إكسبريس لباب البيت أو المكتب' : 'Fast express delivery with COD'}
+                </p>
+              </div>
+            </div>
+            <div className="w-full sm:w-48 bg-emerald-200/80 rounded-full h-2.5 overflow-hidden">
+              <div
+                className="bg-emerald-600 h-full rounded-full transition-all duration-300"
+                style={{
+                  width: `${Math.min(100, (rawCartTotal / (store.settings.freeShippingThreshold || 5000)) * 100)}%`
+                }}
+              />
+            </div>
+          </div>
+        )}
+
         {/* Category Filters Bar & Sort */}
+        {renderSectionControlStrip('categoriesBar', 'شريط تصنيفات وفلترة المنتجات', 'أزرار التصنيفات الأفقية لتسهيل تصفح الأقسام والمنتجات', 'جميع الأقسام')}
+        {isStoreFeatureActive('categoriesBar') && (
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200 pb-4">
           
           {/* Category Tabs */}
@@ -641,7 +971,12 @@ export const PublicStoreView: React.FC<PublicStoreViewProps> = ({
           </div>
 
         </div>
+        )}
 
+        {/* ─── PRODUCTS CATALOG GRID ─── */}
+        {renderSectionControlStrip('featuredProducts', 'شبكة عرض منتجات المتجر والكتالوج', 'شبكة المنتجات المعروضة للبيع مع الأسعار والأزرار', 'منتجاتنا المميزة')}
+        {isStoreFeatureActive('featuredProducts') && (
+        <>
         {/* Empty State */}
         {filteredProducts.length === 0 ? (
           <div className="bg-white rounded-2xl border border-slate-200 p-12 text-center space-y-3">
@@ -678,7 +1013,7 @@ export const PublicStoreView: React.FC<PublicStoreViewProps> = ({
                     <div className="w-full h-48 rounded-xl bg-gradient-to-br from-slate-50 to-slate-100 flex flex-col items-center justify-center p-4 border border-slate-200/70 relative overflow-hidden">
                       <ShoppingBag 
                         className="w-12 h-12 transition-transform duration-300 group-hover:scale-110" 
-                        style={{ color: store.accentColor || '#4F46E5' }}
+                        style={{ color: store.accentColor || '#059669' }}
                       />
                       <span className="text-[11px] font-mono text-slate-500 mt-2 font-bold">
                         {product.category}
@@ -717,7 +1052,7 @@ export const PublicStoreView: React.FC<PublicStoreViewProps> = ({
                         </div>
                       )}
 
-                      <h3 className="font-extrabold text-slate-900 text-sm line-clamp-1 group-hover:text-indigo-600 transition-colors">
+                      <h3 className="font-extrabold text-slate-900 text-sm line-clamp-1 group-hover:text-emerald-600 transition-colors">
                         {isAr ? product.nameAr : product.name}
                       </h3>
 
@@ -745,7 +1080,7 @@ export const PublicStoreView: React.FC<PublicStoreViewProps> = ({
                           : 'text-white hover:opacity-90 shadow-sm'
                       } disabled:opacity-40 disabled:cursor-not-allowed`}
                       style={{
-                        backgroundColor: inCart ? '#059669' : (store.accentColor || '#4F46E5')
+                        backgroundColor: inCart ? '#059669' : (store.accentColor || '#059669')
                       }}
                     >
                       {inCart ? (
@@ -766,10 +1101,62 @@ export const PublicStoreView: React.FC<PublicStoreViewProps> = ({
             })}
           </div>
         )}
+        </>
+        )}
+
+        {/* ─── CUSTOMER REVIEWS & TESTIMONIALS SECTION ─── */}
+        {renderSectionControlStrip('reviewsSection', 'قسم تقييمات وآراء وتجارب الزبائن الموثقة', 'عرض آراء الزبائن الحقيقية وتقييمات الـ 5 نجوم لبناء الثقة ومضاعفة المبيعات', 'أكثر من 2,400+ زبون سعيد في كافة ولايات الجزائر')}
+        {isStoreFeatureActive('reviewsSection') && (
+          <section className="pt-8 border-t border-slate-200 space-y-6">
+            <div className="text-center max-w-xl mx-auto space-y-2">
+              <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-50 text-amber-800 text-xs font-bold border border-amber-200">
+                <Star className="w-3.5 h-3.5 fill-amber-400 stroke-amber-400" />
+                <span>{isAr ? 'تقييمات وتجارب الزبائن الحقيقية' : 'Verified Customer Reviews'}</span>
+              </div>
+              <h3 className="text-xl sm:text-2xl font-black text-slate-900">
+                {isAr ? 'ماذا يقول عملاؤنا عن منتجاتنا وتوصيلنا؟' : 'What Our Customers Say'}
+              </h3>
+              <p className="text-xs text-slate-500">
+                {isAr ? 'تجارب حقيقية لزبائن من مختلف ولايات الجزائر بعد استلام ومعاينة الطلبيات' : 'Real customer feedback from Algerian buyers.'}
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              {[
+                { name: 'محمد ب. (الجزائر العاصمة)', review: 'المنتج ممتاز والتوصيل سريع جداً مع ياليدين خلال 24 ساعة، فحصت السلعة قبل ما ندفع. شكراً لكم!', rating: 5, date: 'منذ يومين' },
+                { name: 'سميرة ك. (وهران)', review: 'جودة السلعة أحسن من الصور، تعامل راقي والدفع عند الاستلام ريحني بزاف. ننصح الجميع بهذا المتجر.', rating: 5, date: 'منذ 3 أيام' },
+                { name: 'عبد الرحمن م. (سطيف)', review: 'سعر مناسب وتغليف احترافي، خدمة الزبائن عبر واتساب جاوبوني في دقائق وأكدوا لي الطلبية فوراً.', rating: 5, date: 'منذ أسبوع' }
+              ].map((rev, idx) => (
+                <div key={idx} className="p-5 rounded-2xl bg-white border border-slate-200 shadow-2xs space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-1 text-amber-500">
+                      {[...Array(rev.rating)].map((_, i) => (
+                        <Star key={i} className="w-3.5 h-3.5 fill-amber-400 stroke-amber-400" />
+                      ))}
+                    </div>
+                    <span className="text-[10px] text-slate-400 font-mono">{rev.date}</span>
+                  </div>
+                  <p className="text-xs text-slate-700 leading-relaxed font-medium">"{rev.review}"</p>
+                  <div className="flex items-center gap-2 pt-2 border-t border-slate-100">
+                    <div className="w-7 h-7 rounded-full bg-emerald-100 text-emerald-800 font-bold text-xs flex items-center justify-center">
+                      {rev.name.charAt(0)}
+                    </div>
+                    <span className="text-xs font-bold text-slate-900">{rev.name}</span>
+                    <span className="text-[10px] text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200 font-bold">
+                      {isAr ? 'شراء مؤكد ✓' : 'Verified'}
+                    </span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </section>
+        )}
 
       </main>
 
       {/* ─── 4. INDEPENDENT STORE FOOTER ─── */}
+      {renderSectionControlStrip('storeFooterLinks', 'تذييل المتجر وروابط السياسات والدعم', 'عرض سياسة الاسترجاع والضمان والشروط وحقوق النشر', 'جميع الحقوق محفوظة')}
+      {isStoreFeatureActive('storeFooterLinks') && (
       <footer className="bg-white border-t border-slate-200 mt-16 pt-12 pb-8">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
           
@@ -858,10 +1245,11 @@ export const PublicStoreView: React.FC<PublicStoreViewProps> = ({
 
         </div>
       </footer>
+      )}
 
       {/* ─── FLOATING WHATSAPP CHAT BUTTON (Controlled by whatsappChat feature) ─── */}
       {isStoreFeatureActive('whatsappChat') && (
-        <aside aria-label="WhatsApp Support" className="fixed bottom-6 start-6 z-40">
+        <aside aria-label="WhatsApp Support" className="fixed bottom-6 start-6 z-40 flex items-center gap-2">
           <button
             onClick={() => {
               alert(isAr ? `بدء محادثة الدعم الفني عبر واتساب لمتجر ${store.nameAr}...` : `Starting WhatsApp chat for ${store.name}...`);
@@ -871,6 +1259,44 @@ export const PublicStoreView: React.FC<PublicStoreViewProps> = ({
             <MessageCircle className="w-5 h-5 fill-white stroke-none" />
             <span>{isAr ? 'محادثة واتساب مباشرة' : 'WhatsApp Support'}</span>
           </button>
+          {isMerchantMode && (
+            <div className="flex items-center gap-1 bg-slate-900/90 backdrop-blur-xs p-1 rounded-full border border-slate-700 shadow-xl">
+              <button
+                type="button"
+                onClick={() => handleToggleFeature('whatsappChat')}
+                className="p-1.5 rounded-full hover:bg-slate-800 text-emerald-400 cursor-pointer"
+                title={isAr ? 'تعطيل زر الواتساب' : 'Disable WhatsApp'}
+              >
+                <Power className="w-3.5 h-3.5" />
+              </button>
+              <button
+                type="button"
+                onClick={() => handleOpenEditModal(getFeature('whatsappChat') || {
+                  id: 'whatsappChat',
+                  name: 'WhatsApp Support',
+                  nameAr: 'زر التواصل السريع عبر واتساب',
+                  description: 'Floating button connecting shoppers directly to merchant',
+                  descriptionAr: 'زر عائم في أسفل المتجر يتيح للزبون الاستفسار مباشرة عبر واتساب',
+                  category: 'customer',
+                  isEnabled: true,
+                  isRemoved: false,
+                  customValue: '+213555000000'
+                })}
+                className="p-1.5 rounded-full hover:bg-slate-800 text-amber-400 cursor-pointer"
+                title={isAr ? 'تعديل رقم واتساب' : 'Edit WhatsApp'}
+              >
+                <Edit3 className="w-3.5 h-3.5" />
+              </button>
+              <button
+                type="button"
+                onClick={() => handleRemoveFeature('whatsappChat')}
+                className="p-1.5 rounded-full hover:bg-slate-800 text-rose-400 cursor-pointer"
+                title={isAr ? 'حذف زر الواتساب' : 'Delete WhatsApp'}
+              >
+                <Trash2 className="w-3.5 h-3.5" />
+              </button>
+            </div>
+          )}
         </aside>
       )}
 
@@ -1284,6 +1710,295 @@ export const PublicStoreView: React.FC<PublicStoreViewProps> = ({
         </div>
       )}
 
+      {/* ─── 9. SECTION EDIT MODAL (نظام التعديل) ─── */}
+      {editingFeature && (
+        <div className="fixed inset-0 z-60 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="relative w-full max-w-lg bg-white border border-slate-200 rounded-3xl shadow-2xl p-6 sm:p-7 space-y-5 animate-in zoom-in-95 duration-200 text-start">
+            
+            {/* Header */}
+            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+              <div className="flex items-center gap-2.5">
+                <div className="w-9 h-9 rounded-xl bg-amber-500/20 text-amber-700 flex items-center justify-center">
+                  <Edit3 className="w-5 h-5" />
+                </div>
+                <div>
+                  <h4 className="font-extrabold text-slate-900 text-base">
+                    {isAr ? 'تعديل قسم المتجر' : 'Edit Section'}
+                  </h4>
+                  <p className="text-xs text-slate-500 font-medium">
+                    {editingFeature.nameAr || editingFeature.name}
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setEditingFeature(null)}
+                className="p-1.5 rounded-xl text-slate-400 hover:text-slate-800 hover:bg-slate-100 transition-colors cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Form */}
+            <form onSubmit={handleSaveFeatureEdit} className="space-y-4 text-xs">
+              
+              {/* Section Title */}
+              <div>
+                <label className="block text-slate-700 font-bold mb-1">
+                  {isAr ? 'عنوان أو اسم القسم بالمتجر' : 'Section Title'}
+                </label>
+                <input
+                  type="text"
+                  required
+                  value={editNameAr}
+                  onChange={(e) => setEditNameAr(e.target.value)}
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-slate-900 font-bold focus:bg-white focus:outline-none focus:border-indigo-600 transition-colors"
+                />
+              </div>
+
+              {/* Section Subtitle / Description */}
+              <div>
+                <label className="block text-slate-700 font-bold mb-1">
+                  {isAr ? 'النص التوضيحي أو النبذة' : 'Subtitle / Description'}
+                </label>
+                <input
+                  type="text"
+                  value={editDescAr}
+                  onChange={(e) => setEditDescAr(e.target.value)}
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-slate-900 focus:bg-white focus:outline-none focus:border-indigo-600 transition-colors"
+                />
+              </div>
+
+              {/* Custom Value / Banner / Contact */}
+              <div>
+                <label className="block text-slate-700 font-bold mb-1">
+                  {isAr ? 'القيمة المعروضة أو النص الإعلاني أو رقم الاتصال' : 'Custom Banner / Contact Text'}
+                </label>
+                <textarea
+                  rows={2}
+                  value={editCustomValue}
+                  onChange={(e) => setEditCustomValue(e.target.value)}
+                  placeholder={isAr ? 'أدخل العبارة أو النص أو الرقم المخصص...' : 'Enter custom text or value...'}
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-slate-900 focus:bg-white focus:outline-none focus:border-indigo-600 transition-colors resize-none"
+                />
+              </div>
+
+              {/* State Toggle Checkbox */}
+              <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200 flex items-center justify-between">
+                <div className="space-y-0.5">
+                  <span className="font-bold text-slate-900 block">
+                    {isAr ? 'تفعيل هذا القسم في المتجر' : 'Enable Section in Store'}
+                  </span>
+                  <span className="text-[11px] text-slate-500">
+                    {editIsEnabled ? (isAr ? 'القسم ظاهر للزبائن حالياً' : 'Currently visible to customers') : (isAr ? 'القسم معطل ومخفي مؤقتاً' : 'Temporarily disabled')}
+                  </span>
+                </div>
+                <input
+                  type="checkbox"
+                  checked={editIsEnabled}
+                  onChange={(e) => setEditIsEnabled(e.target.checked)}
+                  className="w-5 h-5 rounded text-emerald-600 focus:ring-emerald-500 border-slate-300 cursor-pointer"
+                />
+              </div>
+
+              {/* Buttons */}
+              <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-2 border-t border-slate-100">
+                <button
+                  type="button"
+                  onClick={() => {
+                    handleRemoveFeature(editingFeature.id);
+                    setEditingFeature(null);
+                  }}
+                  className="w-full sm:w-auto px-4 py-2.5 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-700 font-bold text-xs flex items-center justify-center gap-1.5 cursor-pointer border border-rose-200 transition-colors"
+                >
+                  <Trash2 className="w-3.5 h-3.5" />
+                  <span>{isAr ? 'حذف هذا القسم 🗑️' : 'Delete Section 🗑️'}</span>
+                </button>
+
+                <div className="flex items-center gap-2 w-full sm:w-auto">
+                  <button
+                    type="button"
+                    onClick={() => setEditingFeature(null)}
+                    className="flex-1 sm:flex-none px-4 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs cursor-pointer transition-colors"
+                  >
+                    {isAr ? 'إلغاء' : 'Cancel'}
+                  </button>
+                  <button
+                    type="submit"
+                    className="flex-1 sm:flex-none px-5 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-extrabold text-xs shadow-md shadow-slate-900/20 cursor-pointer transition-all hover:scale-102 flex items-center justify-center gap-1.5"
+                  >
+                    <Check className="w-4 h-4 text-emerald-400 stroke-[3]" />
+                    <span>{isAr ? 'حفظ التعديلات وتطبيقها فوراً ✓' : 'Save & Apply ✓'}</span>
+                  </button>
+                </div>
+              </div>
+
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* ─── 10. STORE APPEARANCE & THEME MODAL (مظهر وهوية المتجر) ─── */}
+      {isAppearanceModalOpen && (
+        <div className="fixed inset-0 z-60 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="relative w-full max-w-lg bg-white border border-slate-200 rounded-3xl shadow-2xl p-6 sm:p-7 space-y-5 animate-in zoom-in-95 duration-200 text-start">
+            
+            {/* Header */}
+            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+              <div className="flex items-center gap-2.5">
+                <div className="w-9 h-9 rounded-xl bg-emerald-100 text-emerald-800 flex items-center justify-center">
+                  <Sparkles className="w-5 h-5 text-emerald-600" />
+                </div>
+                <div>
+                  <h4 className="font-extrabold text-slate-900 text-base">
+                    {isAr ? 'مظهر وهوية المتجر والألوان الرئيسية' : 'Store Appearance & Branding'}
+                  </h4>
+                  <p className="text-xs text-slate-500">
+                    {isAr ? 'تخصيص لون الهوية، اسم المتجر، والعبارة الترويجية' : 'Customize theme accent color, brand name, and slogan'}
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsAppearanceModalOpen(false)}
+                className="p-1.5 rounded-xl text-slate-400 hover:text-slate-800 hover:bg-slate-100 transition-colors cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Form */}
+            <form onSubmit={handleSaveAppearance} className="space-y-4 text-xs">
+              
+              {/* Color Preset Palette */}
+              <div>
+                <label className="block text-slate-700 font-bold mb-2">
+                  {isAr ? 'اختر لون الهوية الرئيسي للمتجر:' : 'Select Accent Theme Color:'}
+                </label>
+                <div className="flex flex-wrap items-center gap-2.5">
+                  {[
+                    { color: '#059669', name: 'أخضر جزائري (Emerald DZ)' },
+                    { color: '#4F46E5', name: 'أزرق نيلي حديث (Indigo)' },
+                    { color: '#7C3AED', name: 'بنفسجي ملكي (Royal Violet)' },
+                    { color: '#D97706', name: 'كهرماني ذهبي (Amber Gold)' },
+                    { color: '#E11D48', name: 'وردي ياقوتي (Rose Ruby)' },
+                    { color: '#0284C7', name: 'أزرق بحري (Ocean Sky)' },
+                    { color: '#0F172A', name: 'كحلي داكن (Midnight Slate)' }
+                  ].map((c) => (
+                    <button
+                      key={c.color}
+                      type="button"
+                      onClick={() => setAppearanceColor(c.color)}
+                      style={{ backgroundColor: c.color }}
+                      title={c.name}
+                      className={`w-9 h-9 rounded-2xl flex items-center justify-center transition-all cursor-pointer shadow-sm ${
+                        appearanceColor.toLowerCase() === c.color.toLowerCase()
+                          ? 'ring-4 ring-slate-900 scale-110 shadow-md'
+                          : 'hover:scale-105 opacity-90 hover:opacity-100'
+                      }`}
+                    >
+                      {appearanceColor.toLowerCase() === c.color.toLowerCase() && (
+                        <Check className="w-4 h-4 text-white stroke-[3]" />
+                      )}
+                    </button>
+                  ))}
+
+                  {/* Custom Hex Input */}
+                  <div className="flex items-center gap-1.5 ms-auto">
+                    <input
+                      type="color"
+                      value={appearanceColor}
+                      onChange={(e) => setAppearanceColor(e.target.value)}
+                      className="w-8 h-8 rounded-lg cursor-pointer border border-slate-200 p-0.5"
+                    />
+                    <input
+                      type="text"
+                      value={appearanceColor}
+                      onChange={(e) => setAppearanceColor(e.target.value)}
+                      className="w-20 bg-slate-50 border border-slate-200 rounded-lg p-1.5 text-center font-mono font-bold text-slate-800"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Store Name in Arabic */}
+              <div>
+                <label className="block text-slate-700 font-bold mb-1">
+                  {isAr ? 'اسم المتجر التجاري' : 'Store Name'}
+                </label>
+                <input
+                  type="text"
+                  required
+                  value={appearanceNameAr}
+                  onChange={(e) => setAppearanceNameAr(e.target.value)}
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-slate-900 font-bold focus:bg-white focus:outline-none focus:border-indigo-600 transition-colors"
+                />
+              </div>
+
+              {/* Store Slogan */}
+              <div>
+                <label className="block text-slate-700 font-bold mb-1">
+                  {isAr ? 'العبارة الترويجية للمتجر (Slogan)' : 'Store Slogan'}
+                </label>
+                <input
+                  type="text"
+                  value={appearanceSloganAr}
+                  onChange={(e) => setAppearanceSloganAr(e.target.value)}
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-slate-900 focus:bg-white focus:outline-none focus:border-indigo-600 transition-colors"
+                />
+              </div>
+
+              {/* Live Preview Card */}
+              <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200 space-y-2">
+                <span className="text-[10px] font-bold text-slate-500 uppercase">
+                  {isAr ? 'معاينة فورية لمظهر المتجر:' : 'Instant Live Preview:'}
+                </span>
+                <div className="p-3 bg-white rounded-xl border border-slate-100 flex items-center justify-between shadow-2xs">
+                  <div className="flex items-center gap-2">
+                    <div
+                      className="w-8 h-8 rounded-xl flex items-center justify-center text-white font-extrabold text-sm shadow-xs"
+                      style={{ backgroundColor: appearanceColor }}
+                    >
+                      {appearanceNameAr.charAt(0) || 'م'}
+                    </div>
+                    <div>
+                      <div className="font-extrabold text-slate-900">{appearanceNameAr || 'متجري'}</div>
+                      <div className="text-[10px] text-slate-400">{appearanceSloganAr || 'توصيل سريع لكافة الولايات'}</div>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    style={{ backgroundColor: appearanceColor }}
+                    className="px-3 py-1.5 rounded-lg text-white font-bold text-[11px] shadow-xs cursor-default"
+                  >
+                    {isAr ? 'أضف للسلة' : 'Add to Cart'}
+                  </button>
+                </div>
+              </div>
+
+              {/* Buttons */}
+              <div className="flex items-center justify-end gap-2.5 pt-2 border-t border-slate-100">
+                <button
+                  type="button"
+                  onClick={() => setIsAppearanceModalOpen(false)}
+                  className="px-4 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs cursor-pointer transition-colors"
+                >
+                  {isAr ? 'إلغاء' : 'Cancel'}
+                </button>
+                <button
+                  type="submit"
+                  className="px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs shadow-md shadow-emerald-600/20 cursor-pointer transition-all hover:scale-102 flex items-center gap-1.5"
+                >
+                  <Check className="w-4 h-4 stroke-[3]" />
+                  <span>{isAr ? 'حفظ وتطبيق المظهر الجديد ✓' : 'Save & Apply New Theme ✓'}</span>
+                </button>
+              </div>
+
+            </form>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 
@@ -1361,17 +2076,20 @@ export const PublicStoreView: React.FC<PublicStoreViewProps> = ({
                   <span>{isAr ? 'لوحة تحكم المتجر (Admin)' : 'Store Dashboard'}</span>
                 </button>
               )}
+              <button
+                type="button"
+                onClick={() => {
+                  const portalUrl = typeof window !== 'undefined' ? `${window.location.origin}${window.location.pathname}?portal=platform` : 'https://wasladz.app/?portal=platform';
+                  navigator.clipboard?.writeText(portalUrl);
+                  showToast(isAr ? 'تم نسخ رابط المنصة المستقل بنجاح!' : 'Platform link copied!');
+                }}
+                className="px-2.5 py-1 rounded-md bg-slate-800 hover:bg-slate-700 text-slate-300 text-[11px] font-bold cursor-pointer transition-colors"
+                title={isAr ? 'نسخ رابط المنصة المستقل (?portal=platform)' : 'Copy Platform Portal Link'}
+              >
+                <span>{isAr ? 'رابط المنصة 🏢' : 'Platform Link 🏢'}</span>
+              </button>
 
-              {onBackToPlatform && (
-                <button
-                  onClick={onBackToPlatform}
-                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-black shadow-sm transition-all cursor-pointer ring-1 ring-indigo-400"
-                  title={isAr ? 'العودة لواجهة المنصة الرئيسية (AVANTO)' : 'Go to main platform'}
-                >
-                  <Globe className="w-3.5 h-3.5" />
-                  <span>{isAr ? '🏢 المنصة الرئيسية (AVANTO)' : 'Main Platform 🏢'}</span>
-                </button>
-              )}
+
 
               <button
                 onClick={() => setShowSimulatorBar(false)}
