@@ -97,6 +97,16 @@ export interface StoreSettings {
     isDeleted?: boolean;
     isRemoved?: boolean;
   };
+  // Store Appearance & Layout Customization
+  bannerHeadline?: string;
+  bannerSubtitle?: string;
+  bannerCtaText?: string;
+  bannerImageUrl?: string;
+  thankYouMessage?: string;
+  productColumns?: 2 | 3 | 4;
+  showQuickBuy?: boolean;
+  showDiscountBadges?: boolean;
+  showReviews?: boolean;
   bannerConfig?: {
     isEnabled: boolean;
     text: string;
@@ -159,6 +169,12 @@ export interface Store {
   status?: 'active' | 'suspended' | 'pending';
   plan: PlanType;
   accentColor: string;
+  logoUrl?: string;
+  bannerUrl?: string;
+  instagramUrl?: string;
+  facebookUrl?: string;
+  tiktokUrl?: string;
+  supportPhone?: string;
   totalSales: number;
   ordersCount: number;
   productsCount?: number;

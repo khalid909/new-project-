@@ -391,6 +391,16 @@ export default function App() {
       onUpdateStoreSettings={(settings) => {
         setStores(stores.map(s => s.id === activeStore.id ? { ...s, settings: { ...s.settings, ...settings } } : s));
       }}
+      onUpdateStore={(updated) => {
+        setStores(stores.map(s => s.id === activeStore.id ? { 
+          ...s, 
+          ...updated,
+          settings: {
+            ...s.settings,
+            ...(updated.settings || {})
+          }
+        } : s));
+      }}
       onUpdateStorePlan={(plan) => {
         setStores(stores.map(s => s.id === activeStore.id ? { ...s, plan } : s));
       }}

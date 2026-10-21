@@ -21,7 +21,7 @@ import {
   HelpCircle, Monitor, Wrench, Shield, CheckSquare, Tag,
   Link2, Save, RotateCcw, Home, Ticket, LayoutGrid, Share2, 
   Headphones, ChevronDown, ChevronUp, Menu, Bell, Percent, Send,
-  Store as StoreIcon, FileText
+  Store as StoreIcon, FileText, Smartphone, Laptop, MessageCircle, QrCode
 } from 'lucide-react';
 
 interface StoreDashboardViewProps {
@@ -49,6 +49,7 @@ interface StoreDashboardViewProps {
   onAddStoreFeature: (feature: any) => void;
   onUpdateStoreFeature: (feature: any) => void;
   onUpdateStoreSettings: (settings: any) => void;
+  onUpdateStore?: (updated: Partial<Store>) => void;
   onUpdateStorePlan: (plan: PlanType) => void;
   onAddProduct: (prod: Product) => void;
   onDeleteProduct: (id: string) => void;
@@ -62,6 +63,34 @@ interface StoreDashboardViewProps {
   onLogout?: () => void;
 }
 
+const LOGO_PRESETS = [
+  { name: 'حقيبة براند', icon: '🛍️', url: 'https://images.unsplash.com/photo-1544816155-12df9643f363?w=200&auto=format&fit=crop&q=80' },
+  { name: 'أزياء وموضة', icon: '👗', url: 'https://images.unsplash.com/photo-1490481651871-ab68de25d43d?w=200&auto=format&fit=crop&q=80' },
+  { name: 'عطور وكوزمتيك', icon: '💎', url: 'https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?w=200&auto=format&fit=crop&q=80' },
+  { name: 'إلكترونيات وذكاء', icon: '📱', url: 'https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=200&auto=format&fit=crop&q=80' },
+  { name: 'أحذية ورياضة', icon: '👟', url: 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=200&auto=format&fit=crop&q=80' },
+  { name: 'ملكي فاخر', icon: '👑', url: 'https://images.unsplash.com/photo-1535223289827-42f1e9919769?w=200&auto=format&fit=crop&q=80' },
+];
+
+const THEME_PALETTES = [
+  { name: 'أخضر زمردي', hex: '#10B981' },
+  { name: 'أزرق ملكي', hex: '#2563EB' },
+  { name: 'بنفسجي فاخر', hex: '#8B5CF6' },
+  { name: 'أسود داكن فخم', hex: '#0F172A' },
+  { name: 'ذهبي عنبري', hex: '#D97706' },
+  { name: 'وردي أنيق', hex: '#EC4899' },
+  { name: 'أحمر قرمزي', hex: '#EF4444' },
+  { name: 'تركواز بحري', hex: '#06B6D4' },
+];
+
+const BANNER_PRESETS = [
+  { name: 'أزياء وملابس راقية', url: 'https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=1200&auto=format&fit=crop&q=80' },
+  { name: 'أجهزة وإلكترونيات', url: 'https://images.unsplash.com/photo-1550009158-9ebf69173e03?w=1200&auto=format&fit=crop&q=80' },
+  { name: 'عطور ومستحضرات تجميل', url: 'https://images.unsplash.com/photo-1596462502278-27bfdc403348?w=1200&auto=format&fit=crop&q=80' },
+  { name: 'تخفيضات ومهرجان تسوق', url: 'https://images.unsplash.com/photo-1607082348824-0a96f2a4b9da?w=1200&auto=format&fit=crop&q=80' },
+  { name: 'أحذية ومستلزمات رياضية', url: 'https://images.unsplash.com/photo-1556906781-9a412961c28c?w=1200&auto=format&fit=crop&q=80' },
+];
+
 export const StoreDashboardView: React.FC<StoreDashboardViewProps> = ({
   store,
   products,
@@ -71,6 +100,7 @@ export const StoreDashboardView: React.FC<StoreDashboardViewProps> = ({
   currency,
   language,
   onUpdateStoreSettings,
+  onUpdateStore,
   onAddProduct,
   onDeleteProduct,
   onUpdateProductStock,
@@ -520,6 +550,94 @@ export const StoreDashboardView: React.FC<StoreDashboardViewProps> = ({
   const [editingLangCode, setEditingLangCode] = useState<Language | null>(null);
   const [editLangName, setEditLangName] = useState<string>('');
 
+  // ─── INDEPENDENT STORE URL & COPY ───
+  const externalStoreUrl = typeof window !== 'undefined'
+    ? `${window.location.origin}${window.location.pathname}?mode=store&store=${store.slug}`
+    : `?mode=store&store=${store.slug}`;
+
+  const handleCopyStoreUrl = () => {
+    try {
+      if (navigator.clipboard) {
+        navigator.clipboard.writeText(externalStoreUrl);
+      }
+      showToast(isAr ? 'تم نسخ رابط متجرك الخارجي المستقل بنجاح! 📋' : 'Store link copied!');
+    } catch (e) {
+      showToast(isAr ? 'الرابط: ' + externalStoreUrl : 'Copied');
+    }
+  };
+
+  // ─── STORE APPEARANCE & CUSTOMIZATION STATE ───
+  const [storeNameState, setStoreNameState] = useState(store.nameAr || store.name || '');
+  const [storeSloganState, setStoreSloganState] = useState(store.sloganAr || store.slogan || '');
+  const [storeDescState, setStoreDescState] = useState(store.descriptionAr || store.description || '');
+  const [storeLogoState, setStoreLogoState] = useState(store.logoUrl || '');
+  const [storeAccentColorState, setStoreAccentColorState] = useState(store.accentColor || '#10B981');
+  const [storeCategoryState, setStoreCategoryState] = useState(store.categoryAr || 'أزياء وملابس');
+  const [storePhoneState, setStorePhoneState] = useState(store.supportPhone || store.ownerPhone || '0550123456');
+  const [storeInstagramState, setStoreInstagramState] = useState(store.instagramUrl || '');
+  const [storeFacebookState, setStoreFacebookState] = useState(store.facebookUrl || '');
+  const [storeTiktokState, setStoreTiktokState] = useState(store.tiktokUrl || '');
+  const [thankYouMessageState, setThankYouMessageState] = useState(store.settings?.thankYouMessage || 'شكراً لثقتكم بنا! سيتم الاتصال بكم هاتفياً خلال 24 ساعة لتأكيد الطلب وشحنه فوراً.');
+
+  // Hero & Banner Appearance
+  const [heroHeadlineState, setHeroHeadlineState] = useState(store.settings?.bannerHeadline || (store.nameAr ? `مرحباً بكم في متجر ${store.nameAr}` : 'تشكيلة حصرية من أرقى المنتجات الأصلية'));
+  const [heroSubtitleState, setHeroSubtitleState] = useState(store.settings?.bannerSubtitle || (store.sloganAr || 'جودة مضمونة • توصيل سريع لـ 58 ولاية • الدفع عند الاستلام بعد المعاينة'));
+  const [heroCtaTextState, setHeroCtaTextState] = useState(store.settings?.bannerCtaText || 'تسوق التشكيلة الآن 🛍️');
+  const [heroImageState, setHeroImageState] = useState(store.settings?.bannerImageUrl || store.bannerUrl || 'https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=1200&auto=format&fit=crop&q=80');
+  const [isHeroEnabledState, setIsHeroEnabledState] = useState(true);
+
+  // Layout & Display
+  const [productColumnsState, setProductColumnsState] = useState<2 | 3 | 4>(store.settings?.productColumns || 3);
+  const [showQuickBuyState, setShowQuickBuyState] = useState<boolean>(store.settings?.showQuickBuy !== false);
+  const [showDiscountBadgesState, setShowDiscountBadgesState] = useState<boolean>(store.settings?.showDiscountBadges !== false);
+  const [showReviewsState, setShowReviewsState] = useState<boolean>(store.settings?.showReviews !== false);
+
+  // Store Customizer Tabs & Preview
+  const [storeCustomizerTab, setStoreCustomizerTab] = useState<'branding' | 'banner' | 'announcement' | 'layout' | 'contact' | 'preview' | 'system'>('branding');
+  const [previewDeviceMode, setPreviewDeviceMode] = useState<'desktop' | 'mobile'>('desktop');
+
+  // Save full appearance customizations back to Store and Settings
+  const handleSaveStoreCustomizations = () => {
+    const storeUpdates: Partial<Store> = {
+      name: storeNameState,
+      nameAr: storeNameState,
+      slogan: storeSloganState,
+      sloganAr: storeSloganState,
+      description: storeDescState,
+      descriptionAr: storeDescState,
+      logoUrl: storeLogoState,
+      accentColor: storeAccentColorState,
+      categoryAr: storeCategoryState,
+      supportPhone: storePhoneState,
+      instagramUrl: storeInstagramState,
+      facebookUrl: storeFacebookState,
+      tiktokUrl: storeTiktokState,
+      bannerUrl: heroImageState,
+    };
+
+    const settingsUpdates = {
+      themeColor: storeAccentColorState,
+      bannerHeadline: heroHeadlineState,
+      bannerSubtitle: heroSubtitleState,
+      bannerCtaText: heroCtaTextState,
+      bannerImageUrl: heroImageState,
+      thankYouMessage: thankYouMessageState,
+      productColumns: productColumnsState,
+      showQuickBuy: showQuickBuyState,
+      showDiscountBadges: showDiscountBadgesState,
+      showReviews: showReviewsState,
+      bannerConfig: bannerConfig,
+      footerConfig: footerConfig,
+      maintenanceMode: maintenanceConfig
+    };
+
+    if (onUpdateStore) {
+      onUpdateStore({ ...storeUpdates, settings: { ...store.settings, ...settingsUpdates } });
+    }
+    onUpdateStoreSettings(settingsUpdates);
+    showToast(isAr ? 'تم حفظ ونشر مظهر وإعدادات المتجر بنجاح! 🚀' : 'Store appearance and settings saved!');
+  };
+
   // Save 3-Button changes back to Store Settings
   const persistControls = (updates: any) => {
     onUpdateStoreSettings(updates);
@@ -825,29 +943,52 @@ export const StoreDashboardView: React.FC<StoreDashboardViewProps> = ({
             </div>
           </div>
 
-          <div className="flex items-center gap-2 sm:gap-3">
+          <div className="flex items-center gap-2 sm:gap-2.5">
             {/* Quick Add Product */}
             <button
               type="button"
               onClick={handleOpenAddProduct}
-              className="px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold flex items-center gap-1.5 shadow-sm cursor-pointer transition-all"
+              className="px-3 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold flex items-center gap-1.5 shadow-sm cursor-pointer transition-all shrink-0"
             >
               <Plus className="w-4 h-4" />
               <span className="hidden sm:inline">إضافة منتج 🚀</span>
               <span className="sm:hidden">منتج +</span>
             </button>
 
-            {/* Preview Live Store */}
+            {/* Independent External Store Link (Opens directly in external new tab) */}
+            <a
+              href={externalStoreUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="px-3.5 py-2 rounded-xl bg-[#172132] hover:bg-[#243046] text-white text-xs font-bold flex items-center gap-1.5 shadow-xs cursor-pointer transition-all border border-slate-700 shrink-0"
+              title="فتح المتجر المستقل برابط خارجي في نافذة جديدة"
+            >
+              <ExternalLink className="w-3.5 h-3.5 text-teal-400" />
+              <span className="hidden sm:inline">رابط المتجر الخارجي ↗️</span>
+              <span className="sm:hidden">المتجر ↗️</span>
+            </a>
+
+            {/* Quick Copy Link Button */}
+            <button
+              type="button"
+              onClick={handleCopyStoreUrl}
+              className="px-3 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold flex items-center gap-1 cursor-pointer transition-all border border-slate-200 shrink-0"
+              title="نسخ رابط المتجر الخارجي"
+            >
+              <Copy className="w-3.5 h-3.5 text-slate-500" />
+              <span className="hidden md:inline">نسخ 📋</span>
+            </button>
+
+            {/* In-app Preview Live Store */}
             {onOpenLivePreview && (
               <button
                 type="button"
                 onClick={onOpenLivePreview}
-                className="px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-900 text-slate-100 text-xs font-bold flex items-center gap-1.5 cursor-pointer transition-all border border-slate-700"
-                title="معاينة المتجر المباشر"
+                className="hidden lg:flex px-2.5 py-2 rounded-xl bg-slate-50 hover:bg-slate-100 text-slate-600 text-xs font-bold items-center gap-1 cursor-pointer transition-all border border-slate-200 shrink-0"
+                title="معاينة داخلية للمتجر"
               >
-                <ExternalLink className="w-3.5 h-3.5 text-teal-400" />
-                <span className="hidden sm:inline">معاينة المتجر 🛍️</span>
-                <span className="sm:hidden">المتجر 🛍️</span>
+                <Eye className="w-3.5 h-3.5 text-slate-500" />
+                <span>معاينة</span>
               </button>
             )}
           </div>
@@ -855,6 +996,75 @@ export const StoreDashboardView: React.FC<StoreDashboardViewProps> = ({
 
         {/* Content Container */}
         <div className="flex-1 p-4 sm:p-6 lg:p-8 space-y-6 max-w-7xl w-full mx-auto">
+
+        {/* ─── 0. INDEPENDENT EXTERNAL STOREFRONT LINK BANNER ─── */}
+        <div className="p-4 sm:p-5 rounded-2xl bg-gradient-to-r from-[#172132] via-[#1E293B] to-[#0F172A] text-white border border-slate-700 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div className="space-y-1.5">
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 flex items-center gap-1">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                <span>رابط المتجر المستقل الخارجي 🌐</span>
+              </span>
+              <span className="text-[11px] text-slate-300 font-medium">
+                متاح لجميع الزبائن في كافة المتصفحات والأجهزة دون الحاجة لتسجيل دخول
+              </span>
+            </div>
+            
+            <div className="flex items-center gap-2 font-mono text-xs text-teal-300 bg-slate-900/90 px-3 py-1.5 rounded-xl border border-slate-700/80 w-fit max-w-full overflow-hidden">
+              <Globe className="w-3.5 h-3.5 text-teal-400 shrink-0" />
+              <span className="truncate select-all">{externalStoreUrl}</span>
+            </div>
+          </div>
+
+          <div className="flex flex-wrap items-center gap-2 shrink-0">
+            {/* Open in New Window */}
+            <a
+              href={externalStoreUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold flex items-center gap-1.5 shadow-sm transition-all"
+            >
+              <ExternalLink className="w-3.5 h-3.5" />
+              <span>فتح المتجر ↗️</span>
+            </a>
+
+            {/* Copy Button */}
+            <button
+              type="button"
+              onClick={handleCopyStoreUrl}
+              className="px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold flex items-center gap-1.5 border border-slate-600 transition-all cursor-pointer"
+            >
+              <Copy className="w-3.5 h-3.5" />
+              <span>نسخ الرابط 📋</span>
+            </button>
+
+            {/* Share WhatsApp */}
+            <a
+              href={`https://api.whatsapp.com/send?text=${encodeURIComponent(`تفضل بزيارة متجري الإلكتروني: ${externalStoreUrl}`)}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="px-3 py-2 rounded-xl bg-[#25D366] hover:bg-[#20ba5a] text-white text-xs font-bold flex items-center gap-1 transition-all"
+              title="مشاركة الرابط على واتساب"
+            >
+              <MessageCircle className="w-3.5 h-3.5" />
+              <span className="hidden sm:inline">واتساب 💬</span>
+            </a>
+
+            {/* Direct Customize Appearance button */}
+            <button
+              type="button"
+              onClick={() => setActiveTab('store')}
+              className={`px-3 py-2 rounded-xl text-xs font-bold flex items-center gap-1.5 border transition-all cursor-pointer ${
+                activeTab === 'store' 
+                  ? 'bg-indigo-600 text-white border-indigo-500' 
+                  : 'bg-slate-800/90 hover:bg-slate-700 text-indigo-300 border-indigo-500/40'
+              }`}
+            >
+              <Palette className="w-3.5 h-3.5" />
+              <span>تعديل المظهر والإعدادات 🎨</span>
+            </button>
+          </div>
+        </div>
 
         {/* ─────────────────────────────────────────────────────────────
             TAB 1: OVERVIEW & RECHARTS SALES CHARTS
@@ -1492,23 +1702,49 @@ export const StoreDashboardView: React.FC<StoreDashboardViewProps> = ({
         )}
 
         {/* ─────────────────────────────────────────────────────────────
-            TAB 6: THE 3-BUTTON SYSTEM (MAINTENANCE, FOOTER, BANNER, CURRENCIES, LANGUAGES)
+            TAB 6: STORE APPEARANCE & SETTINGS CUSTOMIZER (مظهر وإعدادات المتجر داخل لوحة التحكم)
         ───────────────────────────────────────────────────────────── */}
         {(activeTab === 'store' || activeTab === 'store_controls') && (
           <div className="space-y-6">
             
-            {/* Header info */}
-            <div className="bg-white p-5 rounded-2xl border border-slate-200 space-y-1">
-              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-bold bg-amber-50 text-amber-800 border border-amber-200 mb-1">
-                <SlidersHorizontal className="w-3.5 h-3.5" />
-                <span>نظام التحكم الموحد بـ 3 أزرار (تمكين 🟢 / تعديل ✏️ / حذف 🗑️)</span>
+            {/* Customizer Master Header */}
+            <div className="bg-white p-5 sm:p-6 rounded-2xl border border-slate-200 shadow-xs flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+              <div className="space-y-1">
+                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-bold bg-indigo-50 text-indigo-700 border border-indigo-200">
+                  <Palette className="w-3.5 h-3.5" />
+                  <span>محرر مظهر وإعدادات المتجر المستقل (Store Customizer Studio)</span>
+                </div>
+                <h3 className="text-lg sm:text-xl font-black text-slate-900">
+                  تخصيص الهوية البصرية، الشعار، الألوان، البانر، وإعدادات العرض
+                </h3>
+                <p className="text-xs text-slate-500 leading-relaxed max-w-2xl">
+                  تحكم كامل في كيفية ظهور متجرك أمام الزبائن في جميع المتصفحات والأجهزة دون الحاجة لتسجيل دخول. يمكنك تخصيص الألوان والشعار والبانرات وحفظ التغييرات لتنعكس فوراً على رابط متجرك الخارجي المستقل.
+                </p>
               </div>
-              <h3 className="text-base sm:text-lg font-bold text-slate-900">
-                التحكم الشامل في وضعية الصيانة، الفوتر، البانر الإعلاني، العملات، واللغات
-              </h3>
-              <p className="text-xs text-slate-500 leading-relaxed">
-                كل عنصر في متجرك يملك 3 أزرار مستقلة: زر التمكين والتعطيل الفوري، زر التعديل وتخصيص النصوص والقيم، وزر الحذف أو الإخفاء.
-              </p>
+
+              <div className="flex flex-wrap items-center gap-2.5 shrink-0">
+                {/* Save & Publish All Changes */}
+                <button
+                  type="button"
+                  onClick={handleSaveStoreCustomizations}
+                  className="px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs flex items-center gap-2 shadow-sm cursor-pointer transition-all hover:scale-[1.02] active:scale-95"
+                >
+                  <Save className="w-4 h-4" />
+                  <span>حفظ ونشر التعديلات فوراً 🚀</span>
+                </button>
+
+                {/* External Store Link Button */}
+                <a
+                  href={externalStoreUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="px-4 py-2.5 rounded-xl bg-[#172132] hover:bg-[#243046] text-white font-bold text-xs flex items-center gap-1.5 transition-all shadow-2xs"
+                  title="فتح المتجر المستقل في نافذة خارجية جديدة"
+                >
+                  <ExternalLink className="w-4 h-4 text-teal-400" />
+                  <span>رابط المتجر المستقل ↗️</span>
+                </a>
+              </div>
             </div>
 
             {/* 1. Maintenance Mode (وضعية الصيانة) */}
