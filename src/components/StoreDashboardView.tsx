@@ -126,7 +126,6 @@ export const StoreDashboardView: React.FC<StoreDashboardViewProps> = ({
     | 'apps' 
     | 'affiliate' 
     | 'support' 
-    | 'settings'
     | 'shipping'
     | 'domains'
     | 'store_controls';
@@ -895,17 +894,7 @@ export const StoreDashboardView: React.FC<StoreDashboardViewProps> = ({
             <Headphones className="w-5 h-5 text-current shrink-0" />
           </button>
 
-          {/* 13. إعدادات */}
-          <button
-            type="button"
-            onClick={() => { setActiveTab('settings'); setIsSidebarOpen(false); }}
-            className={`w-full flex items-center justify-between px-4 py-3 transition-colors cursor-pointer text-xs font-semibold ${
-              activeTab === 'settings' ? 'bg-[#243046] text-white' : 'text-slate-300 hover:bg-[#1f2b3f] hover:text-white'
-            }`}
-          >
-            <span className="ms-2">إعدادات</span>
-            <Settings className="w-5 h-5 text-current shrink-0" />
-          </button>
+
 
         </nav>
 
@@ -2385,39 +2374,7 @@ export const StoreDashboardView: React.FC<StoreDashboardViewProps> = ({
           </div>
         )}
 
-        {/* ─────────────────────────────────────────────────────────────
-            TAB 8: STORE SETTINGS & PAYOUTS
-        ───────────────────────────────────────────────────────────── */}
-        {activeTab === 'settings' && (
-          <div className="space-y-6">
-            <div className="bg-white rounded-2xl border border-slate-200 p-5 sm:p-6 shadow-xs space-y-4">
-              <div className="border-b border-slate-100 pb-3">
-                <h3 className="text-base font-bold text-slate-900">إعدادات الدفع والحسابات البنكية (BaridiMob / CCP)</h3>
-                <p className="text-xs text-slate-500">بيانات تحويل أرباح مبيعات الدفع عند الاستلام لحساب التاجر</p>
-              </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
-                <div>
-                  <label className="block text-slate-700 font-bold mb-1">طريقة استلام الأرباح</label>
-                  <input
-                    type="text"
-                    defaultValue={store.settings?.payoutBank || 'بريد الجزائر (BaridiMob / CCP) / بنك BNA'}
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-slate-900 font-bold"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-slate-700 font-bold mb-1">رقم الحساب الجاري / RIP BaridiMob</label>
-                  <input
-                    type="text"
-                    defaultValue={store.settings?.payoutIban || '00799999000123456789 (RIP BaridiMob)'}
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-slate-900 font-mono font-bold"
-                  />
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
 
         {/* ─────────────────────────────────────────────────────────────
             TAB: UP SELLS (جميع Up Sells)
