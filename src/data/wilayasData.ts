@@ -59,7 +59,6 @@ export const DEFAULT_WILAYAS_69: WilayaShippingRate[] = [
   { code: '56', name: 'Djanet', nameAr: 'جانت', deskPrice: 900, homePrice: 1350, estimatedDays: '5-7 أيام', isEnabled: true, isDeleted: false, zone: 'sahara' },
   { code: '57', name: "El M'Ghair", nameAr: 'المغير', deskPrice: 500, homePrice: 750, estimatedDays: '48 ساعة', isEnabled: true, isDeleted: false, zone: 'south' },
   { code: '58', name: 'El Meniaa', nameAr: 'المنيعة', deskPrice: 550, homePrice: 800, estimatedDays: '2-3 أيام', isEnabled: true, isDeleted: false, zone: 'south' },
-  // Newly designated and administrative wilayas (59 to 69)
   { code: '59', name: 'Barika', nameAr: 'بريكة', deskPrice: 400, homePrice: 600, estimatedDays: '24-48 ساعة', isEnabled: true, isDeleted: false, zone: 'east' },
   { code: '60', name: 'Aïn Oussera', nameAr: 'عين وسارة', deskPrice: 450, homePrice: 650, estimatedDays: '48 ساعة', isEnabled: true, isDeleted: false, zone: 'center' },
   { code: '61', name: 'Messaad', nameAr: 'مسعد', deskPrice: 450, homePrice: 650, estimatedDays: '48 ساعة', isEnabled: true, isDeleted: false, zone: 'south' },
