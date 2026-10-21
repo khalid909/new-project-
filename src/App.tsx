@@ -4,7 +4,7 @@ import {
   PlanType, SupabaseConfig, GitHubConfig, SellerUser, PlatformFeatureItem, StoreFeatureItem 
 } from './types';
 import { 
-  INITIAL_STORE, INITIAL_PRODUCTS, INITIAL_ORDERS, 
+  INITIAL_STORE, INITIAL_STORES, INITIAL_PRODUCTS, INITIAL_ORDERS, 
   INITIAL_CUSTOMERS, INITIAL_COUPONS, INITIAL_SELLER_USER, 
   INITIAL_SUPABASE_CONFIG, INITIAL_GITHUB_CONFIG, PLANS, 
   INITIAL_PLATFORM_FEATURES, INITIAL_STORE_FEATURES 
@@ -42,9 +42,9 @@ export default function App() {
   const [appMode, setAppMode] = useState<'dashboard' | 'store' | 'admin' | 'register'>(() => {
     try {
       const urlParams = new URLSearchParams(window.location.search);
-      const modeParam = urlParams.get('mode') || urlParams.get('view');
+      const modeParam = urlParams.get('mode') || urlParams.get('view') || urlParams.get('portal');
       if (modeParam === 'store') return 'store';
-      if (modeParam === 'admin') return 'admin';
+      if (modeParam === 'admin' || modeParam === 'platform') return 'admin';
       if (modeParam === 'register') return 'register';
     } catch (e) {}
     return 'dashboard';
@@ -58,10 +58,10 @@ export default function App() {
       const saved = localStorage.getItem('avanto_stores');
       if (saved) {
         const parsed = JSON.parse(saved);
-        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+        if (Array.isArray(parsed) && parsed.length > 1) return parsed;
       }
     } catch (e) {}
-    return [INITIAL_STORE];
+    return INITIAL_STORES;
   });
   
   const [activeStoreId, setActiveStoreId] = useState<string>(() => {
@@ -227,6 +227,15 @@ export default function App() {
         onDeleteStore={(storeId) => {
           setStores(stores.filter(s => s.id !== storeId));
         }}
+        onToggleStoreStatus={(storeId, status) => {
+          setStores(stores.map(s => s.id === storeId ? { ...s, status } : s));
+        }}
+        onUpdateStorePlan={(storeId, plan) => {
+          setStores(stores.map(s => s.id === storeId ? { ...s, plan } : s));
+        }}
+        onAddStore={(newStore) => {
+          setStores([newStore, ...stores]);
+        }}
         onBackToPlatform={() => switchMode('dashboard')}
       />
     );
@@ -367,5 +376,5 @@ export default function App() {
   );
 }
 
-const SUPABASE_CONFIG_DEFAULT = { projectUrl: 'https://xyz.supabase.co', anonKey: 'public-key' };
-const GITHUB_CONFIG_DEFAULT = { repoUrl: 'https://github.com/user/store', branch: 'main' };
+const SUPABASE_CONFIG_DEFAULT = { projectUrl: 'https://xyz.supabase.co', anonKey: 'public-key', isConnected: true };
+const GITHUB_CONFIG_DEFAULT = { repoUrl: 'https://github.com/user/store', branch: 'main', connected: true };

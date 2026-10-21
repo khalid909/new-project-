@@ -64,7 +64,7 @@ export interface StoreSettings {
   payoutBank?: string;
   payoutIban?: string;
   // Algerian & North African COD Ecosystem (dzbuild specs)
-  activeCarrier?: 'yalidine' | 'zrexpress' | 'noest' | 'procolis';
+  activeCarrier?: 'yalidine' | 'zrexpress' | 'noest' | 'procolis' | 'maystro';
   defaultDeliveryType?: 'home' | 'desk';
   enableFakeOrderShield?: boolean;
   enableLandingPageDirectBuy?: boolean;
@@ -88,10 +88,15 @@ export interface Store {
   categoryAr: string;
   ownerName: string;
   ownerEmail: string;
+  ownerPhone?: string;
+  wilaya?: string;
+  wilayaCode?: string;
+  status?: 'active' | 'suspended' | 'pending';
   plan: PlanType;
   accentColor: string;
   totalSales: number;
   ordersCount: number;
+  productsCount?: number;
   settings: StoreSettings;
   createdAt: string;
   supabaseConnected: boolean;

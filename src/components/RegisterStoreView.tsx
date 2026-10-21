@@ -31,6 +31,8 @@ export const RegisterStoreView: React.FC<RegisterStoreViewProps> = ({
   const [category, setCategory] = useState('Fashion & Apparel');
   const [ownerName, setOwnerName] = useState('');
   const [ownerEmail, setOwnerEmail] = useState('');
+  const [ownerPhone, setOwnerPhone] = useState('');
+  const [wilaya, setWilaya] = useState('الجزائر العاصمة');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [copiedLink, setCopiedLink] = useState(false);
 
@@ -72,6 +74,9 @@ export const RegisterStoreView: React.FC<RegisterStoreViewProps> = ({
         categoryAr: category,
         ownerName: ownerName.trim(),
         ownerEmail: ownerEmail.trim().toLowerCase(),
+        ownerPhone: ownerPhone.trim() || '0550 12 34 56',
+        wilaya: wilaya,
+        status: 'active',
         plan: 'free',
         accentColor: '#059669',
         totalSales: 0,
@@ -481,6 +486,20 @@ export const RegisterStoreView: React.FC<RegisterStoreViewProps> = ({
 
             <div>
               <label className="block text-slate-700 font-bold mb-1.5">
+                {isAr ? 'رقم الهاتف (الجزائر)' : 'Phone Number (Algeria)'}
+              </label>
+              <input
+                type="tel"
+                value={ownerPhone}
+                onChange={(e) => setOwnerPhone(e.target.value)}
+                placeholder="0550 12 34 56"
+                className="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-slate-900 focus:bg-white focus:border-emerald-600 focus:outline-none transition-colors font-mono"
+                dir="ltr"
+              />
+            </div>
+
+            <div>
+              <label className="block text-slate-700 font-bold mb-1.5">
                 {isAr ? 'البريد الإلكتروني للتاجر' : 'Owner Email'} *
               </label>
               <input
@@ -489,6 +508,19 @@ export const RegisterStoreView: React.FC<RegisterStoreViewProps> = ({
                 value={ownerEmail}
                 onChange={(e) => setOwnerEmail(e.target.value)}
                 placeholder="merchant@example.com"
+                className="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-slate-900 focus:bg-white focus:border-emerald-600 focus:outline-none transition-colors"
+              />
+            </div>
+
+            <div>
+              <label className="block text-slate-700 font-bold mb-1.5">
+                {isAr ? 'الولاية ومقر النشاط' : 'Merchant Wilaya'}
+              </label>
+              <input
+                type="text"
+                value={wilaya}
+                onChange={(e) => setWilaya(e.target.value)}
+                placeholder="الجزائر العاصمة، وهران، سطيف..."
                 className="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-slate-900 focus:bg-white focus:border-emerald-600 focus:outline-none transition-colors"
               />
             </div>
