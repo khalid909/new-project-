@@ -148,6 +148,10 @@ export interface StoreSettings {
     isEnabled: boolean;
     isDeleted?: boolean;
   }[];
+  themePreset?: 'lumora_dark' | 'minimalist_gold' | 'vibrant_green';
+  enableAiWidget?: boolean;
+  enableArWidget?: boolean;
+  enableOrderTrackingWidget?: boolean;
 }
 
 export interface Store {

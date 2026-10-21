@@ -21,7 +21,8 @@ import {
   HelpCircle, Monitor, Wrench, Shield, CheckSquare, Tag,
   Link2, Save, RotateCcw, Home, Ticket, LayoutGrid, Share2, 
   Headphones, ChevronDown, ChevronUp, Menu, Bell, Percent, Send,
-  Store as StoreIcon, FileText, Smartphone, Laptop, MessageCircle, QrCode
+  Store as StoreIcon, FileText, Smartphone, Laptop, MessageCircle, QrCode,
+  Crown, Zap
 } from 'lucide-react';
 
 interface StoreDashboardViewProps {
@@ -128,11 +129,20 @@ export const StoreDashboardView: React.FC<StoreDashboardViewProps> = ({
     | 'support' 
     | 'shipping'
     | 'domains'
-    | 'store_controls';
+    | 'store_controls'
+    | 'theme_customization';
 
   const [activeTab, setActiveTab] = useState<DashboardTab>('overview');
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isUpsellsMenuOpen, setIsUpsellsMenuOpen] = useState(true);
+
+  // Theme Customization State (inspired by Lumora reference image)
+  const [selectedThemePreset, setSelectedThemePreset] = useState<'lumora_dark' | 'minimalist_gold' | 'vibrant_green'>(() => {
+    return store.settings?.themePreset || 'lumora_dark';
+  });
+  const [enableAiWidget, setEnableAiWidget] = useState(store.settings?.enableAiWidget !== false);
+  const [enableArWidget, setEnableArWidget] = useState(store.settings?.enableArWidget !== false);
+  const [enableOrderTrackingWidget, setEnableOrderTrackingWidget] = useState(store.settings?.enableOrderTrackingWidget !== false);
 
   // Up Sells State
   const [upsellsList, setUpsellsList] = useState([
@@ -637,6 +647,23 @@ export const StoreDashboardView: React.FC<StoreDashboardViewProps> = ({
     showToast(isAr ? 'تم حفظ ونشر مظهر وإعدادات المتجر بنجاح! 🚀' : 'Store appearance and settings saved!');
   };
 
+  const handleActivateTheme = (preset: 'lumora_dark' | 'minimalist_gold' | 'vibrant_green') => {
+    setSelectedThemePreset(preset);
+    const accent = preset === 'lumora_dark' ? '#8B5CF6' : preset === 'minimalist_gold' ? '#D97706' : '#10B981';
+    const updates = {
+      themePreset: preset,
+      themeColor: accent,
+      enableAiWidget,
+      enableArWidget,
+      enableOrderTrackingWidget
+    };
+    if (onUpdateStore) {
+      onUpdateStore({ accentColor: accent, settings: { ...store.settings, ...updates } });
+    }
+    onUpdateStoreSettings(updates);
+    showToast(isAr ? `تم تفعيل وتطبيق المظهر بنجاح على المتجر! ⚡` : 'Theme activated and applied!');
+  };
+
   // Save 3-Button changes back to Store Settings
   const persistControls = (updates: any) => {
     onUpdateStoreSettings(updates);
@@ -832,6 +859,18 @@ export const StoreDashboardView: React.FC<StoreDashboardViewProps> = ({
           >
             <span className="ms-2">متجر</span>
             <StoreIcon className="w-5 h-5 text-current shrink-0" />
+          </button>
+
+          {/* تعديل المظاهر (مستوحى من تصميم Lumora المرفق) */}
+          <button
+            type="button"
+            onClick={() => { setActiveTab('theme_customization'); setIsSidebarOpen(false); }}
+            className={`w-full flex items-center justify-between px-4 py-3 transition-colors cursor-pointer text-xs font-semibold ${
+              activeTab === 'theme_customization' ? 'bg-[#243046] text-white' : 'text-slate-300 hover:bg-[#1f2b3f] hover:text-white'
+            }`}
+          >
+            <span className="ms-2">تعديل المظاهر</span>
+            <Palette className="w-5 h-5 text-current shrink-0 text-purple-400" />
           </button>
 
           {/* 8. إحصائيات */}
@@ -1693,6 +1732,359 @@ export const StoreDashboardView: React.FC<StoreDashboardViewProps> = ({
         {/* ─────────────────────────────────────────────────────────────
             TAB 6: STORE APPEARANCE & SETTINGS CUSTOMIZER (مظهر وإعدادات المتجر داخل لوحة التحكم)
         ───────────────────────────────────────────────────────────── */}
+        {/* ─────────────────────────────────────────────────────────────
+            TAB: THEME CUSTOMIZATION (قسم تعديل المظاهر المستوحى من منصة Lumora المرفقة)
+        ───────────────────────────────────────────────────────────── */}
+        {activeTab === 'theme_customization' && (
+          <div className="space-y-6">
+            
+            {/* Header */}
+            <div className="bg-gradient-to-r from-[#172132] via-[#1E293B] to-[#0F172A] p-6 rounded-3xl text-white shadow-xl border border-slate-700 space-y-3">
+              <div className="flex flex-wrap items-center justify-between gap-4">
+                <div className="space-y-1">
+                  <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-black bg-purple-500/20 text-purple-300 border border-purple-500/40">
+                    <Palette className="w-4 h-4 text-purple-400" />
+                    <span>تعديل المظاهر والهوية البصرية (Lumora Theme Studio)</span>
+                  </div>
+                  <h3 className="text-xl sm:text-2xl font-black">
+                    اختر مظهر متجرك الإلكتروني المستوحى من أحدث التصاميم العالمية 🎨
+                  </h3>
+                  <p className="text-xs text-slate-300 leading-relaxed max-w-2xl">
+                    قم بتخصيص الثيم الداكن المتطور (Lumora Dark Futuristic)، أزرار التفاعل، المساعد الذكي، بار التصنيفات، وعناصر الواجهة لتتوافق تماماً مع هويتك التجارية.
+                  </p>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    const updates = {
+                      themePreset: selectedThemePreset,
+                      enableAiWidget,
+                      enableArWidget,
+                      enableOrderTrackingWidget
+                    };
+                    onUpdateStoreSettings(updates);
+                    showToast(isAr ? 'تم حفظ وتطبيق المظهر الجديد بنجاح على المتجر! 🚀' : 'Theme saved and applied!');
+                  }}
+                  className="px-6 py-3 rounded-2xl bg-purple-600 hover:bg-purple-500 text-white font-black text-xs shadow-lg cursor-pointer transition-all flex items-center gap-2 hover:scale-105 active:scale-95"
+                >
+                  <Save className="w-4 h-4" />
+                  <span>حفظ وتطبيق المظهر الجديد 🚀</span>
+                </button>
+              </div>
+            </div>
+
+            {/* Theme Presets Grid with Thumbnail Previews & Activation Buttons */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              
+              {/* Preset 1: Lumora Dark Futuristic (Featured / From Screenshot) */}
+              <div 
+                className={`rounded-3xl border-2 transition-all bg-[#0F172A] text-white overflow-hidden shadow-xl flex flex-col justify-between ${
+                  selectedThemePreset === 'lumora_dark' ? 'border-purple-500 ring-4 ring-purple-500/20 shadow-2xl scale-[1.02]' : 'border-slate-800'
+                }`}
+              >
+                <div>
+                  {/* Theme Thumbnail Image Preview (Lumora Dark Screenshot) */}
+                  <div className="h-44 bg-slate-950 relative overflow-hidden group">
+                    <img 
+                      src="/assets/aistudio/156ae848-8bc7-44ca-a4f7-e53fd9b35d7e_e8f52c89.png" 
+                      alt="Lumora Dark Futuristic Theme"
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300 opacity-90"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-[#0F172A] via-transparent to-transparent" />
+                    
+                    {selectedThemePreset === 'lumora_dark' && (
+                      <span className="absolute top-3 start-3 px-3 py-1 rounded-full text-[10px] font-black bg-purple-600 text-white flex items-center gap-1 shadow-md">
+                        <Sparkles className="w-3 h-3" />
+                        <span>المظهر المفعل حالياً ✓</span>
+                      </span>
+                    )}
+                  </div>
+
+                  <div className="p-5 space-y-3">
+                    <div className="flex items-center gap-2.5">
+                      <div className="w-10 h-10 rounded-xl bg-purple-600 text-white flex items-center justify-center font-bold">
+                        🟣
+                      </div>
+                      <div>
+                        <h4 className="font-black text-sm text-white">Lumora Dark Futuristic</h4>
+                        <span className="text-[10px] text-purple-400 font-semibold">مستوحى من تصميم المنصة المرفق</span>
+                      </div>
+                    </div>
+
+                    <p className="text-xs text-slate-300 leading-relaxed">
+                      مظهر داكن فاخر مع تدرجات بنفسجية ونيون، مساعد ذكي جانبي، بانرات كارسول متحركة، وتجربة تسوق سريعة لـ 69 ولاية.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="p-4 bg-slate-900 border-t border-slate-800 flex items-center justify-between gap-3">
+                  <span className="text-[11px] text-purple-300 font-bold">مساعد ذكي + AR + تتبع طلب</span>
+                  <button
+                    type="button"
+                    onClick={() => handleActivateTheme('lumora_dark')}
+                    className={`px-4 py-2 rounded-xl text-xs font-black transition-all cursor-pointer shadow-sm ${
+                      selectedThemePreset === 'lumora_dark'
+                        ? 'bg-purple-600 text-white'
+                        : 'bg-slate-800 hover:bg-slate-700 text-purple-300 border border-purple-500/40'
+                    }`}
+                  >
+                    {selectedThemePreset === 'lumora_dark' ? 'مفعل نشط ✓' : 'تفعيل هذا المظهر ⚡'}
+                  </button>
+                </div>
+              </div>
+
+              {/* Preset 2: Minimalist Gold Luxury */}
+              <div 
+                className={`rounded-3xl border-2 transition-all bg-white text-slate-900 overflow-hidden shadow-xl flex flex-col justify-between ${
+                  selectedThemePreset === 'minimalist_gold' ? 'border-amber-500 ring-4 ring-amber-500/20 shadow-2xl scale-[1.02]' : 'border-slate-200'
+                }`}
+              >
+                <div>
+                  {/* Theme Thumbnail Image Preview */}
+                  <div className="h-44 bg-slate-100 relative overflow-hidden group">
+                    <img 
+                      src="https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?w=600&auto=format&fit=crop&q=80" 
+                      alt="Minimalist Gold Luxury Theme"
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-white via-transparent to-transparent" />
+                    
+                    {selectedThemePreset === 'minimalist_gold' && (
+                      <span className="absolute top-3 start-3 px-3 py-1 rounded-full text-[10px] font-black bg-amber-600 text-white flex items-center gap-1 shadow-md">
+                        <Sparkles className="w-3 h-3" />
+                        <span>المظهر المفعل حالياً ✓</span>
+                      </span>
+                    )}
+                  </div>
+
+                  <div className="p-5 space-y-3">
+                    <div className="flex items-center gap-2.5">
+                      <div className="w-10 h-10 rounded-xl bg-amber-500 text-white flex items-center justify-center font-bold">
+                        👑
+                      </div>
+                      <div>
+                        <h4 className="font-black text-sm text-slate-900">Minimalist Gold Luxury</h4>
+                        <span className="text-[10px] text-amber-600 font-semibold">أبيض وفضي بلمسات ذهبية</span>
+                      </div>
+                    </div>
+
+                    <p className="text-xs text-slate-600 leading-relaxed">
+                      تصميم ناصع البياض مخصص للمتاجر الفاخرة، العطور، الساعات، والمجوهرات مع تركيز كامل على صور المنتجات.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="p-4 bg-slate-50 border-t border-slate-200 flex items-center justify-between gap-3">
+                  <span className="text-[11px] text-amber-700 font-bold">عرض فاخر + تكبير الصور</span>
+                  <button
+                    type="button"
+                    onClick={() => handleActivateTheme('minimalist_gold')}
+                    className={`px-4 py-2 rounded-xl text-xs font-black transition-all cursor-pointer shadow-sm ${
+                      selectedThemePreset === 'minimalist_gold'
+                        ? 'bg-amber-600 text-white'
+                        : 'bg-white hover:bg-slate-100 text-amber-700 border border-amber-500/40'
+                    }`}
+                  >
+                    {selectedThemePreset === 'minimalist_gold' ? 'مفعل نشط ✓' : 'تفعيل هذا المظهر ⚡'}
+                  </button>
+                </div>
+              </div>
+
+              {/* Preset 3: Vibrant E-Commerce Pro */}
+              <div 
+                className={`rounded-3xl border-2 transition-all bg-white text-slate-900 overflow-hidden shadow-xl flex flex-col justify-between ${
+                  selectedThemePreset === 'vibrant_green' ? 'border-emerald-500 ring-4 ring-emerald-500/20 shadow-2xl scale-[1.02]' : 'border-slate-200'
+                }`}
+              >
+                <div>
+                  {/* Theme Thumbnail Image Preview */}
+                  <div className="h-44 bg-slate-100 relative overflow-hidden group">
+                    <img 
+                      src="https://images.unsplash.com/photo-1472851294608-062f824d29cc?w=600&auto=format&fit=crop&q=80" 
+                      alt="Vibrant E-Commerce Pro Theme"
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-white via-transparent to-transparent" />
+                    
+                    {selectedThemePreset === 'vibrant_green' && (
+                      <span className="absolute top-3 start-3 px-3 py-1 rounded-full text-[10px] font-black bg-emerald-600 text-white flex items-center gap-1 shadow-md">
+                        <Sparkles className="w-3 h-3" />
+                        <span>المظهر المفعل حالياً ✓</span>
+                      </span>
+                    )}
+                  </div>
+
+                  <div className="p-5 space-y-3">
+                    <div className="flex items-center gap-2.5">
+                      <div className="w-10 h-10 rounded-xl bg-emerald-600 text-white flex items-center justify-center font-bold">
+                        ⚡
+                      </div>
+                      <div>
+                        <h4 className="font-black text-sm text-slate-900">Vibrant E-Commerce Pro</h4>
+                        <span className="text-[10px] text-emerald-600 font-semibold">أخضر وأزرق تجاري محترف</span>
+                      </div>
+                    </div>
+
+                    <p className="text-xs text-slate-600 leading-relaxed">
+                      مظهر عالي التباين مصمم خصيصاً للمتاجر التي تعتمد على الدفع عند الاستلام (COD) مع شارات شحن سريعة لـ 69 ولاية.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="p-4 bg-slate-50 border-t border-slate-200 flex items-center justify-between gap-3">
+                  <span className="text-[11px] text-emerald-700 font-bold">شحن 69 ولاية + شراء سريع</span>
+                  <button
+                    type="button"
+                    onClick={() => handleActivateTheme('vibrant_green')}
+                    className={`px-4 py-2 rounded-xl text-xs font-black transition-all cursor-pointer shadow-sm ${
+                      selectedThemePreset === 'vibrant_green'
+                        ? 'bg-emerald-600 text-white'
+                        : 'bg-white hover:bg-slate-100 text-emerald-700 border border-emerald-500/40'
+                    }`}
+                  >
+                    {selectedThemePreset === 'vibrant_green' ? 'مفعل نشط ✓' : 'تفعيل هذا المظهر ⚡'}
+                  </button>
+                </div>
+              </div>
+
+            </div>
+
+            {/* Widget Toggles & Advanced Theme Options */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              
+              {/* Widgets Configuration */}
+              <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-xs space-y-4">
+                <h4 className="font-bold text-slate-900 text-sm flex items-center gap-2">
+                  <SlidersHorizontal className="w-4 h-4 text-purple-600" />
+                  <span>تفعيل وإلغاء ويدجتس المتجر (Widgets Configuration)</span>
+                </h4>
+                <p className="text-xs text-slate-500">تحكم في ظهور المساعد الذكي، الواقع المعزز، وتتبع الطلب في واجهة المتجر</p>
+
+                <div className="space-y-3 pt-2">
+                  
+                  <div className="flex items-center justify-between p-3.5 rounded-2xl bg-slate-50 border border-slate-200">
+                    <div className="flex items-center gap-3">
+                      <div className="w-9 h-9 rounded-xl bg-purple-100 text-purple-700 flex items-center justify-center">
+                        <Sparkles className="w-4 h-4" />
+                      </div>
+                      <div>
+                        <div className="font-bold text-slate-900 text-xs">مساعد الذكاء الاصطناعي (AI Assistant Widget)</div>
+                        <div className="text-[10px] text-slate-500">يظهر على الجانب الأيمن لمساعدة الزبائن في اختيار المنتجات</div>
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setEnableAiWidget(!enableAiWidget)}
+                      className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                        enableAiWidget ? 'bg-purple-600 text-white shadow-xs' : 'bg-slate-200 text-slate-600'
+                      }`}
+                    >
+                      {enableAiWidget ? 'مفعل 🟢' : 'معطل ⚪'}
+                    </button>
+                  </div>
+
+                  <div className="flex items-center justify-between p-3.5 rounded-2xl bg-slate-50 border border-slate-200">
+                    <div className="flex items-center gap-3">
+                      <div className="w-9 h-9 rounded-xl bg-indigo-100 text-indigo-700 flex items-center justify-center">
+                        <Monitor className="w-4 h-4" />
+                      </div>
+                      <div>
+                        <div className="font-bold text-slate-900 text-xs">تجربة الواقع المعزز (AR Try-On Widget)</div>
+                        <div className="text-[10px] text-slate-500">يتيح للزبون معاينة المنتج بتقنية 3D قبل الشراء</div>
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setEnableArWidget(!enableArWidget)}
+                      className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                        enableArWidget ? 'bg-indigo-600 text-white shadow-xs' : 'bg-slate-200 text-slate-600'
+                      }`}
+                    >
+                      {enableArWidget ? 'مفعل 🟢' : 'معطل ⚪'}
+                    </button>
+                  </div>
+
+                  <div className="flex items-center justify-between p-3.5 rounded-2xl bg-slate-50 border border-slate-200">
+                    <div className="flex items-center gap-3">
+                      <div className="w-9 h-9 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center">
+                        <Truck className="w-4 h-4" />
+                      </div>
+                      <div>
+                        <div className="font-bold text-slate-900 text-xs">ويدجت تتبع الطلب السريع (Order Tracker)</div>
+                        <div className="text-[10px] text-slate-500">يمكن الزبون من تتبع حالة طلبه مباشرة برقم الهاتف</div>
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setEnableOrderTrackingWidget(!enableOrderTrackingWidget)}
+                      className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                        enableOrderTrackingWidget ? 'bg-emerald-600 text-white shadow-xs' : 'bg-slate-200 text-slate-600'
+                      }`}
+                    >
+                      {enableOrderTrackingWidget ? 'مفعل 🟢' : 'معطل ⚪'}
+                    </button>
+                  </div>
+
+                </div>
+              </div>
+
+              {/* Live Preview Card */}
+              <div className="bg-slate-900 text-white p-6 rounded-3xl border border-slate-800 shadow-lg flex flex-col justify-between space-y-4">
+                <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+                  <div className="flex items-center gap-2">
+                    <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse" />
+                    <span className="font-bold text-xs">معاينة مباشرة للمظهر المحدد</span>
+                  </div>
+                  <span className="text-[10px] bg-slate-800 px-2 py-0.5 rounded font-mono text-purple-400 uppercase">
+                    {selectedThemePreset}
+                  </span>
+                </div>
+
+                <div className="space-y-3">
+                  <div className="p-4 rounded-2xl bg-slate-950 border border-slate-800 space-y-2">
+                    <div className="flex items-center justify-between text-xs font-bold text-slate-300">
+                      <span>اسم المتجر:</span>
+                      <span className="text-purple-300">{store.nameAr || store.name}</span>
+                    </div>
+                    <div className="flex items-center justify-between text-xs font-bold text-slate-300">
+                      <span>الثيم المختار:</span>
+                      <span className="text-emerald-400 font-mono">
+                        {selectedThemePreset === 'lumora_dark' ? 'Lumora Dark Futuristic 🟣' : selectedThemePreset === 'minimalist_gold' ? 'Minimalist Gold Luxury 👑' : 'Vibrant E-Commerce Pro ⚡'}
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between text-xs font-bold text-slate-300">
+                      <span>حالة الرابط الخارجي:</span>
+                      <a href={externalStoreUrl} target="_blank" rel="noopener noreferrer" className="text-teal-400 hover:underline flex items-center gap-1 font-mono">
+                        <span>فتح المعاينة للزبون ↗️</span>
+                      </a>
+                    </div>
+                  </div>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    const updates = {
+                      themePreset: selectedThemePreset,
+                      enableAiWidget,
+                      enableArWidget,
+                      enableOrderTrackingWidget
+                    };
+                    onUpdateStoreSettings(updates);
+                    showToast(isAr ? 'تم نشر وتطبيق المظهر بنجاح! 🚀' : 'Theme published successfully');
+                  }}
+                  className="w-full py-3 rounded-2xl bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-black text-xs shadow-md transition-all cursor-pointer"
+                >
+                  حفظ وتطبيق المظهر الآن 🚀
+                </button>
+              </div>
+
+            </div>
+
+          </div>
+        )}
+
         {(activeTab === 'store' || activeTab === 'store_controls') && (
           <div className="space-y-6">
             

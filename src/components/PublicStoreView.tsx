@@ -8,7 +8,8 @@ import {
   ChevronRight, Phone, Mail, HelpCircle, Package, ArrowUpRight, Globe,
   MessageCircle, AlertTriangle, Link2, Share2,
   Edit3, Trash2, Power, Sliders, Sparkles, Layers, CheckSquare, Settings,
-  Camera, Palette, Image as ImageIcon
+  Camera, Palette, Image as ImageIcon,
+  Play, Bell, Send, Heart, Monitor, Headphones, Home, Smartphone
 } from 'lucide-react';
 
 interface PublicStoreViewProps {
@@ -54,7 +55,7 @@ export const PublicStoreView: React.FC<PublicStoreViewProps> = ({
   onEnableAllStoreFeatures,
   isOnlinePaymentsEnabled = true,
   isStandalonePage = false,
-  initialMerchantMode = true
+  initialMerchantMode = !isStandalonePage
 }) => {
   const isAr = language === 'ar';
   
@@ -584,8 +585,15 @@ export const PublicStoreView: React.FC<PublicStoreViewProps> = ({
           { code: 'SAR' as Currency, nameAr: 'ريال سعودي (SAR)', symbol: 'ر.س', isEnabled: true }
         ];
 
+    const currentThemePreset = store.settings?.themePreset || 'lumora_dark';
+    const isDarkTheme = currentThemePreset === 'lumora_dark';
+
     return (
-      <div className="min-h-screen bg-[#F8FAFC] text-slate-800 flex flex-col selection:bg-indigo-100 selection:text-indigo-900">
+      <div className={`min-h-screen flex flex-col ${
+        isDarkTheme 
+          ? 'bg-[#0B132B] text-white selection:bg-purple-500 selection:text-white' 
+          : 'bg-[#F8FAFC] text-slate-800 selection:bg-indigo-100 selection:text-indigo-900'
+      }`}>
       
       {/* ─── Top Merchant 3-in-1 Live Control Hub (Bar for Seller) ─── */}
       {isMerchantMode && (
@@ -732,6 +740,377 @@ export const PublicStoreView: React.FC<PublicStoreViewProps> = ({
           <span>{isAr ? 'وضع تحكم التاجر (3 أزرار) 🛠️' : 'Merchant Controls 🛠️'}</span>
         </button>
       )}
+
+      {/* Lumora 3-Column Layout Matching Reference Screenshot */}
+      {isDarkTheme ? (
+        <div className="flex-1 flex flex-col lg:flex-row min-h-screen">
+          
+          {/* 1. Left Dark Navigation Sidebar */}
+          <aside className="w-full lg:w-64 bg-[#121B2B] text-slate-300 border-e border-slate-800 flex flex-col shrink-0 p-5 space-y-6">
+            {/* Logo */}
+            <div className="flex items-center gap-3 px-2">
+              <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-purple-600 to-indigo-500 text-white flex items-center justify-center font-black text-xl shadow-lg shadow-purple-900/40">
+                {store.name.charAt(0) || 'L'}
+              </div>
+              <div>
+                <span className="font-black text-white text-lg tracking-wider">{store.nameAr || store.name || 'Lumora'}</span>
+                <span className="block text-[10px] text-purple-400 font-bold">AI E-Commerce Pro</span>
+              </div>
+            </div>
+
+            {/* Navigation Links */}
+            <nav className="space-y-1 text-xs font-bold">
+              {[
+                { name: 'الرئيسية', icon: <Home className="w-4 h-4" />, active: true },
+                { name: 'المنتجات', icon: <Tag className="w-4 h-4" /> },
+                { name: 'الأقسام', icon: <Layers className="w-4 h-4" /> },
+                { name: 'العروض الخاصة', icon: <Sparkles className="w-4 h-4 text-amber-400" /> },
+                { name: 'الذكاء الاصطناعي', icon: <Sparkles className="w-4 h-4 text-purple-400" />, badge: 'جديد' },
+                { name: 'المفضلة', icon: <Heart className="w-4 h-4" /> },
+                { name: 'سلة التسوق', icon: <ShoppingBag className="w-4 h-4" />, count: totalItemsCount },
+                { name: 'طلباتي', icon: <Package className="w-4 h-4" /> },
+                { name: 'المساعدة', icon: <HelpCircle className="w-4 h-4" /> },
+              ].map((item, idx) => (
+                <button
+                  key={idx}
+                  onClick={() => {
+                    if (item.name === 'سلة التسوق') setIsCheckoutOpen(true);
+                    if (item.name === 'طلباتي') setIsTrackingModalOpen(true);
+                  }}
+                  className={`w-full flex items-center justify-between px-4 py-3 rounded-xl transition-all cursor-pointer ${
+                    item.active 
+                      ? 'bg-purple-600/20 text-purple-300 border border-purple-500/30' 
+                      : 'text-slate-400 hover:text-white hover:bg-[#1A263C]'
+                  }`}
+                >
+                  <div className="flex items-center gap-3">
+                    {item.icon}
+                    <span>{item.name}</span>
+                  </div>
+                  {item.badge && (
+                    <span className="px-2 py-0.5 rounded-full bg-purple-500 text-white text-[9px] font-black">
+                      {item.badge}
+                    </span>
+                  )}
+                  {item.count !== undefined && item.count > 0 && (
+                    <span className="w-5 h-5 rounded-full bg-purple-600 text-white text-[10px] font-black flex items-center justify-center">
+                      {item.count}
+                    </span>
+                  )}
+                </button>
+              ))}
+            </nav>
+
+            {/* Special Features Section */}
+            <div className="pt-6 border-t border-slate-800 space-y-3">
+              <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider px-2">مميزات خاصة</span>
+              <div className="space-y-2 text-xs text-slate-400">
+                <div className="flex items-center gap-2.5 px-2 py-1.5 rounded-lg hover:bg-slate-800/50">
+                  <Monitor className="w-3.5 h-3.5 text-indigo-400" />
+                  <span>تجربة افتراضية للمنتجات</span>
+                </div>
+                <div className="flex items-center gap-2.5 px-2 py-1.5 rounded-lg hover:bg-slate-800/50">
+                  <Truck className="w-3.5 h-3.5 text-emerald-400" />
+                  <span>توصيل سريع 58 ولاية</span>
+                </div>
+                <div className="flex items-center gap-2.5 px-2 py-1.5 rounded-lg hover:bg-slate-800/50">
+                  <ShieldCheck className="w-3.5 h-3.5 text-purple-400" />
+                  <span>دفع آمن ومحمي</span>
+                </div>
+                <div className="flex items-center gap-2.5 px-2 py-1.5 rounded-lg hover:bg-slate-800/50">
+                  <Headphones className="w-3.5 h-3.5 text-amber-400" />
+                  <span>دعم على مدار الساعة</span>
+                </div>
+              </div>
+            </div>
+          </aside>
+
+          {/* 2. Center Main Content & 3. Right Widgets Sidebar Grid */}
+          <div className="flex-1 flex flex-col lg:grid lg:grid-cols-12 min-w-0">
+            
+            {/* Center Main Store Content (8 cols) */}
+            <div className="lg:col-span-8 flex flex-col min-w-0 border-e border-slate-800">
+              
+              {/* Top Header with Search & User Profile */}
+              <header className="sticky top-0 z-30 bg-[#121B2B]/95 backdrop-blur-md border-b border-slate-800 px-6 py-4 flex items-center justify-between gap-4">
+                <div className="flex-1 max-w-md relative">
+                  <Search className="w-4 h-4 text-slate-400 absolute top-1/2 -translate-y-1/2 start-3.5" />
+                  <input
+                    type="text"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    placeholder="ابحث عن أي منتج، أو اكتب ما تحتاجه بالذكاء الاصطناعي..."
+                    className="w-full bg-[#1A263C] border border-slate-700/80 rounded-xl ps-10 pe-16 py-2.5 text-xs text-white placeholder-slate-400 focus:outline-none focus:border-purple-500"
+                  />
+                  <span className="absolute top-1/2 -translate-y-1/2 end-3 px-1.5 py-0.5 rounded bg-slate-800 text-slate-400 text-[10px] font-mono">
+                    Ctrl + K
+                  </span>
+                </div>
+
+                <div className="flex items-center gap-3">
+                  <button className="p-2 rounded-xl bg-[#1A263C] border border-slate-700 text-slate-300 hover:text-white relative cursor-pointer">
+                    <Bell className="w-4 h-4" />
+                    <span className="absolute top-1.5 end-1.5 w-2 h-2 rounded-full bg-purple-500" />
+                  </button>
+                  <button className="p-2 rounded-xl bg-[#1A263C] border border-slate-700 text-slate-300 hover:text-white cursor-pointer">
+                    <Heart className="w-4 h-4" />
+                  </button>
+                  <button className="p-2 rounded-xl bg-[#1A263C] border border-slate-700 text-slate-300 hover:text-white cursor-pointer">
+                    <MessageCircle className="w-4 h-4" />
+                  </button>
+                  
+                  {/* User profile */}
+                  <div className="flex items-center gap-2.5 ps-2 border-s border-slate-700">
+                    <img
+                      src={currentUser?.avatarUrl || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&auto=format&fit=crop&q=80"}
+                      alt="User"
+                      className="w-9 h-9 rounded-xl object-cover border border-purple-500/50"
+                    />
+                    <div className="hidden sm:block text-start">
+                      <span className="text-[10px] text-slate-400 block">أهلاً بك</span>
+                      <span className="font-black text-white text-xs">{currentUser?.name || 'أحمد'}</span>
+                    </div>
+                  </div>
+                </div>
+              </header>
+
+              {/* Hero Banner with Neon Glow */}
+              <section className="p-6">
+                <div className="relative rounded-3xl overflow-hidden bg-gradient-to-r from-purple-950 via-slate-900 to-[#121B2B] border border-purple-500/30 p-8 shadow-2xl">
+                  <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-purple-600/20 via-transparent to-transparent pointer-events-none" />
+                  <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-center relative z-10">
+                    <div className="lg:col-span-7 space-y-4">
+                      <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-purple-500/20 text-purple-300 border border-purple-500/40 text-xs font-bold">
+                        <Sparkles className="w-3.5 h-3.5" />
+                        <span>تقنية الذكاء الاصطناعي في التسوق</span>
+                      </div>
+                      <h2 className="text-2xl sm:text-3xl lg:text-4xl font-black text-white leading-tight">
+                        مستقبلك بين يديك اكتشف أحدث المنتجات مع تقنية الذكاء الاصطناعي
+                      </h2>
+                      <p className="text-xs sm:text-sm text-slate-300 leading-relaxed">
+                        تسوق بذكاء مع لومورا، حيث تلتقي التكنولوجيا بالأناقة لتجربة تسوق فريدة ومخصصة لك.
+                      </p>
+                      <div className="flex items-center gap-3 pt-2">
+                        <button
+                          onClick={() => setIsCheckoutOpen(true)}
+                          className="px-6 py-3 rounded-2xl bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-black text-xs shadow-lg shadow-purple-600/30 cursor-pointer"
+                        >
+                          تسوق الآن 🛍️
+                        </button>
+                        <button className="px-5 py-3 rounded-2xl bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold text-xs flex items-center gap-2 border border-slate-700 cursor-pointer">
+                          <Play className="w-3.5 h-3.5 text-purple-400" />
+                          <span>شاهد الفيديو</span>
+                        </button>
+                      </div>
+                    </div>
+                    <div className="lg:col-span-5 hidden lg:flex justify-center">
+                      <div className="relative w-48 h-48 rounded-full bg-gradient-to-tr from-purple-600/30 to-indigo-600/30 flex items-center justify-center animate-pulse">
+                        <Smartphone className="w-24 h-24 text-purple-300" />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </section>
+
+              {/* Categories Bar */}
+              <div className="px-6 pb-6">
+                <div className="flex items-center justify-between mb-3">
+                  <span className="font-extrabold text-white text-sm">التصنيفات والأقسام</span>
+                  <button className="text-xs text-purple-400 font-bold hover:underline cursor-pointer">عرض الكل ←</button>
+                </div>
+                <div className="flex items-center gap-3 overflow-x-auto scrollbar-none pb-2">
+                  {[
+                    { name: 'الكل', icon: '🛍️' },
+                    { name: 'الأزياء', icon: '👗' },
+                    { name: 'الهواتف', icon: '📱' },
+                    { name: 'الإلكترونيات', icon: '💻' },
+                    { name: 'المنزل', icon: '🏠' },
+                    { name: 'الجمال', icon: '💄' },
+                    { name: 'الرياضة', icon: '⚽' },
+                    { name: 'الكتب', icon: '📚' },
+                    { name: 'الألعاب', icon: '🎮' },
+                  ].map((cat, i) => (
+                    <button
+                      key={i}
+                      onClick={() => setSelectedCategory(cat.name === 'الكل' ? 'all' : cat.name)}
+                      className={`flex flex-col items-center justify-center p-3 rounded-2xl border transition-all cursor-pointer min-w-[76px] ${
+                        selectedCategory === (cat.name === 'الكل' ? 'all' : cat.name)
+                          ? 'bg-purple-600 text-white border-purple-500 shadow-lg shadow-purple-600/20'
+                          : 'bg-[#172132] text-slate-300 border-slate-800 hover:bg-slate-800'
+                      }`}
+                    >
+                      <span className="text-xl mb-1">{cat.icon}</span>
+                      <span className="text-[11px] font-bold">{cat.name}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Products Grid ("منتجات مميزة") */}
+              <div className="px-6 pb-12 space-y-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Sparkles className="w-4 h-4 text-purple-400" />
+                    <h3 className="font-black text-white text-base">منتجات مميزة</h3>
+                  </div>
+                  <span className="text-xs text-slate-400">{filteredProducts.length} منتج متاح</span>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {filteredProducts.map((prod) => (
+                    <div key={prod.id} className="bg-[#172132] border border-slate-800 rounded-2xl p-4 flex flex-col justify-between space-y-3 group hover:border-purple-500/50 transition-all">
+                      <div className="relative h-44 rounded-xl bg-slate-900 overflow-hidden cursor-pointer" onClick={() => handleOpenQuickView(prod)}>
+                        <img src={prod.imageUrl || 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=500&auto=format&fit=crop&q=80'} alt={prod.nameAr} className="w-full h-full object-cover group-hover:scale-105 transition-transform" />
+                        <span className="absolute top-2 start-2 px-2 py-0.5 rounded-full text-[10px] font-black bg-purple-600 text-white">الأكثر مبيعاً</span>
+                      </div>
+                      <div>
+                        <div className="flex items-center gap-1 text-amber-400 text-[10px] font-bold mb-1">
+                          <Star className="w-3 h-3 fill-amber-400" />
+                          <span>4.9 (128)</span>
+                        </div>
+                        <h4 className="font-black text-white text-xs line-clamp-1 cursor-pointer" onClick={() => handleOpenQuickView(prod)}>{prod.nameAr}</h4>
+                        <span className="font-mono font-black text-sm text-purple-300 mt-1 block">{formatPrice(prod.price)}</span>
+                      </div>
+                      <button
+                        onClick={() => handleAddToCart(prod)}
+                        className="w-full py-2 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-black text-xs shadow-md transition-all cursor-pointer"
+                      >
+                        إضافة للسلة 🛍️
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Footer */}
+              <footer className="mt-auto bg-[#121B2B] border-t border-slate-800 p-6 text-center text-xs text-slate-400">
+                <p>© 2026 {store.nameAr || store.name}. جميع الحقوق محفوظة.</p>
+              </footer>
+            </div>
+
+            {/* Right Sidebar Widgets (4 cols): AI Assistant & Order Tracker */}
+            <div className="lg:col-span-4 bg-[#121B2B] p-5 space-y-6 flex flex-col">
+              
+              {/* 1. AI Assistant Widget */}
+              <div className="p-5 rounded-3xl bg-[#172132] border border-purple-500/30 space-y-4 shadow-xl">
+                <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+                  <div className="flex items-center gap-2">
+                    <div className="w-8 h-8 rounded-xl bg-purple-600/20 text-purple-400 flex items-center justify-center">
+                      <Sparkles className="w-4 h-4" />
+                    </div>
+                    <div>
+                      <h4 className="font-black text-white text-xs">المساعد الذكي</h4>
+                      <span className="text-[10px] text-purple-400">اسألني عن أي منتج أو توصيات</span>
+                    </div>
+                  </div>
+                  <span className="px-2 py-0.5 rounded-full bg-purple-500 text-white text-[9px] font-black">جديد</span>
+                </div>
+
+                <div className="p-3 rounded-2xl bg-[#0F172A] border border-slate-800 text-xs text-slate-300">
+                  ما هي أفضل سماعات لعشاق الألعاب مع إلغاء الضوضاء؟
+                </div>
+
+                {/* Recommended Product Box */}
+                <div className="p-3 rounded-2xl bg-[#121B2B] border border-slate-800 flex items-center gap-3">
+                  <div className="w-12 h-12 rounded-xl bg-slate-800 overflow-hidden shrink-0">
+                    <img src="https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=200&auto=format&fit=crop&q=80" alt="Sony" className="w-full h-full object-cover" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <h5 className="font-bold text-white text-xs truncate">Sony WH-1000XM5</h5>
+                    <span className="text-[10px] text-amber-400 font-bold">⭐ 4.8 (12,450)</span>
+                    <span className="block font-mono font-black text-purple-300 text-xs">$349</span>
+                  </div>
+                  <button onClick={() => setIsCheckoutOpen(true)} className="px-3 py-1.5 rounded-xl bg-purple-600 text-white text-[11px] font-black cursor-pointer">
+                    شراء
+                  </button>
+                </div>
+
+                <div className="relative">
+                  <input
+                    type="text"
+                    placeholder="اكتب سؤالك هنا..."
+                    className="w-full bg-[#0F172A] border border-slate-700 rounded-xl ps-3 pe-10 py-2.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-purple-500"
+                  />
+                  <button className="absolute top-1/2 -translate-y-1/2 end-2 p-1.5 rounded-lg bg-purple-600 text-white cursor-pointer">
+                    <Send className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+              </div>
+
+              {/* 2. Order Tracker Widget ("تتبع طلبك") */}
+              <div className="p-5 rounded-3xl bg-[#172132] border border-slate-800 space-y-4 shadow-xl">
+                <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+                  <h4 className="font-black text-white text-xs flex items-center gap-2">
+                    <Package className="w-4 h-4 text-emerald-400" />
+                    <span>تتبع طلبك</span>
+                  </h4>
+                </div>
+
+                <div className="space-y-3 text-xs">
+                  <div>
+                    <label className="block text-slate-400 text-[11px] mb-1 font-bold">رقم الطلب</label>
+                    <input
+                      type="text"
+                      value={trackingNumberInput}
+                      onChange={(e) => setTrackingNumberInput(e.target.value)}
+                      placeholder="أدخل رقم الطلب..."
+                      className="w-full bg-[#0F172A] border border-slate-700 rounded-xl p-2.5 text-xs text-white focus:outline-none focus:border-emerald-500 font-mono"
+                    />
+                  </div>
+                  <button
+                    onClick={handleTrackOrder}
+                    className="w-full py-2.5 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-black text-xs shadow-md cursor-pointer"
+                  >
+                    تتبع الطلب 🚀
+                  </button>
+
+                  {/* Steps visual */}
+                  <div className="pt-2 flex items-center justify-between text-center text-[10px] text-slate-400">
+                    <div className="flex flex-col items-center gap-1">
+                      <span className="w-6 h-6 rounded-full bg-purple-600 text-white flex items-center justify-center font-bold">✓</span>
+                      <span>تم التأكيد</span>
+                    </div>
+                    <div className="flex-1 h-0.5 bg-purple-600 mx-1" />
+                    <div className="flex flex-col items-center gap-1">
+                      <span className="w-6 h-6 rounded-full bg-slate-800 text-slate-300 flex items-center justify-center font-bold">2</span>
+                      <span>في الطريق</span>
+                    </div>
+                    <div className="flex-1 h-0.5 bg-slate-800 mx-1" />
+                    <div className="flex flex-col items-center gap-1">
+                      <span className="w-6 h-6 rounded-full bg-slate-800 text-slate-300 flex items-center justify-center font-bold">3</span>
+                      <span>تم التوصيل</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+
+          </div>
+
+        </div>
+      ) : (
+        /* Standard Light Theme fallback */
+        <div className="flex-1 flex flex-col">
+          ...
+        </div>
+      )}
+
+
+      {/* Floating Button to re-enable Merchant Mode when in Buyer Preview */}
+      {!isMerchantMode && (
+        <button
+          type="button"
+          onClick={() => {
+            setIsMerchantMode(true);
+            showToast(isAr ? 'تم تفعيل وضع تحكم التاجر المباشر (3 أزرار) 🛠️' : 'Merchant control mode enabled');
+          }}
+          className="fixed bottom-6 end-6 z-50 px-4 py-2.5 rounded-full bg-slate-900 text-white border-2 border-emerald-400 font-extrabold text-xs flex items-center gap-2 shadow-2xl hover:scale-105 transition-all cursor-pointer group"
+        >
+          <Sliders className="w-4 h-4 text-emerald-400 group-hover:rotate-45 transition-transform" />
+          <span>{isAr ? 'وضع تحكم التاجر (3 أزرار) 🛠️' : 'Merchant Controls 🛠️'}</span>
+        </button>
+      )}
       
       {/* Maintenance Mode Banner (Controlled by maintenanceMode setting or feature) */}
       {(isMaintenanceActive || isStoreFeatureActive('maintenanceMode')) && (
@@ -780,7 +1159,9 @@ export const PublicStoreView: React.FC<PublicStoreViewProps> = ({
       {/* ─── 1. INDEPENDENT STORE HEADER ─── */}
       {renderSectionControlStrip('topAnnouncement', 'شريط الإعلانات الترويجي العلوي', 'شريط علوي بارز للإعلان عن العروض الحصرية وشحن الـ 58 ولاية', '🚚 توصيل سريع لـ 58 ولاية جزائرية + الدفع عند الاستلام!')}
       
-      <header className="sticky top-0 z-30 bg-white/95 backdrop-blur-md border-b border-slate-200/90 shadow-2xs">
+      <header className={`sticky top-0 z-30 backdrop-blur-md border-b shadow-2xs ${
+        isDarkTheme ? 'bg-[#172132]/95 border-slate-800 text-white' : 'bg-white/95 border-slate-200/90 text-slate-900'
+      }`}>
         
         {/* Top Mini Announcement Bar (Controlled by topAnnouncement feature) */}
         {isStoreFeatureActive('topAnnouncement') && (
@@ -957,35 +1338,41 @@ export const PublicStoreView: React.FC<PublicStoreViewProps> = ({
       {/* ─── 2. STORE HERO BANNER ─── */}
       {renderSectionControlStrip('heroBanner', 'البانر الترويجي وقسم الترحيب بالمتجر', 'العنوان الرئيسي الترويجي ونبذة المتجر وأزرار الشحن', 'أفضل المنتجات الأصلية بأفضل الأسعار مع ضمان الاستبدال السريع')}
       {isStoreFeatureActive('heroBanner') && (
-      <section className="relative overflow-hidden bg-white border-b border-slate-200/80">
+      <section className={`relative overflow-hidden border-b ${
+        isDarkTheme 
+          ? 'bg-gradient-to-br from-[#172132] to-[#0F172A] border-slate-800 text-white' 
+          : 'bg-white border-slate-200/80 text-slate-900'
+      }`}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-14">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
             
             <div className="lg:col-span-8 space-y-4">
-              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-bold bg-slate-100 text-slate-800 border border-slate-200">
-                <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
+              <div className={`inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-bold border ${
+                isDarkTheme ? 'bg-purple-950/50 text-purple-300 border-purple-800/60' : 'bg-slate-100 text-slate-800 border-slate-200'
+              }`}>
+                <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
                 <span>{isAr ? 'متجر مستقل معتمد - تشغيل مباشر' : 'Independent Verified Store'}</span>
               </div>
 
-              <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black text-slate-900 leading-tight">
+              <h2 className={`text-3xl sm:text-4xl lg:text-5xl font-black leading-tight ${isDarkTheme ? 'text-white' : 'text-slate-900'}`}>
                 {isAr ? `مرحباً بك في ${store.nameAr}` : `Welcome to ${store.name}`}
               </h2>
 
-              <p className="text-sm sm:text-base text-slate-600 max-w-2xl leading-relaxed">
+              <p className={`text-sm sm:text-base max-w-2xl leading-relaxed ${isDarkTheme ? 'text-slate-300' : 'text-slate-600'}`}>
                 {isAr ? store.descriptionAr : store.description}
               </p>
 
-              <div className="flex flex-wrap items-center gap-6 pt-2 text-xs font-bold text-slate-700">
+              <div className={`flex flex-wrap items-center gap-6 pt-2 text-xs font-bold ${isDarkTheme ? 'text-slate-300' : 'text-slate-700'}`}>
                 <div className="flex items-center gap-2">
-                  <Truck className="w-4 h-4 text-emerald-600" />
+                  <Truck className="w-4 h-4 text-emerald-400" />
                   <span>{isAr ? 'شحن فوري لباب البيت (58 ولاية)' : 'Fast Doorstep Delivery (58 Wilayas)'}</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <CreditCard className="w-4 h-4 text-emerald-600" />
+                  <CreditCard className="w-4 h-4 text-emerald-400" />
                   <span>{isAr ? 'الدفع عند الاستلام بعد المعاينة' : 'COD After Inspection'}</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <RotateCcw className="w-4 h-4 text-amber-600" />
+                  <RotateCcw className="w-4 h-4 text-amber-400" />
                   <span>{isAr ? 'استرجاع مضمون 48 ساعة' : '48h Easy Returns'}</span>
                 </div>
               </div>
@@ -994,16 +1381,20 @@ export const PublicStoreView: React.FC<PublicStoreViewProps> = ({
             {/* Quick Hero Box with Accent styling (Controlled by welcomeDiscount feature) */}
             {isStoreFeatureActive('welcomeDiscount') && (
               <div className="lg:col-span-4">
-                <div className="p-6 rounded-2xl bg-gradient-to-br from-slate-50 to-slate-100 border border-slate-200 shadow-sm space-y-4">
+                <div className={`p-6 rounded-2xl border shadow-sm space-y-4 ${
+                  isDarkTheme ? 'bg-[#0F172A] border-slate-800 text-white' : 'bg-gradient-to-br from-slate-50 to-slate-100 border-slate-200 text-slate-900'
+                }`}>
                   <div className="flex items-center justify-between">
-                    <span className="text-xs font-bold text-slate-500">
+                    <span className={`text-xs font-bold ${isDarkTheme ? 'text-slate-400' : 'text-slate-500'}`}>
                       {isAr ? 'رمز خصم ترحيبي للزبائن:' : 'Welcome discount code:'}
                     </span>
-                    <span className="px-2 py-0.5 rounded bg-emerald-100 text-emerald-800 text-[11px] font-bold">
+                    <span className="px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 text-[11px] font-bold border border-emerald-500/30">
                       -10%
                     </span>
                   </div>
-                  <div className="flex items-center justify-between p-3 bg-white rounded-xl border border-slate-200 font-mono font-bold text-slate-900 text-sm">
+                  <div className={`flex items-center justify-between p-3 rounded-xl border font-mono font-bold text-sm ${
+                    isDarkTheme ? 'bg-[#172132] border-slate-700 text-white' : 'bg-white border-slate-200 text-slate-900'
+                  }`}>
                     <span>WELCOME10</span>
                     <button
                       onClick={() => {
@@ -1011,12 +1402,12 @@ export const PublicStoreView: React.FC<PublicStoreViewProps> = ({
                         setCouponCode('WELCOME10');
                         alert(isAr ? 'تم نسخ الرمز وسيتم تطبيقه بالسلة!' : 'Code copied!');
                       }}
-                      className="text-xs text-indigo-600 hover:text-indigo-700 font-bold cursor-pointer"
+                      className="text-xs text-purple-400 hover:text-purple-300 font-bold cursor-pointer"
                     >
                       {isAr ? 'استخدمه الآن' : 'Use'}
                     </button>
                   </div>
-                  <p className="text-[11px] text-slate-500">
+                  <p className={`text-[11px] ${isDarkTheme ? 'text-slate-400' : 'text-slate-500'}`}>
                     {isAr ? 'ينطبق على كافة المنتجات عند إتمام الطلب.' : 'Applies to all products at checkout.'}
                   </p>
                 </div>
@@ -1031,28 +1422,20 @@ export const PublicStoreView: React.FC<PublicStoreViewProps> = ({
       {/* ─── TRUST & GUARANTEES BADGES SECTION ─── */}
       {renderSectionControlStrip('trustBadges', 'شارات الثقة ومزايا التوصيل والضمان', 'شريط مزايا الشحن للـ 58 ولاية والدفع بعد المعاينة والاسترجاع', 'شحن فوري لباب البيت • فحص المنتج قبل الدفع • استبدال مضمون')}
       {isStoreFeatureActive('trustBadges') && (
-        <section className="bg-slate-50 border-b border-slate-200 py-6 px-4">
+        <section className={`border-b py-6 px-4 ${isDarkTheme ? 'bg-[#172132] border-slate-800 text-white' : 'bg-slate-50 border-slate-200 text-slate-900'}`}>
           <div className="max-w-7xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
-            <div className="p-3 bg-white rounded-2xl border border-slate-200 shadow-2xs space-y-1">
-              <Truck className="w-5 h-5 text-emerald-600 mx-auto" />
-              <div className="font-extrabold text-xs text-slate-900">{isAr ? 'توصيل لـ 58 ولاية' : '58 Wilayas Delivery'}</div>
-              <div className="text-[11px] text-slate-500">{isAr ? 'توصيل للمنزل أو المكتب' : 'Home or Desk pickup'}</div>
-            </div>
-            <div className="p-3 bg-white rounded-2xl border border-slate-200 shadow-2xs space-y-1">
-              <CheckCircle2 className="w-5 h-5 text-emerald-600 mx-auto" />
-              <div className="font-extrabold text-xs text-slate-900">{isAr ? 'الدفع عند الاستلام' : 'COD Payment'}</div>
-              <div className="text-[11px] text-slate-500">{isAr ? 'افحص طلبك ثم ادفع' : 'Inspect before paying'}</div>
-            </div>
-            <div className="p-3 bg-white rounded-2xl border border-slate-200 shadow-2xs space-y-1">
-              <RotateCcw className="w-5 h-5 text-amber-600 mx-auto" />
-              <div className="font-extrabold text-xs text-slate-900">{isAr ? 'استبدال مضمون' : 'Easy Returns'}</div>
-              <div className="text-[11px] text-slate-500">{isAr ? 'خلال 48 ساعة من الاستلام' : 'Within 48 hours'}</div>
-            </div>
-            <div className="p-3 bg-white rounded-2xl border border-slate-200 shadow-2xs space-y-1">
-              <ShieldCheck className="w-5 h-5 text-indigo-600 mx-auto" />
-              <div className="font-extrabold text-xs text-slate-900">{isAr ? 'منتجات أصلية 100%' : '100% Genuine'}</div>
-              <div className="text-[11px] text-slate-500">{isAr ? 'جودة عالية وضمان' : 'Premium quality'}</div>
-            </div>
+            {[
+              { icon: <Truck className="w-5 h-5 text-emerald-400 mx-auto" />, title: isAr ? 'توصيل لـ 58 ولاية' : '58 Wilayas Delivery', desc: isAr ? 'توصيل للمنزل أو المكتب' : 'Home or Desk pickup' },
+              { icon: <CheckCircle2 className="w-5 h-5 text-emerald-400 mx-auto" />, title: isAr ? 'الدفع عند الاستلام' : 'COD Payment', desc: isAr ? 'افحص طلبك ثم ادفع' : 'Inspect before paying' },
+              { icon: <RotateCcw className="w-5 h-5 text-amber-400 mx-auto" />, title: isAr ? 'استبدال مضمون' : 'Easy Returns', desc: isAr ? 'خلال 48 ساعة من الاستلام' : 'Within 48 hours' },
+              { icon: <ShieldCheck className="w-5 h-5 text-purple-400 mx-auto" />, title: isAr ? 'منتجات أصلية 100%' : '100% Genuine', desc: isAr ? 'جودة عالية وضمان' : 'Premium quality' }
+            ].map((b, i) => (
+              <div key={i} className={`p-3 rounded-2xl border shadow-2xs space-y-1 ${isDarkTheme ? 'bg-[#0F172A] border-slate-800 text-white' : 'bg-white border-slate-200 text-slate-900'}`}>
+                {b.icon}
+                <div className="font-extrabold text-xs">{b.title}</div>
+                <div className={`text-[11px] ${isDarkTheme ? 'text-slate-400' : 'text-slate-500'}`}>{b.desc}</div>
+              </div>
+            ))}
           </div>
         </section>
       )}
@@ -1164,7 +1547,11 @@ export const PublicStoreView: React.FC<PublicStoreViewProps> = ({
               return (
                 <div
                   key={product.id}
-                  className="bg-white rounded-2xl border border-slate-200 shadow-xs hover:shadow-lg transition-all p-5 flex flex-col justify-between space-y-4 group"
+                  className={`rounded-2xl border transition-all p-5 flex flex-col justify-between space-y-4 group ${
+                    isDarkTheme 
+                      ? 'bg-[#172132] border-slate-800 text-white shadow-xl shadow-purple-950/20' 
+                      : 'bg-white border-slate-200 shadow-xs hover:shadow-lg'
+                  }`}
                 >
                   <div className="space-y-3">
                     {/* Visual Box */}
@@ -1370,7 +1757,7 @@ export const PublicStoreView: React.FC<PublicStoreViewProps> = ({
       {/* ─── 4. INDEPENDENT STORE FOOTER ─── */}
       {renderSectionControlStrip('storeFooterLinks', 'تذييل المتجر وروابط السياسات والدعم', 'عرض سياسة الاسترجاع والضمان والشروط وحقوق النشر', 'جميع الحقوق محفوظة')}
       {isStoreFeatureActive('storeFooterLinks') && (store.settings?.footerConfig?.isEnabled !== false) && (!store.settings?.footerConfig?.isRemoved) && (
-      <footer className="bg-white border-t border-slate-200 mt-16 pt-12 pb-8">
+      <footer className={`border-t mt-16 pt-12 pb-8 ${isDarkTheme ? 'bg-[#172132] border-slate-800 text-slate-300' : 'bg-white border-slate-200 text-slate-800'}`}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
           
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
