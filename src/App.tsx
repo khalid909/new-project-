@@ -223,12 +223,31 @@ export default function App() {
                 </div>
               )}
 
-              <button
-                type="submit"
-                className="w-full py-3.5 rounded-xl bg-amber-600 hover:bg-amber-500 text-slate-950 font-black text-sm shadow-lg shadow-amber-600/30 cursor-pointer transition-all"
-              >
-                الدخول كـ مؤسس المنصة 🔓
-              </button>
+              <div className="flex flex-col gap-2">
+                <button
+                  type="submit"
+                  className="w-full py-3.5 rounded-xl bg-amber-600 hover:bg-amber-500 text-slate-950 font-black text-sm shadow-lg shadow-amber-600/30 cursor-pointer transition-all"
+                >
+                  الدخول كـ مؤسس المنصة 🔓
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    setFounderEmailInput(FOUNDER_EMAIL);
+                    setFounderPinInput(FOUNDER_PIN);
+                    setIsFounderAuthenticated(true);
+                    try {
+                      sessionStorage.setItem('wasladz_founder_session', 'true');
+                    } catch (e) {}
+                    setFounderLoginError(false);
+                  }}
+                  className="w-full py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-amber-300 font-bold text-xs border border-amber-500/30 cursor-pointer transition-all flex items-center justify-center gap-1.5"
+                >
+                  <Key className="w-3.5 h-3.5" />
+                  <span>دخول فوري بنقرة واحدة (بدون كتابة) ⚡</span>
+                </button>
+              </div>
             </form>
 
             <div className="p-3.5 rounded-xl bg-slate-950/70 border border-slate-800 text-[11px] text-slate-400 space-y-1 font-mono">

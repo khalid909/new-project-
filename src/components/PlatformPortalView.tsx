@@ -194,6 +194,31 @@ export const PlatformPortalView: React.FC<PlatformPortalViewProps> = ({
             سجّل متجرك اليوم وادخل مباشرةً إلى لوحة تحكمك الخاصة. متجرك مستقل تماماً بدون أي علامة للمنصة، مع تحكم شامل في المنتجات، الطلبات، أسعار الشحن لـ 69 ولاية جزائرية، وتقارير مبيعات Recharts بيانية.
           </p>
 
+          {/* Direct Instant Access CTAs (No registration or email required) */}
+          <div className="pt-2 flex flex-wrap items-center justify-center gap-3">
+            {onOpenDashboard && (
+              <button
+                type="button"
+                onClick={onOpenDashboard}
+                className="px-6 py-3.5 rounded-2xl bg-emerald-600 hover:bg-emerald-500 text-white font-black text-sm shadow-xl shadow-emerald-600/30 transition-all cursor-pointer flex items-center gap-2"
+              >
+                <StoreIcon className="w-4 h-4" />
+                <span>الدخول الفوري للوحة التحكم ⚙️ (بدون تسجيل أو بريد)</span>
+              </button>
+            )}
+
+            {onOpenStore && (
+              <button
+                type="button"
+                onClick={onOpenStore}
+                className="px-6 py-3.5 rounded-2xl bg-slate-800 hover:bg-slate-700 text-teal-300 font-black text-sm border border-slate-700 hover:border-teal-500/50 transition-all cursor-pointer flex items-center gap-2"
+              >
+                <Globe className="w-4 h-4 text-teal-400" />
+                <span>تصفح المتجر الحي مباشرة 🛍️</span>
+              </button>
+            )}
+          </div>
+
           {/* Quick Value Metrics */}
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 max-w-3xl mx-auto pt-4 text-xs font-bold">
             <div className="p-3.5 rounded-2xl bg-slate-900/80 border border-slate-800 text-center space-y-1">
@@ -222,15 +247,33 @@ export const PlatformPortalView: React.FC<PlatformPortalViewProps> = ({
         
         <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6 sm:p-10 shadow-2xl space-y-8 animate-in fade-in duration-300">
           
-          <div className="border-b border-slate-800 pb-5 text-center sm:text-start space-y-1">
-            <h2 className="text-xl sm:text-2xl font-black text-white flex items-center justify-center sm:justify-start gap-2">
-              <span>نموذج تسجيل متجر جديد</span>
-              <span className="text-xs bg-emerald-500/20 text-emerald-400 font-bold px-2.5 py-0.5 rounded-full border border-emerald-500/30">
-                فوري ومجاني
-              </span>
-            </h2>
+          <div className="border-b border-slate-800 pb-5 text-center sm:text-start space-y-2">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <h2 className="text-xl sm:text-2xl font-black text-white flex items-center gap-2">
+                <span>نموذج تسجيل متجر جديد</span>
+                <span className="text-xs bg-emerald-500/20 text-emerald-400 font-bold px-2.5 py-0.5 rounded-full border border-emerald-500/30">
+                  فوري ومجاني
+                </span>
+              </h2>
+              <button
+                type="button"
+                onClick={() => {
+                  setStoreNameAr('متجر إليغانس دزاير');
+                  setStoreName('Elegance DZ');
+                  setSubdomain('elegance-dz');
+                  setOwnerName('أمين بن يحيى');
+                  setOwnerPhone('0555 12 34 56');
+                  setOwnerEmail('merchant@elegance-dz.app');
+                  setWilayaCode('16');
+                }}
+                className="px-3 py-1.5 rounded-xl bg-purple-500/10 hover:bg-purple-500/20 text-purple-300 border border-purple-500/30 text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5"
+              >
+                <Sparkles className="w-3.5 h-3.5 text-purple-400" />
+                <span>تعبئة نموذج تجريبي بنقرة واحدة ⚡</span>
+              </button>
+            </div>
             <p className="text-xs text-slate-400">
-              بمجرد إكمال النموذج، ستنتقل مباشرةً إلى لوحة تحكم متجرك المستقل لبدء إضافة المنتجات وضبط الشحن.
+              بمجرد إكمال النموذج، ستنتقل مباشرةً إلى لوحة تحكم متجرك المستقل لبدء إضافة المنتجات وضبط الشحن (أو يمكنك استخدام أزرار الدخول الفوري أعلاه بدون كتابة).
             </p>
           </div>
 
