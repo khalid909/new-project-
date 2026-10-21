@@ -11,12 +11,16 @@ interface PlatformPortalViewProps {
   language: Language;
   currency: Currency;
   onRegisterStore: (newStore: Store) => void;
+  onOpenDashboard?: () => void;
+  onOpenStore?: () => void;
 }
 
 export const PlatformPortalView: React.FC<PlatformPortalViewProps> = ({
   language,
   currency,
-  onRegisterStore
+  onRegisterStore,
+  onOpenDashboard,
+  onOpenStore
 }) => {
   const isAr = language === 'ar';
 
@@ -127,14 +131,40 @@ export const PlatformPortalView: React.FC<PlatformPortalViewProps> = ({
               </div>
             </div>
 
-            {/* Platform CTA */}
-            <div className="flex items-center gap-3">
+            {/* Platform Mobile & Desktop Actions */}
+            <div className="flex items-center gap-2">
+              {onOpenDashboard && (
+                <button
+                  type="button"
+                  onClick={onOpenDashboard}
+                  className="px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-emerald-400 text-xs font-bold transition-all border border-slate-700 cursor-pointer flex items-center gap-1.5"
+                  title="الدخول إلى لوحة تحكم المتجر"
+                >
+                  <StoreIcon className="w-3.5 h-3.5" />
+                  <span className="hidden sm:inline">لوحة التحكم ⚙️</span>
+                  <span className="sm:hidden">اللوحة ⚙️</span>
+                </button>
+              )}
+
+              {onOpenStore && (
+                <button
+                  type="button"
+                  onClick={onOpenStore}
+                  className="px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold transition-all border border-slate-700 cursor-pointer flex items-center gap-1.5 hidden md:flex"
+                  title="معاينة المتجر المباشر"
+                >
+                  <Globe className="w-3.5 h-3.5 text-teal-400" />
+                  <span>معاينة المتجر 🛍️</span>
+                </button>
+              )}
+
               <a
                 href="#register-section"
-                className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-black shadow-lg shadow-emerald-600/25 transition-all cursor-pointer flex items-center gap-1.5"
+                className="px-3.5 py-1.5 sm:px-4 sm:py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-black shadow-lg shadow-emerald-600/25 transition-all cursor-pointer flex items-center gap-1.5"
               >
                 <Sparkles className="w-3.5 h-3.5" />
-                <span>سجل متجرك الجديد 🚀</span>
+                <span className="hidden sm:inline">سجل متجرك الجديد 🚀</span>
+                <span className="sm:hidden">تسجيل متجر 🚀</span>
               </a>
             </div>
 

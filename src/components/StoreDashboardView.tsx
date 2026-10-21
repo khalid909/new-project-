@@ -2,7 +2,7 @@ import React, { useState, useMemo } from 'react';
 import { 
   Store, Product, Order, Customer, Coupon, SellerUser, 
   Currency, Language, PlanType, SupabaseConfig, GitHubConfig, 
-  PlatformFeatureItem, StoreFeatureItem, WilayaShippingRate, ProductColor 
+  PlatformFeatureItem, StoreFeatureItem, WilayaShippingRate, ProductColor, DnsRecord
 } from '../types';
 import { CURRENCY_RATES } from '../data/initialData';
 import { DEFAULT_WILAYAS_69 } from '../data/wilayasData';
@@ -16,7 +16,10 @@ import {
   ExternalLink, Phone, MapPin, DollarSign, TrendingUp, 
   AlertCircle, ShieldCheck, Sparkles, Image as ImageIcon, 
   Palette, RefreshCw, Eye, ArrowUpRight, CheckCircle2,
-  AlertTriangle, Filter, Building, CreditCard
+  AlertTriangle, Filter, Building, CreditCard, Globe,
+  SlidersHorizontal, Lock, Copy, Layers, Power, Clock,
+  HelpCircle, Monitor, Wrench, Shield, CheckSquare, Tag,
+  Link2, Save, RotateCcw
 } from 'lucide-react';
 
 interface StoreDashboardViewProps {
@@ -69,11 +72,12 @@ export const StoreDashboardView: React.FC<StoreDashboardViewProps> = ({
   onDeleteProduct,
   onUpdateProductStock,
   onUpdateOrderStatus,
-  onOpenLivePreview,
-  onOpenCreateNewStore
+  onOpenLivePreview
 }) => {
   const isAr = language === 'ar';
-  const [activeTab, setActiveTab] = useState<'overview' | 'orders' | 'products' | 'shipping' | 'customers' | 'settings'>('overview');
+  
+  // Navigation Tabs: Overview | Orders | Products | Shipping 69 | Custom Domains | 3-Button Store Controls | Customers | Settings
+  const [activeTab, setActiveTab] = useState<'overview' | 'orders' | 'products' | 'shipping' | 'domains' | 'store_controls' | 'customers' | 'settings'>('overview');
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
   const showToast = (msg: string) => {
@@ -141,8 +145,10 @@ export const StoreDashboardView: React.FC<StoreDashboardViewProps> = ({
     } : w);
     saveWilayas(updated);
     setEditingWilaya(null);
-    showToast(isAr ? 'تم حفظ أسعار التوصيل بنجاح 🚚' : 'Shipping prices saved successfully');
+    showToast(isAr ? `تم تحديث أسعار الشحن لولاية ${editingWilaya.nameAr}` : 'Prices updated');
   };
+
+  const activeWilayasCount = wilayasList.filter(w => w.isEnabled && !w.isDeleted).length;
 
   const filteredWilayas = useMemo(() => {
     return wilayasList.filter(w => {
@@ -155,143 +161,342 @@ export const StoreDashboardView: React.FC<StoreDashboardViewProps> = ({
   }, [wilayasList, shippingSearch, shippingZoneFilter]);
 
   // ─────────────────────────────────────────────────────────────
-  // 2. ADD PRODUCT MODAL (10 IMAGES + COLORS)
+  // 2. PRODUCT MANAGEMENT (UP TO 10 IMAGES + COLORS + SIZES + EDIT)
   // ─────────────────────────────────────────────────────────────
   const [isAddProductOpen, setIsAddProductOpen] = useState(false);
-  const [newProdNameAr, setNewProdNameAr] = useState('');
-  const [newProdNameEn, setNewProdNameEn] = useState('');
-  const [newProdDescAr, setNewProdDescAr] = useState('');
-  const [newProdPrice, setNewProdPrice] = useState<number>(3500);
-  const [newProdComparePrice, setNewProdComparePrice] = useState<number>(4500);
-  const [newProdStock, setNewProdStock] = useState<number>(25);
-  const [newProdCategory, setNewProdCategory] = useState(store.categoryAr || 'أزياء وإلكترونيات');
-  const [newProdImages, setNewProdImages] = useState<string[]>([
-    'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=600&auto=format&fit=crop&q=80'
+  const [editingProduct, setEditingProduct] = useState<Product | null>(null);
+
+  // Form fields
+  const [prodNameAr, setProdNameAr] = useState('');
+  const [prodNameEn, setProdNameEn] = useState('');
+  const [prodDescAr, setProdDescAr] = useState('');
+  const [prodPrice, setProdPrice] = useState<number>(3900);
+  const [prodComparePrice, setProdComparePrice] = useState<number>(4900);
+  const [prodCostPrice, setProdCostPrice] = useState<number>(2200);
+  const [prodStock, setProdStock] = useState<number>(30);
+  const [prodCategory, setProdCategory] = useState(store.categoryAr || 'أزياء وملابس');
+  const [prodImages, setProdImages] = useState<string[]>([
+    'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=600&auto=format&fit=crop&q=80',
+    'https://images.unsplash.com/photo-1546868871-7041f2a55e12?w=600&auto=format&fit=crop&q=80'
   ]);
-  const [newImageUrlInput, setNewImageUrlInput] = useState('');
-  const [newProdColors, setNewProdColors] = useState<ProductColor[]>([
+  const [primaryImageIdx, setPrimaryImageIdx] = useState<number>(0);
+  const [imageUrlInput, setImageUrlInput] = useState('');
+  const [prodColors, setProdColors] = useState<ProductColor[]>([
     { name: 'Black', nameAr: 'أسود فخم', hex: '#111827' },
     { name: 'Silver', nameAr: 'فضي لامع', hex: '#9CA3AF' }
   ]);
-  const [newColorHex, setNewColorHex] = useState('#2563EB');
-  const [newColorNameAr, setNewColorNameAr] = useState('أزرق كحلي');
+  const [colorHex, setColorHex] = useState('#2563EB');
+  const [colorNameAr, setColorNameAr] = useState('أزرق كحلي');
+  const [prodSizes, setProdSizes] = useState<string[]>(['M', 'L', 'XL']);
+  const [sizeInput, setSizeInput] = useState('');
+
+  // Open Add modal fresh
+  const handleOpenAddProduct = () => {
+    setEditingProduct(null);
+    setProdNameAr('');
+    setProdNameEn('');
+    setProdDescAr('');
+    setProdPrice(3900);
+    setProdComparePrice(4900);
+    setProdCostPrice(2200);
+    setProdStock(30);
+    setProdImages([
+      'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=600&auto=format&fit=crop&q=80',
+      'https://images.unsplash.com/photo-1546868871-7041f2a55e12?w=600&auto=format&fit=crop&q=80'
+    ]);
+    setPrimaryImageIdx(0);
+    setProdColors([
+      { name: 'Black', nameAr: 'أسود فخم', hex: '#111827' },
+      { name: 'Silver', nameAr: 'فضي لامع', hex: '#9CA3AF' }
+    ]);
+    setProdSizes(['M', 'L', 'XL']);
+    setIsAddProductOpen(true);
+  };
+
+  // Open Edit modal populated
+  const handleOpenEditProduct = (p: Product) => {
+    setEditingProduct(p);
+    setProdNameAr(p.nameAr);
+    setProdNameEn(p.name);
+    setProdDescAr(p.descriptionAr || p.description);
+    setProdPrice(p.price);
+    setProdComparePrice(p.compareAtPrice || 0);
+    setProdCostPrice(p.costPrice || 0);
+    setProdStock(p.stock);
+    setProdCategory(p.category);
+    setProdImages(p.images && p.images.length > 0 ? p.images : [p.imageUrl || 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=600&auto=format&fit=crop&q=80']);
+    setPrimaryImageIdx(0);
+    setProdColors((p.colors || []).map(c => typeof c === 'string' ? { name: c, nameAr: c, hex: '#111827' } : c));
+    setProdSizes(p.sizes || []);
+    setIsAddProductOpen(true);
+  };
 
   const handleAddImageUrl = () => {
-    if (!newImageUrlInput.trim()) return;
-    if (newProdImages.length >= 10) {
-      showToast(isAr ? 'الحد الأقصى هو 10 صور لكل منتج' : 'Maximum 10 images reached');
+    if (!imageUrlInput.trim()) return;
+    if (prodImages.length >= 10) {
+      showToast(isAr ? 'الحد الأقصى هو 10 صور لكل منتج' : 'Maximum 10 images');
       return;
     }
-    setNewProdImages([...newProdImages, newImageUrlInput.trim()]);
-    setNewImageUrlInput('');
+    setProdImages([...prodImages, imageUrlInput.trim()]);
+    setImageUrlInput('');
   };
 
   const handleRemoveImage = (index: number) => {
-    setNewProdImages(newProdImages.filter((_, idx) => idx !== index));
+    if (prodImages.length <= 1) {
+      showToast(isAr ? 'يجب أن يحتوي المنتج على صورة واحدة على الأقل' : 'At least 1 image required');
+      return;
+    }
+    const updated = prodImages.filter((_, idx) => idx !== index);
+    setProdImages(updated);
+    if (primaryImageIdx >= updated.length) {
+      setPrimaryImageIdx(0);
+    }
   };
 
   const handleAddColor = () => {
-    if (!newColorNameAr.trim()) return;
-    setNewProdColors([...newProdColors, { name: newColorNameAr, nameAr: newColorNameAr, hex: newColorHex }]);
-    setNewColorNameAr('');
+    if (!colorNameAr.trim()) return;
+    setProdColors([...prodColors, { name: colorNameAr, nameAr: colorNameAr, hex: colorHex }]);
+    setColorNameAr('');
   };
 
   const handleRemoveColor = (hex: string) => {
-    setNewProdColors(newProdColors.filter(c => c.hex !== hex));
+    setProdColors(prodColors.filter(c => c.hex !== hex));
   };
 
-  const handleCreateProductSubmit = (e: React.FormEvent) => {
+  const handleAddSize = () => {
+    if (!sizeInput.trim()) return;
+    if (!prodSizes.includes(sizeInput.trim().toUpperCase())) {
+      setProdSizes([...prodSizes, sizeInput.trim().toUpperCase()]);
+    }
+    setSizeInput('');
+  };
+
+  const handleRemoveSize = (sz: string) => {
+    setProdSizes(prodSizes.filter(s => s !== sz));
+  };
+
+  const handleSaveProductSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newProdNameAr.trim() || newProdPrice <= 0) return;
+    if (!prodNameAr.trim() || prodPrice <= 0) return;
 
-    const prodId = `prod_${Date.now()}`;
-    const newProduct: Product = {
-      id: prodId,
-      storeId: store.id,
-      name: newProdNameEn.trim() || newProdNameAr.trim(),
-      nameAr: newProdNameAr.trim(),
-      description: newProdDescAr.trim() || 'منتج أصلي مع دفع عند الاستلام وضمان الجودة.',
-      descriptionAr: newProdDescAr.trim() || 'منتج أصلي مع دفع عند الاستلام وضمان الجودة.',
-      price: Number(newProdPrice),
-      compareAtPrice: Number(newProdComparePrice) || undefined,
-      category: newProdCategory,
-      stock: Number(newProdStock),
-      sku: `DZ-${Date.now().toString().slice(-6)}`,
-      isPublished: true,
-      imageUrl: newProdImages[0] || 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=600&auto=format&fit=crop&q=80',
-      images: newProdImages,
-      colors: newProdColors,
-      isFeatured: true
-    };
+    const primaryImg = prodImages[primaryImageIdx] || prodImages[0];
 
-    onAddProduct(newProduct);
+    if (editingProduct) {
+      // Edit existing product
+      const updated: Product = {
+        ...editingProduct,
+        name: prodNameEn.trim() || prodNameAr.trim(),
+        nameAr: prodNameAr.trim(),
+        description: prodDescAr.trim(),
+        descriptionAr: prodDescAr.trim(),
+        price: Number(prodPrice),
+        compareAtPrice: Number(prodComparePrice) || undefined,
+        costPrice: Number(prodCostPrice) || undefined,
+        category: prodCategory,
+        stock: Number(prodStock),
+        imageUrl: primaryImg,
+        images: prodImages,
+        colors: prodColors,
+        sizes: prodSizes
+      };
+      // Replace in products
+      onDeleteProduct(editingProduct.id);
+      onAddProduct(updated);
+      showToast(isAr ? 'تم تعديل المنتج وتحديث الصور والمخزون بنجاح ✓' : 'Product updated successfully');
+    } else {
+      // Create new product
+      const newProduct: Product = {
+        id: `prod_${Date.now()}`,
+        storeId: store.id,
+        name: prodNameEn.trim() || prodNameAr.trim(),
+        nameAr: prodNameAr.trim(),
+        description: prodDescAr.trim() || 'منتج أصلي مع دفع عند الاستلام وضمان الجودة لـ 69 ولاية.',
+        descriptionAr: prodDescAr.trim() || 'منتج أصلي مع دفع عند الاستلام وضمان الجودة لـ 69 ولاية.',
+        price: Number(prodPrice),
+        compareAtPrice: Number(prodComparePrice) || undefined,
+        costPrice: Number(prodCostPrice) || undefined,
+        category: prodCategory,
+        stock: Number(prodStock),
+        sku: `DZ-${Date.now().toString().slice(-6)}`,
+        isPublished: true,
+        imageUrl: primaryImg,
+        images: prodImages,
+        colors: prodColors,
+        sizes: prodSizes,
+        isFeatured: true
+      };
+      onAddProduct(newProduct);
+      showToast(isAr ? 'تمت إضافة المنتج بنجاح مع الصور والألوان والمقاسات! 🚀' : 'Product created successfully');
+    }
+
     setIsAddProductOpen(false);
-    showToast(isAr ? 'تمت إضافة المنتج بنجاح مع الصور والألوان! 🎉' : 'Product created successfully');
-    
-    // Reset form
-    setNewProdNameAr('');
-    setNewProdNameEn('');
-    setNewProdDescAr('');
-    setNewProdImages(['https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=600&auto=format&fit=crop&q=80']);
   };
 
   // ─────────────────────────────────────────────────────────────
-  // 3. RECHARTS SALES & ORDERS ANALYTICS COMPUTATION
+  // 3. CUSTOM DOMAIN CONFIGURATION FOR MERCHANTS
+  // ─────────────────────────────────────────────────────────────
+  const [customDomainInput, setCustomDomainInput] = useState(store.settings?.customDomain || '');
+  const [isVerifyingDns, setIsVerifyingDns] = useState(false);
+  const [domainStatus, setDomainStatus] = useState<'connected' | 'verifying' | 'unlinked'>(() => {
+    return store.settings?.customDomain ? 'connected' : 'unlinked';
+  });
+  const [copiedDnsKey, setCopiedDnsKey] = useState<string | null>(null);
+
+  const dnsRecords: DnsRecord[] = [
+    { type: 'CNAME', host: 'www', value: 'cname.wasladz.app', ttl: 'Automatic', status: domainStatus === 'connected' ? 'verified' : 'pending' },
+    { type: 'A', host: '@', value: '216.24.57.1', ttl: 'Automatic', status: domainStatus === 'connected' ? 'verified' : 'pending' },
+    { type: 'TXT', host: '_wasladz-verify', value: `wasladz-challenge-${store.slug}-${store.id.slice(-6)}`, ttl: 'Automatic', status: domainStatus === 'connected' ? 'verified' : 'pending' }
+  ];
+
+  const handleCopyDns = (val: string, key: string) => {
+    navigator.clipboard?.writeText(val);
+    setCopiedDnsKey(key);
+    setTimeout(() => setCopiedDnsKey(null), 2000);
+  };
+
+  const handleConnectDomain = () => {
+    if (!customDomainInput.trim()) return;
+    const clean = customDomainInput.trim().toLowerCase().replace(/^https?:\/\//, '').replace(/\/$/, '');
+    setIsVerifyingDns(true);
+    setDomainStatus('verifying');
+
+    setTimeout(() => {
+      setIsVerifyingDns(false);
+      setDomainStatus('connected');
+      onUpdateStoreSettings({
+        customDomain: clean,
+        customDomainStatus: 'connected',
+        customDomainSsl: 'active'
+      });
+      showToast(isAr ? `تم ربط وتفعيل النطاق الخاص (${clean}) بنجاح مع شهادة SSL مجانية! 🔒` : 'Domain connected with SSL');
+    }, 1200);
+  };
+
+  const handleDisconnectDomain = () => {
+    setDomainStatus('unlinked');
+    setCustomDomainInput('');
+    onUpdateStoreSettings({
+      customDomain: undefined,
+      customDomainStatus: 'unlinked',
+      customDomainSsl: 'inactive'
+    });
+    showToast(isAr ? 'تم فصل النطاق الخاص والعودة للنطاق المجاني' : 'Domain disconnected');
+  };
+
+  // ─────────────────────────────────────────────────────────────
+  // 4. THE 3-BUTTON SYSTEM (MAINTENANCE, FOOTER, BANNER, CURRENCIES, LANGUAGES)
+  // ─────────────────────────────────────────────────────────────
+  // Maintenance Mode State
+  const [maintenanceConfig, setMaintenanceConfig] = useState(() => {
+    return store.settings?.maintenanceMode || {
+      isEnabled: false,
+      title: 'المتجر قيد التحديث والصيانة الدورية',
+      message: 'نعمل على تحسين تجربة التسوق وإضافة منتجات جديدة. سنعود لاستقبال طلباتكم قريباً!',
+      estimatedEndTime: 'خلال ساعتين',
+      contactPhone: store.ownerPhone || '0550 00 00 00',
+      allowAdminBypass: true,
+      isDeleted: false
+    };
+  });
+  const [isEditingMaintenance, setIsEditingMaintenance] = useState(false);
+
+  // Footer State
+  const [footerConfig, setFooterConfig] = useState(() => {
+    return store.settings?.footerConfig || {
+      isEnabled: true,
+      copyrightText: `جميع الحقوق محفوظة © ${new Date().getFullYear()} ${store.nameAr}`,
+      contactPhone: store.ownerPhone || '0550 00 00 00',
+      contactEmail: store.ownerEmail || 'contact@store.dz',
+      showSocialLinks: true,
+      showWilayasNotice: true,
+      isDeleted: false
+    };
+  });
+  const [isEditingFooter, setIsEditingFooter] = useState(false);
+
+  // Banner State
+  const [bannerConfig, setBannerConfig] = useState(() => {
+    return store.settings?.bannerConfig || {
+      isEnabled: true,
+      text: '🎉 تخفيضات كبرى لفترة محدودة + شحن مجاني للطلبات أكثر من 8000 د.ج لـ 69 ولاية!',
+      link: '#',
+      bgColor: '#059669',
+      textColor: '#FFFFFF',
+      hasCountdown: true,
+      countdownHours: 24,
+      isDeleted: false
+    };
+  });
+  const [isEditingBanner, setIsEditingBanner] = useState(false);
+
+  // Currencies 3-Button Config
+  const [storeCurrencies, setStoreCurrencies] = useState([
+    { code: 'DZD' as Currency, name: 'دينار جزائري', symbol: 'DA', symbolAr: 'د.ج', rate: 1, isEnabled: true, isDeleted: false },
+    { code: 'EUR' as Currency, name: 'يورو أوروبي', symbol: '€', symbolAr: '€', rate: 0.0068, isEnabled: true, isDeleted: false },
+    { code: 'USD' as Currency, name: 'دولار أمريكي', symbol: '$', symbolAr: '$', rate: 0.0074, isEnabled: false, isDeleted: false },
+    { code: 'SAR' as Currency, name: 'ريال سعودي', symbol: 'SAR', symbolAr: 'ر.س', rate: 0.028, isEnabled: false, isDeleted: false }
+  ]);
+  const [editingCurrencyCode, setEditingCurrencyCode] = useState<Currency | null>(null);
+  const [editCurrRate, setEditCurrRate] = useState<number>(1);
+  const [editCurrSymbol, setEditCurrSymbol] = useState<string>('د.ج');
+
+  // Languages 3-Button Config
+  const [storeLanguages, setStoreLanguages] = useState([
+    { code: 'ar' as Language, name: 'العربية (الافتراضية)', dir: 'rtl' as const, isEnabled: true, isDeleted: false },
+    { code: 'fr' as Language, name: 'Français (الفرنسية)', dir: 'ltr' as const, isEnabled: true, isDeleted: false },
+    { code: 'en' as Language, name: 'English (الإنجليزية)', dir: 'ltr' as const, isEnabled: false, isDeleted: false }
+  ]);
+  const [editingLangCode, setEditingLangCode] = useState<Language | null>(null);
+  const [editLangName, setEditLangName] = useState<string>('');
+
+  // Save 3-Button changes back to Store Settings
+  const persistControls = (updates: any) => {
+    onUpdateStoreSettings(updates);
+    showToast(isAr ? 'تم حفظ وتطبيق التعديل بنجاح ✓' : 'Settings saved');
+  };
+
+  // ─────────────────────────────────────────────────────────────
+  // 5. RECHARTS SALES CHARTS
   // ─────────────────────────────────────────────────────────────
   const salesByDateData = useMemo(() => {
-    // Generate 7-day trend from orders
-    const days = ['الأحد', 'الإثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة', 'السبت'];
-    const mockDaily = [
+    return [
       { day: 'السبت', sales: 48000, orders: 12 },
       { day: 'الأحد', sales: 65000, orders: 15 },
       { day: 'الإثنين', sales: 89000, orders: 21 },
       { day: 'الثلاثاء', sales: 74000, orders: 18 },
       { day: 'الأربعاء', sales: 98000, orders: 24 },
       { day: 'الخميس', sales: 125000, orders: 30 },
-      { day: 'الجمعة', sales: 110000, orders: 26 },
+      { day: 'الجمعة', sales: 110000, orders: 26 }
     ];
-    return mockDaily;
-  }, [orders]);
-
-  const ordersByStatusData = useMemo(() => {
-    const counts = { pending: 0, processing: 0, shipped: 0, delivered: 0 };
-    orders.forEach(o => {
-      if (counts[o.status] !== undefined) counts[o.status]++;
-      else counts.pending++;
-    });
-    return [
-      { name: 'جديد (معلق)', count: counts.pending || 4, fill: '#F59E0B' },
-      { name: 'مؤكد هاتفيّاً', count: counts.processing || 8, fill: '#3B82F6' },
-      { name: 'قيد الشحن', count: counts.shipped || 14, fill: '#8B5CF6' },
-      { name: 'تم التسليم', count: counts.delivered || 22, fill: '#10B981' }
-    ];
-  }, [orders]);
+  }, []);
 
   const totalStoreSales = orders.reduce((acc, o) => acc + (o.total || 0), store.totalSales || 0);
   const totalOrdersCount = orders.length > 0 ? orders.length : store.ordersCount || 0;
 
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-800 font-sans" dir="rtl">
+    <div className="min-h-screen bg-[#F8FAFC] text-slate-800 font-sans selection:bg-emerald-500 selection:text-white" dir="rtl">
       
       {/* Toast Notification */}
       {toastMessage && (
-        <div className="fixed bottom-6 start-6 z-50 bg-slate-900 text-white px-5 py-3 rounded-2xl shadow-2xl flex items-center gap-2.5 text-xs font-bold border border-slate-700 animate-in fade-in slide-in-from-bottom-4">
+        <div className="fixed bottom-6 start-6 z-50 bg-slate-900 text-white px-5 py-3 rounded-2xl shadow-2xl flex items-center gap-2.5 text-xs font-bold border border-emerald-500/50 animate-in fade-in slide-in-from-bottom-4">
           <CheckCircle2 className="w-4 h-4 text-emerald-400" />
           <span>{toastMessage}</span>
         </div>
       )}
 
-      {/* Main Container */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
+      {/* Main Container - Fully Responsive on Mobile & Desktop */}
+      <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-6 space-y-6">
         
-        {/* Navigation Tabs Bar */}
-        <div className="bg-white rounded-2xl border border-slate-200 p-2 shadow-xs flex flex-wrap items-center justify-between gap-2">
-          <div className="flex flex-wrap items-center gap-1.5">
+        {/* Navigation Tabs Bar - Horizontally Scrollable on Mobile Phones */}
+        <div className="bg-white rounded-2xl border border-slate-200 p-2 shadow-xs flex items-center justify-between gap-2 overflow-x-auto scrollbar-none">
+          <div className="flex items-center gap-1.5 flex-nowrap min-w-max">
             {[
               { id: 'overview', label: 'لوحة البيانات والرسم البياني', icon: LayoutDashboard },
-              { id: 'orders', label: `الطلبات والمبيعات (${totalOrdersCount})`, icon: ShoppingCart },
-              { id: 'products', label: `المنتجات والمخزون (${products.length})`, icon: Package },
-              { id: 'shipping', label: 'الشحن والتوصيل (69 ولاية)', icon: Truck, highlight: true },
+              { id: 'orders', label: `الطلبات (${totalOrdersCount})`, icon: ShoppingCart },
+              { id: 'products', label: `المنتجات (${products.length})`, icon: Package },
+              { id: 'shipping', label: 'الشحن لـ 69 ولاية', icon: Truck, highlight: true },
+              { id: 'domains', label: 'النطاق المخصص (Domain)', icon: Globe, highlight: true },
+              { id: 'store_controls', label: 'التحكم بالمتجر (3 أزرار)', icon: SlidersHorizontal },
               { id: 'customers', label: `الزبائن (${customers.length})`, icon: Users },
               { id: 'settings', label: 'إعدادات المتجر والدفع', icon: Settings }
             ].map(tab => {
@@ -301,7 +506,7 @@ export const StoreDashboardView: React.FC<StoreDashboardViewProps> = ({
                 <button
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id as any)}
-                  className={`px-3.5 py-2 rounded-xl text-xs font-bold flex items-center gap-2 transition-all cursor-pointer ${
+                  className={`px-3 py-2 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer whitespace-nowrap ${
                     isActive 
                       ? 'bg-emerald-600 text-white shadow-sm' 
                       : tab.highlight 
@@ -309,20 +514,20 @@ export const StoreDashboardView: React.FC<StoreDashboardViewProps> = ({
                         : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
                   }`}
                 >
-                  <Icon className="w-4 h-4" />
+                  <Icon className="w-3.5 h-3.5" />
                   <span>{tab.label}</span>
                 </button>
               );
             })}
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-shrink-0">
             <button
-              onClick={() => setIsAddProductOpen(true)}
-              className="px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold flex items-center gap-1.5 shadow-sm cursor-pointer"
+              onClick={handleOpenAddProduct}
+              className="px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold flex items-center gap-1.5 shadow-sm cursor-pointer whitespace-nowrap"
             >
               <Plus className="w-4 h-4" />
-              <span>إضافة منتج جديد</span>
+              <span>إضافة منتج 🚀</span>
             </button>
           </div>
         </div>
@@ -334,107 +539,105 @@ export const StoreDashboardView: React.FC<StoreDashboardViewProps> = ({
           <div className="space-y-6">
             
             {/* Quick Metrics Cards */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-              <div className="p-5 rounded-2xl bg-white border border-slate-200 shadow-xs space-y-2">
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+              <div className="p-4 sm:p-5 rounded-2xl bg-white border border-slate-200 shadow-xs space-y-1.5">
                 <div className="flex items-center justify-between text-slate-500">
-                  <span className="text-xs font-bold uppercase">إجمالي المبيعات</span>
+                  <span className="text-[11px] font-bold uppercase">إجمالي المبيعات</span>
                   <DollarSign className="w-4 h-4 text-emerald-600" />
                 </div>
-                <div className="text-2xl font-black text-slate-900 font-mono">{formatPrice(totalStoreSales)}</div>
-                <div className="text-[11px] text-emerald-600 font-semibold flex items-center gap-1">
+                <div className="text-xl sm:text-2xl font-black text-slate-900 font-mono">{formatPrice(totalStoreSales)}</div>
+                <div className="text-[10px] text-emerald-600 font-semibold flex items-center gap-1">
                   <TrendingUp className="w-3 h-3" />
                   <span>+18.4% نمو هذا الأسبوع</span>
                 </div>
               </div>
 
-              <div className="p-5 rounded-2xl bg-white border border-slate-200 shadow-xs space-y-2">
+              <div className="p-4 sm:p-5 rounded-2xl bg-white border border-slate-200 shadow-xs space-y-1.5">
                 <div className="flex items-center justify-between text-slate-500">
-                  <span className="text-xs font-bold uppercase">الطلبات المسجلة</span>
+                  <span className="text-[11px] font-bold uppercase">إجمالي الطلبات (COD)</span>
                   <ShoppingCart className="w-4 h-4 text-indigo-600" />
                 </div>
-                <div className="text-2xl font-black text-slate-900 font-mono">{totalOrdersCount} طلب</div>
-                <div className="text-[11px] text-indigo-600 font-semibold">
-                  معدل التوصيل الناجح 92.5%
-                </div>
+                <div className="text-xl sm:text-2xl font-black text-slate-900 font-mono">{totalOrdersCount} طلب</div>
+                <div className="text-[10px] text-slate-400">دفع موثق عند الاستلام</div>
               </div>
 
-              <div className="p-5 rounded-2xl bg-white border border-slate-200 shadow-xs space-y-2">
+              <div className="p-4 sm:p-5 rounded-2xl bg-white border border-slate-200 shadow-xs space-y-1.5">
                 <div className="flex items-center justify-between text-slate-500">
-                  <span className="text-xs font-bold uppercase">المنتجات النشطة</span>
-                  <Package className="w-4 h-4 text-amber-600" />
+                  <span className="text-[11px] font-bold uppercase">تغطية الولايات</span>
+                  <Truck className="w-4 h-4 text-amber-600" />
                 </div>
-                <div className="text-2xl font-black text-slate-900 font-mono">{products.length} منتج</div>
-                <div className="text-[11px] text-slate-500">
-                  مخزون كافٍ متوفر للشحن الفوري
-                </div>
+                <div className="text-xl sm:text-2xl font-black text-slate-900 font-mono">{activeWilayasCount} / 69</div>
+                <div className="text-[10px] text-emerald-600 font-semibold">توصيل مفعل للمكتب والمنزل</div>
               </div>
 
-              <div className="p-5 rounded-2xl bg-white border border-slate-200 shadow-xs space-y-2">
+              <div className="p-4 sm:p-5 rounded-2xl bg-white border border-slate-200 shadow-xs space-y-1.5">
                 <div className="flex items-center justify-between text-slate-500">
-                  <span className="text-xs font-bold uppercase">تغطية الولايات</span>
-                  <Truck className="w-4 h-4 text-teal-600" />
+                  <span className="text-[11px] font-bold uppercase">النطاق والربط</span>
+                  <Globe className="w-4 h-4 text-teal-600" />
                 </div>
-                <div className="text-2xl font-black text-slate-900 font-mono">69 ولاية</div>
-                <div className="text-[11px] text-teal-600 font-semibold">
-                  توصيل للمكتب والمنزل مفعّل
+                <div className="text-sm font-bold text-slate-900 font-mono truncate">
+                  {store.settings?.customDomain || store.settings.subdomain}
+                </div>
+                <div className="text-[10px] text-emerald-600 font-semibold flex items-center gap-1">
+                  <Lock className="w-3 h-3" />
+                  <span>شهادة SSL نشطة 🔒</span>
                 </div>
               </div>
             </div>
 
-            {/* Recharts Charts Grid */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            {/* Recharts Analytics Charts */}
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
               
-              {/* Daily / Weekly Sales Area Chart */}
-              <div className="lg:col-span-2 p-6 rounded-2xl bg-white border border-slate-200 shadow-xs space-y-4">
-                <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+              <div className="lg:col-span-8 p-5 sm:p-6 rounded-2xl bg-white border border-slate-200 shadow-xs space-y-4">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 pb-3">
                   <div>
-                    <h3 className="text-sm font-bold text-slate-900">رسم بياني للمبيعات اليومية والأسبوعية (Recharts)</h3>
-                    <p className="text-xs text-slate-500">متابعة إيرادات المتجر اليومية بالدينار الجزائري (د.ج)</p>
+                    <h3 className="font-bold text-slate-900 text-sm sm:text-base">رسم بياني للمبيعات اليومية والأسبوعية (Recharts)</h3>
+                    <p className="text-xs text-slate-500">متابعة دقيقة لحجم الإيرادات المسجلة بالدينار الجزائري (د.ج)</p>
                   </div>
-                  <span className="text-xs font-bold text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded-full border border-emerald-200">
-                    مباشر
+                  <span className="px-2.5 py-1 rounded-full text-[11px] font-bold bg-emerald-50 text-emerald-700 self-start sm:self-auto">
+                    آخر 7 أيام
                   </span>
                 </div>
 
-                <div className="h-64 w-full" dir="ltr">
+                <div className="h-64 sm:h-72 w-full pt-2">
                   <ResponsiveContainer width="100%" height="100%">
-                    <AreaChart data={salesByDateData}>
+                    <AreaChart data={salesByDateData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                       <defs>
-                        <linearGradient id="colorSales" x1="0" y1="0" x2="0" y2="1">
+                        <linearGradient id="storeSalesGrad" x1="0" y1="0" x2="0" y2="1">
                           <stop offset="5%" stopColor="#059669" stopOpacity={0.4}/>
                           <stop offset="95%" stopColor="#059669" stopOpacity={0.0}/>
                         </linearGradient>
                       </defs>
-                      <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E2E8F0" />
-                      <XAxis dataKey="day" stroke="#64748B" fontSize={12} tickLine={false} />
-                      <YAxis stroke="#64748B" fontSize={12} tickLine={false} tickFormatter={(v) => `${v / 1000}k`} />
+                      <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#F1F5F9" />
+                      <XAxis dataKey="day" stroke="#94A3B8" fontSize={11} tickLine={false} />
+                      <YAxis stroke="#94A3B8" fontSize={11} tickLine={false} tickFormatter={(val) => `${val/1000}k`} />
                       <Tooltip 
                         formatter={(val: any) => [`${Number(val).toLocaleString()} د.ج`, 'المبيعات']}
-                        contentStyle={{ backgroundColor: '#0F172A', borderRadius: '12px', color: '#fff', fontSize: '12px' }}
+                        contentStyle={{ backgroundColor: '#0F172A', borderRadius: '12px', border: 'none', color: '#fff', fontSize: '12px', textAlign: 'right' }}
                       />
-                      <Area type="monotone" dataKey="sales" stroke="#059669" strokeWidth={3} fillOpacity={1} fill="url(#colorSales)" />
+                      <Area type="monotone" dataKey="sales" stroke="#059669" strokeWidth={3} fillOpacity={1} fill="url(#storeSalesGrad)" />
                     </AreaChart>
                   </ResponsiveContainer>
                 </div>
               </div>
 
-              {/* Orders by Status Bar Chart */}
-              <div className="p-6 rounded-2xl bg-white border border-slate-200 shadow-xs space-y-4">
+              <div className="lg:col-span-4 p-5 sm:p-6 rounded-2xl bg-white border border-slate-200 shadow-xs space-y-4">
                 <div className="border-b border-slate-100 pb-3">
-                  <h3 className="text-sm font-bold text-slate-900">حالة الطلبات والشحن</h3>
-                  <p className="text-xs text-slate-500">توزيع الطلبات وفق دورة الدفع عند الاستلام</p>
+                  <h3 className="font-bold text-slate-900 text-sm sm:text-base">توزيع الطلبات الأسبوعية</h3>
+                  <p className="text-xs text-slate-500">عدد الطلبات المسجلة لكل يوم</p>
                 </div>
 
-                <div className="h-64 w-full" dir="ltr">
+                <div className="h-64 sm:h-72 w-full pt-2">
                   <ResponsiveContainer width="100%" height="100%">
-                    <BarChart data={ordersByStatusData} layout="vertical">
-                      <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#E2E8F0" />
-                      <XAxis type="number" stroke="#64748B" fontSize={11} tickLine={false} />
-                      <YAxis type="category" dataKey="name" stroke="#64748B" fontSize={11} tickLine={false} width={80} />
+                    <BarChart data={salesByDateData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                      <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#F1F5F9" />
+                      <XAxis dataKey="day" stroke="#94A3B8" fontSize={11} tickLine={false} />
+                      <YAxis stroke="#94A3B8" fontSize={11} tickLine={false} />
                       <Tooltip 
-                        contentStyle={{ backgroundColor: '#0F172A', borderRadius: '12px', color: '#fff', fontSize: '12px' }}
+                        formatter={(val: any) => [`${val} طلب`, 'الطلبات']}
+                        contentStyle={{ backgroundColor: '#0F172A', borderRadius: '12px', border: 'none', color: '#fff', fontSize: '12px', textAlign: 'right' }}
                       />
-                      <Bar dataKey="count" radius={[0, 8, 8, 0]} />
+                      <Bar dataKey="orders" fill="#4F46E5" radius={[6, 6, 0, 0]} />
                     </BarChart>
                   </ResponsiveContainer>
                 </div>
@@ -450,7 +653,7 @@ export const StoreDashboardView: React.FC<StoreDashboardViewProps> = ({
         ───────────────────────────────────────────────────────────── */}
         {activeTab === 'orders' && (
           <div className="bg-white rounded-2xl border border-slate-200 shadow-xs overflow-hidden">
-            <div className="p-5 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div className="p-4 sm:p-5 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
               <div>
                 <h3 className="text-base font-bold text-slate-900">إدارة طلبات الزبائن (COD)</h3>
                 <p className="text-xs text-slate-500">تأكيد وتوجيه الطلبات لشركات الشحن (ياليدين / ZR Express)</p>
@@ -458,7 +661,7 @@ export const StoreDashboardView: React.FC<StoreDashboardViewProps> = ({
             </div>
 
             <div className="overflow-x-auto">
-              <table className="w-full text-right border-collapse text-xs">
+              <table className="w-full text-right border-collapse text-xs min-w-[650px]">
                 <thead>
                   <tr className="bg-slate-50 text-slate-500 font-bold border-b border-slate-200">
                     <th className="py-3 px-4">رقم الطلب</th>
@@ -486,9 +689,7 @@ export const StoreDashboardView: React.FC<StoreDashboardViewProps> = ({
                         </span>
                       </td>
                       <td className="py-3.5 px-4">
-                        <div className="font-medium text-slate-700">
-                          {order.items?.length || 1} منتج
-                        </div>
+                        <div className="font-medium text-slate-700">{order.items?.length || 1} منتج</div>
                       </td>
                       <td className="py-3.5 px-4 font-mono font-bold text-emerald-600">
                         {formatPrice(order.total)}
@@ -514,51 +715,70 @@ export const StoreDashboardView: React.FC<StoreDashboardViewProps> = ({
         )}
 
         {/* ─────────────────────────────────────────────────────────────
-            TAB 3: PRODUCTS WITH 10 IMAGES & COLORS
+            TAB 3: REVAMPED PRODUCTS CATALOG (10 IMAGES, VARIANTS, EDIT)
         ───────────────────────────────────────────────────────────── */}
         {activeTab === 'products' && (
           <div className="space-y-4">
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
               <div>
                 <h3 className="text-base font-bold text-slate-900">منتجات المتجر والمخزون</h3>
-                <p className="text-xs text-slate-500">إدارة المنتجات، الصور المتعددة (حتى 10 صور)، والألوان المتوفرة</p>
+                <p className="text-xs text-slate-500">إدارة المنتجات، رفع حتى 10 صور عالية الجودة، الألوان، والمقاسات</p>
               </div>
               <button
-                onClick={() => setIsAddProductOpen(true)}
-                className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold flex items-center gap-1.5 shadow-sm cursor-pointer"
+                onClick={handleOpenAddProduct}
+                className="px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold flex items-center justify-center gap-1.5 shadow-sm cursor-pointer self-start sm:self-auto"
               >
                 <Plus className="w-4 h-4" />
-                <span>إضافة منتج مع 10 صور وألوان</span>
+                <span>إضافة منتج جديد (مع 10 صور وألوان)</span>
               </button>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
               {products.map(prod => (
-                <div key={prod.id} className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-xs flex flex-col justify-between">
+                <div key={prod.id} className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-xs flex flex-col justify-between hover:border-emerald-500/40 transition-all">
                   <div>
-                    <div className="h-44 bg-slate-100 relative overflow-hidden group">
+                    {/* Primary Image with badges */}
+                    <div className="h-48 bg-slate-100 relative overflow-hidden group">
                       <img 
                         src={prod.imageUrl || (prod.images && prod.images[0]) || 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=600&auto=format&fit=crop&q=80'} 
                         alt={prod.nameAr}
                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                       />
-                      {prod.images && prod.images.length > 1 && (
-                        <span className="absolute bottom-2 end-2 px-2 py-0.5 rounded-md bg-black/70 text-white text-[10px] font-bold">
-                          +{prod.images.length} صور
+                      
+                      {/* Image count pill */}
+                      {prod.images && prod.images.length > 0 && (
+                        <span className="absolute top-2.5 start-2.5 px-2.5 py-1 rounded-lg bg-black/75 backdrop-blur-xs text-white text-[10px] font-bold flex items-center gap-1">
+                          <ImageIcon className="w-3 h-3 text-emerald-400" />
+                          <span>{prod.images.length} صور</span>
                         </span>
                       )}
+
+                      {/* Stock pill */}
+                      <span className={`absolute bottom-2.5 end-2.5 px-2.5 py-1 rounded-lg text-[10px] font-bold ${
+                        prod.stock > 10 ? 'bg-emerald-500 text-white' : prod.stock > 0 ? 'bg-amber-500 text-white' : 'bg-rose-500 text-white'
+                      }`}>
+                        المخزون: {prod.stock}
+                      </span>
                     </div>
 
-                    <div className="p-4 space-y-2">
+                    {/* Product Details */}
+                    <div className="p-4 space-y-2.5 text-xs">
                       <div className="flex items-start justify-between gap-2">
-                        <h4 className="font-bold text-slate-900 text-sm line-clamp-1">{prod.nameAr}</h4>
-                        <span className="font-mono font-bold text-emerald-600 text-sm whitespace-nowrap">
-                          {formatPrice(prod.price)}
-                        </span>
+                        <div>
+                          <h4 className="font-bold text-slate-900 text-sm line-clamp-1">{prod.nameAr}</h4>
+                          <span className="text-[11px] text-slate-400">{prod.category}</span>
+                        </div>
+                        <div className="text-start">
+                          <div className="font-mono font-bold text-emerald-600 text-sm">{formatPrice(prod.price)}</div>
+                          {prod.compareAtPrice && prod.compareAtPrice > prod.price && (
+                            <div className="font-mono text-slate-400 line-through text-[11px]">{formatPrice(prod.compareAtPrice)}</div>
+                          )}
+                        </div>
                       </div>
-                      <p className="text-xs text-slate-500 line-clamp-2">{prod.descriptionAr}</p>
 
-                      {/* Colors Preview */}
+                      <p className="text-slate-500 text-[11px] line-clamp-2">{prod.descriptionAr || prod.description}</p>
+
+                      {/* Color swatches */}
                       {prod.colors && prod.colors.length > 0 && (
                         <div className="flex items-center gap-1.5 pt-1">
                           <span className="text-[10px] text-slate-400">الألوان:</span>
@@ -568,40 +788,49 @@ export const StoreDashboardView: React.FC<StoreDashboardViewProps> = ({
                               return (
                                 <span 
                                   key={i} 
-                                  className="w-3.5 h-3.5 rounded-full border border-slate-300 shadow-2xs" 
+                                  className="w-4 h-4 rounded-full border border-slate-300 shadow-xs" 
                                   style={{ backgroundColor: hex }} 
+                                  title={typeof c === 'string' ? c : c.nameAr || c.name} 
                                 />
                               );
                             })}
                           </div>
                         </div>
                       )}
+
+                      {/* Sizes */}
+                      {prod.sizes && prod.sizes.length > 0 && (
+                        <div className="flex items-center gap-1 pt-0.5">
+                          <span className="text-[10px] text-slate-400">المقاسات:</span>
+                          <div className="flex flex-wrap gap-1">
+                            {prod.sizes.map((sz, i) => (
+                              <span key={i} className="px-1.5 py-0.5 rounded bg-slate-100 text-slate-700 text-[10px] font-bold">
+                                {sz}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
                     </div>
                   </div>
 
-                  <div className="p-3 bg-slate-50 border-t border-slate-100 flex items-center justify-between">
-                    <div className="flex items-center gap-1.5 text-xs">
-                      <span className="text-slate-500 text-[11px]">المخزون:</span>
-                      <strong className="font-mono text-slate-900">{prod.stock}</strong>
-                      <div className="flex items-center gap-0.5 ms-1">
-                        <button
-                          onClick={() => onUpdateProductStock(prod.id, Math.max(0, prod.stock - 1))}
-                          className="w-5 h-5 rounded bg-slate-200 hover:bg-slate-300 font-bold flex items-center justify-center text-xs"
-                        >
-                          -
-                        </button>
-                        <button
-                          onClick={() => onUpdateProductStock(prod.id, prod.stock + 1)}
-                          className="w-5 h-5 rounded bg-slate-200 hover:bg-slate-300 font-bold flex items-center justify-center text-xs"
-                        >
-                          +
-                        </button>
-                      </div>
-                    </div>
+                  {/* Actions Footer */}
+                  <div className="p-3 bg-slate-50 border-t border-slate-100 flex items-center justify-between gap-2">
+                    <button
+                      onClick={() => handleOpenEditProduct(prod)}
+                      className="flex-1 py-2 rounded-xl bg-white hover:bg-slate-100 border border-slate-200 text-slate-700 text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer"
+                    >
+                      <Edit2 className="w-3.5 h-3.5 text-indigo-600" />
+                      <span>تعديل المنتج</span>
+                    </button>
 
                     <button
-                      onClick={() => onDeleteProduct(prod.id)}
-                      className="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-colors"
+                      onClick={() => {
+                        onDeleteProduct(prod.id);
+                        showToast(isAr ? 'تم حذف المنتج من المتجر' : 'Product deleted');
+                      }}
+                      className="p-2 rounded-xl bg-white hover:bg-rose-50 border border-slate-200 text-rose-500 transition-colors cursor-pointer"
                       title="حذف المنتج"
                     >
                       <Trash2 className="w-4 h-4" />
@@ -614,60 +843,60 @@ export const StoreDashboardView: React.FC<StoreDashboardViewProps> = ({
         )}
 
         {/* ─────────────────────────────────────────────────────────────
-            TAB 4: ALGERIAN 69 WILAYAS SHIPPING MANAGEMENT
+            TAB 4: ALGERIA 69 WILAYAS SHIPPING
         ───────────────────────────────────────────────────────────── */}
         {activeTab === 'shipping' && (
           <div className="space-y-4">
             
-            {/* Shipping Header Card */}
-            <div className="bg-white rounded-2xl border border-slate-200 p-5 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
+            {/* Header info */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white p-4 sm:p-5 rounded-2xl border border-slate-200">
               <div>
-                <div className="flex items-center gap-2">
-                  <Truck className="w-5 h-5 text-emerald-600" />
-                  <h3 className="text-base font-bold text-slate-900">
-                    جدول تسعير الشحن والتوصيل لـ 69 ولاية جزائرية
-                  </h3>
-                </div>
-                <p className="text-xs text-slate-500 mt-1">
-                  تحديد سعر التوصيل للمكتب (Stop-Desk) وسعر التوصيل للمنزل (Domicile) لكل ولاية، مع 3 أزرار: تمكين/تعطيل، تعديل، وحذف.
+                <h3 className="text-base font-bold text-slate-900 flex items-center gap-2">
+                  <span>إدارة أسعار الشحن لـ 69 ولاية جزائرية</span>
+                  <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                    {activeWilayasCount} / 69 مفعلة
+                  </span>
+                </h3>
+                <p className="text-xs text-slate-500 mt-0.5">
+                  تحكم كامل في تفعيل أو تعديل سعر التوصيل للمكتب (Stop-Desk) والمنزل (Domicile) لكل ولاية جزائرية.
                 </p>
               </div>
 
               <div className="flex items-center gap-2">
                 <button
                   onClick={handleRestoreAllWilayas}
-                  className="px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold flex items-center gap-1.5 cursor-pointer"
+                  className="px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition-colors cursor-pointer"
                 >
-                  <RefreshCw className="w-3.5 h-3.5" />
-                  <span>استعادة كل الولايات</span>
+                  استعادة الـ 69 ولاية
                 </button>
               </div>
             </div>
 
-            {/* Filter and Search Bar */}
-            <div className="bg-white rounded-2xl border border-slate-200 p-4 shadow-xs flex flex-col sm:flex-row items-center justify-between gap-3">
+            {/* Search and Filters */}
+            <div className="flex flex-col sm:flex-row items-center gap-3">
               <div className="relative flex-1 w-full">
-                <Search className="absolute top-3 start-3 w-4 h-4 text-slate-400" />
+                <Search className="w-4 h-4 text-slate-400 absolute top-3 start-3.5" />
                 <input
                   type="text"
                   value={shippingSearch}
                   onChange={(e) => setShippingSearch(e.target.value)}
-                  placeholder="ابحث باسم الولاية أو رقمها (مثال: الجزائر، وهران، 16، 31)..."
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl ps-9 pe-4 py-2 text-xs focus:outline-none focus:border-emerald-600 focus:bg-white"
+                  placeholder="ابحث بالاسم أو رقم الولاية (مثال: 16، وهران، سطيف، قسنطينة)..."
+                  className="w-full bg-white border border-slate-200 rounded-xl ps-10 pe-4 py-2.5 text-xs text-slate-900 focus:outline-none focus:border-emerald-600"
                 />
               </div>
 
-              <div className="w-full sm:w-48">
+              <div className="flex items-center gap-2 w-full sm:w-auto">
+                <Filter className="w-4 h-4 text-slate-400" />
                 <select
                   value={shippingZoneFilter}
                   onChange={(e) => setShippingZoneFilter(e.target.value)}
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-emerald-600"
+                  className="bg-white border border-slate-200 rounded-xl px-3 py-2.5 text-xs text-slate-700 focus:outline-none focus:border-emerald-600 cursor-pointer w-full sm:w-auto"
                 >
-                  <option value="all">كل المناطق الجغرافية</option>
-                  <option value="center">منطقة الوسط</option>
-                  <option value="east">منطقة الشرق</option>
-                  <option value="west">منطقة الغرب</option>
-                  <option value="south">منطقة الجنوب</option>
+                  <option value="all">جميع المناطق الجغرافية</option>
+                  <option value="center">وسط الجزائر</option>
+                  <option value="east">الشرق الجزائري</option>
+                  <option value="west">الغرب الجزائري</option>
+                  <option value="south">الجنوب والهضاب</option>
                   <option value="sahara">الصحراء الكبرى</option>
                 </select>
               </div>
@@ -676,74 +905,65 @@ export const StoreDashboardView: React.FC<StoreDashboardViewProps> = ({
             {/* 69 Wilayas Table */}
             <div className="bg-white rounded-2xl border border-slate-200 shadow-xs overflow-hidden">
               <div className="overflow-x-auto">
-                <table className="w-full text-right border-collapse text-xs">
+                <table className="w-full text-right border-collapse text-xs min-w-[700px]">
                   <thead>
                     <tr className="bg-slate-50 text-slate-500 font-bold border-b border-slate-200">
-                      <th className="py-3 px-4 w-16">الرقم</th>
-                      <th className="py-3 px-4">الولاية</th>
-                      <th className="py-3 px-4">مدة التوصيل المقدرة</th>
-                      <th className="py-3 px-4">سعر التوصيل للمكتب (Stop-Desk)</th>
-                      <th className="py-3 px-4">سعر التوصيل للمنزل (Domicile)</th>
-                      <th className="py-3 px-4">الحالة</th>
-                      <th className="py-3 px-4 text-center">3 أزرار التحكم (تمكين / تعديل / حذف)</th>
+                      <th className="py-3 px-4 w-14">الرمز</th>
+                      <th className="py-3 px-4">اسم الولاية</th>
+                      <th className="py-3 px-4">توصيل للمكتب (Stop-Desk)</th>
+                      <th className="py-3 px-4">توصيل للمنزل (Domicile)</th>
+                      <th className="py-3 px-4">المدة المتوقعة</th>
+                      <th className="py-3 px-4 text-center">أزرار التحكم الثلاثة (تمكين / تعديل / حذف)</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100">
                     {filteredWilayas.map((wilaya) => (
                       <tr 
-                        key={wilaya.code} 
-                        className={`hover:bg-slate-50 transition-colors ${!wilaya.isEnabled ? 'opacity-50 bg-slate-50/50' : ''}`}
+                        key={wilaya.code}
+                        className={`hover:bg-slate-50/80 transition-colors ${
+                          !wilaya.isEnabled ? 'opacity-50 bg-slate-50/40' : ''
+                        }`}
                       >
-                        <td className="py-3 px-4 font-mono font-bold text-slate-500">
+                        <td className="py-3.5 px-4 font-mono font-bold text-slate-900">
                           {wilaya.code}
                         </td>
-                        <td className="py-3 px-4 font-bold text-slate-800">
-                          <div>{wilaya.nameAr}</div>
-                          <div className="text-[10px] text-slate-400 font-normal">{wilaya.name}</div>
+                        <td className="py-3.5 px-4">
+                          <div className="font-bold text-slate-900">{wilaya.nameAr}</div>
+                          <div className="text-[11px] text-slate-400 font-sans">{wilaya.name}</div>
                         </td>
-                        <td className="py-3 px-4 text-slate-500 font-medium">
-                          {wilaya.estimatedDays}
-                        </td>
-                        <td className="py-3 px-4 font-mono font-bold text-slate-700">
+                        <td className="py-3.5 px-4 font-mono font-bold text-indigo-600">
                           {wilaya.deskPrice} د.ج
                         </td>
-                        <td className="py-3 px-4 font-mono font-bold text-emerald-600">
+                        <td className="py-3.5 px-4 font-mono font-bold text-emerald-600">
                           {wilaya.homePrice} د.ج
                         </td>
-                        <td className="py-3 px-4">
-                          <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${
-                            wilaya.isEnabled ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-rose-50 text-rose-700 border border-rose-200'
-                          }`}>
-                            {wilaya.isEnabled ? 'مفعلة' : 'معطلة'}
-                          </span>
+                        <td className="py-3.5 px-4 text-slate-500 font-medium">
+                          {wilaya.estimatedDays}
                         </td>
-                        
-                        {/* 3 Action Buttons */}
-                        <td className="py-3 px-4 text-center">
-                          <div className="flex items-center justify-center gap-1.5">
-                            
-                            {/* Button 1: Toggle Enable / Disable */}
+                        <td className="py-3.5 px-4">
+                          <div className="flex items-center justify-center gap-2">
+                            {/* Button 1: Toggle */}
                             <button
+                              type="button"
                               onClick={() => handleToggleWilaya(wilaya.code)}
-                              className={`px-2.5 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
                                 wilaya.isEnabled 
-                                  ? 'bg-amber-50 hover:bg-amber-100 text-amber-700 border border-amber-200' 
-                                  : 'bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200'
+                                  ? 'bg-emerald-100 text-emerald-800 hover:bg-emerald-200' 
+                                  : 'bg-slate-200 text-slate-600 hover:bg-slate-300'
                               }`}
-                              title={wilaya.isEnabled ? 'تعطيل الشحن لهذه الولاية' : 'تمكين الشحن لهذه الولاية'}
                             >
-                              {wilaya.isEnabled ? 'تعطيل' : 'تمكين'}
+                              {wilaya.isEnabled ? 'مفعل 🟢' : 'معطل ⚪'}
                             </button>
 
                             {/* Button 2: Edit Prices */}
                             <button
+                              type="button"
                               onClick={() => {
                                 setEditingWilaya(wilaya);
                                 setEditDeskPrice(wilaya.deskPrice);
                                 setEditHomePrice(wilaya.homePrice);
                               }}
-                              className="px-2.5 py-1.5 rounded-lg bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 text-xs font-bold transition-all cursor-pointer flex items-center gap-1"
-                              title="تعديل سعر التوصيل للمكتب والمنزل"
+                              className="px-3 py-1.5 rounded-lg bg-indigo-50 hover:bg-indigo-100 text-indigo-700 text-xs font-bold transition-all cursor-pointer flex items-center gap-1"
                             >
                               <Edit2 className="w-3 h-3" />
                               <span>تعديل</span>
@@ -751,17 +971,15 @@ export const StoreDashboardView: React.FC<StoreDashboardViewProps> = ({
 
                             {/* Button 3: Delete */}
                             <button
+                              type="button"
                               onClick={() => handleDeleteWilaya(wilaya.code)}
-                              className="px-2.5 py-1.5 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 text-xs font-bold transition-all cursor-pointer flex items-center gap-1"
-                              title="حذف الولاية"
+                              className="p-1.5 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-600 transition-all cursor-pointer"
+                              title="حذف الولاية من القائمة"
                             >
-                              <Trash2 className="w-3 h-3" />
-                              <span>حذف</span>
+                              <Trash2 className="w-3.5 h-3.5" />
                             </button>
-
                           </div>
                         </td>
-
                       </tr>
                     ))}
                   </tbody>
@@ -773,30 +991,768 @@ export const StoreDashboardView: React.FC<StoreDashboardViewProps> = ({
         )}
 
         {/* ─────────────────────────────────────────────────────────────
-            TAB 5: CUSTOMERS
+            TAB 5: CUSTOM DOMAIN MANAGEMENT (قسم ربط الدومين للبائعين)
+        ───────────────────────────────────────────────────────────── */}
+        {activeTab === 'domains' && (
+          <div className="space-y-6">
+            
+            {/* Header */}
+            <div className="bg-white p-5 rounded-2xl border border-slate-200 space-y-1">
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-bold bg-indigo-50 text-indigo-700 border border-indigo-200 mb-1">
+                <Globe className="w-3.5 h-3.5" />
+                <span>إدارة النطاق المخصص (Custom Domain Engine)</span>
+              </div>
+              <h3 className="text-base sm:text-lg font-bold text-slate-900">
+                ربط النطاق الخاص بمتجرك (www.yourstore.com أو .dz)
+              </h3>
+              <p className="text-xs text-slate-500 leading-relaxed">
+                اربط اسم نطاقك المخصص لتعزيز ثقة زبائنك وعلامتك التجارية. نوفر شهادة أمان SSL Let's Encrypt مجانية وتشفير HTTPS تلقائي لجميع المتاجر.
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+              
+              {/* Left Column: Form & Current Domain Status (7 cols) */}
+              <div className="lg:col-span-7 space-y-5">
+                
+                {/* 1. Free Subdomain Card */}
+                <div className="p-5 rounded-2xl bg-white border border-slate-200 space-y-3">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-bold text-slate-500">النطاق الفرعي السحابي المجاني (WaslaDZ Subdomain)</span>
+                    <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800">
+                      نشط دائماً ✓
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between p-3 rounded-xl bg-slate-50 border border-slate-200">
+                    <span className="font-mono font-bold text-slate-800 text-xs sm:text-sm">
+                      https://{store.settings.subdomain}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        navigator.clipboard?.writeText(`https://${store.settings.subdomain}`);
+                        showToast(isAr ? 'تم نسخ الرابط' : 'Copied');
+                      }}
+                      className="p-1.5 rounded-lg bg-white border border-slate-200 text-slate-600 hover:text-emerald-600"
+                    >
+                      <Copy className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                </div>
+
+                {/* 2. Connect Custom Domain Card */}
+                <div className="p-5 rounded-2xl bg-white border border-slate-200 space-y-4">
+                  <h4 className="font-bold text-slate-900 text-sm flex items-center gap-2">
+                    <Link2 className="w-4 h-4 text-emerald-600" />
+                    <span>إضافة وربط نطاق خاص جديد</span>
+                  </h4>
+
+                  <div className="space-y-3 text-xs">
+                    <div>
+                      <label className="block text-slate-700 font-bold mb-1.5">
+                        أدخل اسم النطاق الخاص بك (Domain Name)
+                      </label>
+                      <div className="flex items-center gap-2">
+                        <input
+                          type="text"
+                          value={customDomainInput}
+                          onChange={(e) => setCustomDomainInput(e.target.value)}
+                          placeholder="مثال: www.elegance-store.com أو mystore.dz"
+                          className="flex-1 bg-slate-50 border border-slate-200 rounded-xl p-3 text-slate-900 font-mono text-xs focus:outline-none focus:border-emerald-600"
+                          dir="ltr"
+                        />
+                        <button
+                          type="button"
+                          disabled={isVerifyingDns}
+                          onClick={handleConnectDomain}
+                          className="px-5 py-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow-sm cursor-pointer disabled:opacity-50 flex items-center gap-1.5 whitespace-nowrap"
+                        >
+                          {isVerifyingDns ? (
+                            <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                          ) : (
+                            <span>ربط والتحقق ⚡</span>
+                          )}
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Status Feedback */}
+                    {domainStatus === 'connected' && (
+                      <div className="p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse" />
+                          <span className="font-bold">النطاق متصل ويعمل بنجاح (Connected & Active)</span>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={handleDisconnectDomain}
+                          className="text-xs text-rose-600 hover:text-rose-800 font-bold"
+                        >
+                          فصل النطاق
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* 3. Free SSL Certificate Badge */}
+                <div className="p-4 rounded-2xl bg-gradient-to-r from-emerald-50 to-teal-50 border border-emerald-200 flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-emerald-600 text-white flex items-center justify-center flex-shrink-0">
+                    <Lock className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <h5 className="font-bold text-slate-900 text-xs sm:text-sm">
+                      شهادة أمان مجانية Let's Encrypt Wildcard SSL 🔒
+                    </h5>
+                    <p className="text-[11px] text-slate-600 mt-0.5">
+                      يتم تفعيل التشفير التلقائي وحماية معاملات الزبائن مجاناً لجميع النطاقات المربوطة.
+                    </p>
+                  </div>
+                </div>
+
+              </div>
+
+              {/* Right Column: Required DNS Records (5 cols) */}
+              <div className="lg:col-span-5 space-y-4">
+                <div className="p-5 rounded-2xl bg-slate-900 text-white space-y-4">
+                  <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+                    <span className="font-bold text-xs flex items-center gap-1.5 text-emerald-400">
+                      <Settings className="w-4 h-4" />
+                      <span>سجلات الـ DNS المطلوبة في لوحة تحكم النطاق</span>
+                    </span>
+                    <span className="text-[10px] bg-slate-800 px-2 py-0.5 rounded text-slate-400 font-mono">DNS Guide</span>
+                  </div>
+
+                  <p className="text-[11px] text-slate-300 leading-relaxed">
+                    توجه إلى لوحة تحكم مزود النطاق الخاص بك (مثل Namecheap, GoDaddy, Cloudflare, أو مسجلي نطاقات .dz الجزائريين) وأضف السجلات التالية:
+                  </p>
+
+                  <div className="space-y-3 font-mono text-[11px]">
+                    {dnsRecords.map((rec, i) => (
+                      <div key={i} className="p-3 rounded-xl bg-slate-950 border border-slate-800 space-y-1.5">
+                        <div className="flex items-center justify-between">
+                          <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-indigo-500/20 text-indigo-400">
+                            {rec.type} Record
+                          </span>
+                          <span className="text-[10px] text-emerald-400 font-sans">
+                            {rec.status === 'verified' ? '✓ تم التحقق' : 'قيد الانتشار'}
+                          </span>
+                        </div>
+                        <div className="flex items-center justify-between text-slate-300 pt-1">
+                          <span>المضيف (Host): <strong className="text-white">{rec.host}</strong></span>
+                        </div>
+                        <div className="flex items-center justify-between text-slate-300">
+                          <span className="truncate max-w-[180px]">القيمة: <strong className="text-white">{rec.value}</strong></span>
+                          <button
+                            type="button"
+                            onClick={() => handleCopyDns(rec.value, `${rec.type}_${i}`)}
+                            className="p-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 text-[10px] flex items-center gap-1"
+                          >
+                            <Copy className="w-3 h-3" />
+                            <span>{copiedDnsKey === `${rec.type}_${i}` ? 'تم ✓' : 'نسخ'}</span>
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+
+                  <p className="text-[10px] text-slate-400 pt-1">
+                    💡 قد يستغرق انتشار سجلات الـ DNS بين 15 دقيقة إلى 24 ساعة كحد أقصى حسب مزود النطاق.
+                  </p>
+                </div>
+              </div>
+
+            </div>
+
+          </div>
+        )}
+
+        {/* ─────────────────────────────────────────────────────────────
+            TAB 6: THE 3-BUTTON SYSTEM (MAINTENANCE, FOOTER, BANNER, CURRENCIES, LANGUAGES)
+        ───────────────────────────────────────────────────────────── */}
+        {activeTab === 'store_controls' && (
+          <div className="space-y-6">
+            
+            {/* Header info */}
+            <div className="bg-white p-5 rounded-2xl border border-slate-200 space-y-1">
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-bold bg-amber-50 text-amber-800 border border-amber-200 mb-1">
+                <SlidersHorizontal className="w-3.5 h-3.5" />
+                <span>نظام التحكم الموحد بـ 3 أزرار (تمكين 🟢 / تعديل ✏️ / حذف 🗑️)</span>
+              </div>
+              <h3 className="text-base sm:text-lg font-bold text-slate-900">
+                التحكم الشامل في وضعية الصيانة، الفوتر، البانر الإعلاني، العملات، واللغات
+              </h3>
+              <p className="text-xs text-slate-500 leading-relaxed">
+                كل عنصر في متجرك يملك 3 أزرار مستقلة: زر التمكين والتعطيل الفوري، زر التعديل وتخصيص النصوص والقيم، وزر الحذف أو الإخفاء.
+              </p>
+            </div>
+
+            {/* 1. Maintenance Mode (وضعية الصيانة) */}
+            <div className="bg-white rounded-2xl border border-slate-200 p-5 shadow-xs space-y-4">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-3">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-amber-100 text-amber-700 flex items-center justify-center">
+                    <Wrench className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <h4 className="font-bold text-slate-900 text-sm">1. وضعية الصيانة والتحديث (Maintenance Mode)</h4>
+                    <p className="text-xs text-slate-500">إغلاق مؤقت للمتجر أمام الزبائن عند جرد المخزون أو التحديث مع رسالة مخصصة</p>
+                  </div>
+                </div>
+
+                {/* The 3 Buttons */}
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const updated = { ...maintenanceConfig, isEnabled: !maintenanceConfig.isEnabled };
+                      setMaintenanceConfig(updated);
+                      persistControls({ maintenanceMode: updated });
+                    }}
+                    className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                      maintenanceConfig.isEnabled 
+                        ? 'bg-amber-600 text-white shadow-xs' 
+                        : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                    }`}
+                  >
+                    {maintenanceConfig.isEnabled ? 'الوضعية مفعلة 🟢' : 'معطلة ⚪'}
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setIsEditingMaintenance(!isEditingMaintenance)}
+                    className="px-3 py-1.5 rounded-xl bg-indigo-50 hover:bg-indigo-100 text-indigo-700 text-xs font-bold transition-all cursor-pointer flex items-center gap-1"
+                  >
+                    <Edit2 className="w-3.5 h-3.5" />
+                    <span>تعديل</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const reset = { ...maintenanceConfig, isEnabled: false, message: 'المتجر يعمل بصورة طبيعية' };
+                      setMaintenanceConfig(reset);
+                      persistControls({ maintenanceMode: reset });
+                      showToast(isAr ? 'تمت إعادة تعيين وضعية الصيانة' : 'Maintenance reset');
+                    }}
+                    className="p-2 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-600 transition-all cursor-pointer"
+                    title="حذف / إعادة تعيين الصيانة"
+                  >
+                    <Trash2 className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+              </div>
+
+              {/* Maintenance Edit Drawer */}
+              {isEditingMaintenance && (
+                <div className="p-4 rounded-xl bg-slate-50 border border-slate-200 space-y-3 text-xs animate-in fade-in duration-200">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-slate-700 font-bold mb-1">عنوان صفحة الصيانة</label>
+                      <input
+                        type="text"
+                        value={maintenanceConfig.title}
+                        onChange={(e) => setMaintenanceConfig({ ...maintenanceConfig, title: e.target.value })}
+                        className="w-full bg-white border border-slate-200 rounded-xl p-2.5 text-xs text-slate-900"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-slate-700 font-bold mb-1">وقت العودة المتوقع</label>
+                      <input
+                        type="text"
+                        value={maintenanceConfig.estimatedEndTime}
+                        onChange={(e) => setMaintenanceConfig({ ...maintenanceConfig, estimatedEndTime: e.target.value })}
+                        className="w-full bg-white border border-slate-200 rounded-xl p-2.5 text-xs text-slate-900"
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-slate-700 font-bold mb-1">رسالة التنبيه للزبائن</label>
+                    <textarea
+                      rows={2}
+                      value={maintenanceConfig.message}
+                      onChange={(e) => setMaintenanceConfig({ ...maintenanceConfig, message: e.target.value })}
+                      className="w-full bg-white border border-slate-200 rounded-xl p-2.5 text-xs text-slate-900 resize-none"
+                    />
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      persistControls({ maintenanceMode: maintenanceConfig });
+                      setIsEditingMaintenance(false);
+                    }}
+                    className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs"
+                  >
+                    حفظ تعديلات الصيانة ✓
+                  </button>
+                </div>
+              )}
+            </div>
+
+            {/* 2. Top Promotional Banner (البانر ومحتوياته) */}
+            <div className="bg-white rounded-2xl border border-slate-200 p-5 shadow-xs space-y-4">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-3">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center">
+                    <Tag className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <h4 className="font-bold text-slate-900 text-sm">2. الشريط الإعلاني الترويجي (Top Banner)</h4>
+                    <p className="text-xs text-slate-500">شريط العروض الحصرية والخصومات أعلى المتجر مع مؤقت عد تنازلي</p>
+                  </div>
+                </div>
+
+                {/* The 3 Buttons */}
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const updated = { ...bannerConfig, isEnabled: !bannerConfig.isEnabled };
+                      setBannerConfig(updated);
+                      persistControls({ bannerConfig: updated });
+                    }}
+                    className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                      bannerConfig.isEnabled 
+                        ? 'bg-emerald-600 text-white shadow-xs' 
+                        : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                    }`}
+                  >
+                    {bannerConfig.isEnabled ? 'مفعل 🟢' : 'معطل ⚪'}
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setIsEditingBanner(!isEditingBanner)}
+                    className="px-3 py-1.5 rounded-xl bg-indigo-50 hover:bg-indigo-100 text-indigo-700 text-xs font-bold transition-all cursor-pointer flex items-center gap-1"
+                  >
+                    <Edit2 className="w-3.5 h-3.5" />
+                    <span>تعديل</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const updated = { ...bannerConfig, isEnabled: false, text: '' };
+                      setBannerConfig(updated);
+                      persistControls({ bannerConfig: updated });
+                      showToast(isAr ? 'تم حذف نص البانر' : 'Banner deleted');
+                    }}
+                    className="p-2 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-600 transition-all cursor-pointer"
+                    title="حذف البانر"
+                  >
+                    <Trash2 className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+              </div>
+
+              {/* Banner Edit Drawer */}
+              {isEditingBanner && (
+                <div className="p-4 rounded-xl bg-slate-50 border border-slate-200 space-y-3 text-xs animate-in fade-in duration-200">
+                  <div>
+                    <label className="block text-slate-700 font-bold mb-1">نص الإعلان الترويجي</label>
+                    <input
+                      type="text"
+                      value={bannerConfig.text}
+                      onChange={(e) => setBannerConfig({ ...bannerConfig, text: e.target.value })}
+                      className="w-full bg-white border border-slate-200 rounded-xl p-2.5 text-xs text-slate-900"
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    <div>
+                      <label className="block text-slate-700 font-bold mb-1">لون خلفية البانر</label>
+                      <input
+                        type="color"
+                        value={bannerConfig.bgColor}
+                        onChange={(e) => setBannerConfig({ ...bannerConfig, bgColor: e.target.value })}
+                        className="w-full h-9 p-0.5 rounded-xl border border-slate-200 bg-white cursor-pointer"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-slate-700 font-bold mb-1">لون النص</label>
+                      <input
+                        type="color"
+                        value={bannerConfig.textColor}
+                        onChange={(e) => setBannerConfig({ ...bannerConfig, textColor: e.target.value })}
+                        className="w-full h-9 p-0.5 rounded-xl border border-slate-200 bg-white cursor-pointer"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-slate-700 font-bold mb-1">العد التنازلي (بالساعات)</label>
+                      <input
+                        type="number"
+                        value={bannerConfig.countdownHours || 24}
+                        onChange={(e) => setBannerConfig({ ...bannerConfig, countdownHours: Number(e.target.value) })}
+                        className="w-full bg-white border border-slate-200 rounded-xl p-2.5 text-xs text-slate-900 font-mono"
+                      />
+                    </div>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      persistControls({ bannerConfig: bannerConfig });
+                      setIsEditingBanner(false);
+                    }}
+                    className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs"
+                  >
+                    حفظ تعديلات البانر ✓
+                  </button>
+                </div>
+              )}
+            </div>
+
+            {/* 3. Footer Configuration (الفوتر ومحتوياته) */}
+            <div className="bg-white rounded-2xl border border-slate-200 p-5 shadow-xs space-y-4">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-3">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-indigo-100 text-indigo-700 flex items-center justify-center">
+                    <Layers className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <h4 className="font-bold text-slate-900 text-sm">3. الفوتر ومحتوياته (Footer Configuration)</h4>
+                    <p className="text-xs text-slate-500">روابط التواصل، نصوص الحقوق، وتنبيه الشحن في أسفل المتجر</p>
+                  </div>
+                </div>
+
+                {/* The 3 Buttons */}
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const updated = { ...footerConfig, isEnabled: !footerConfig.isEnabled };
+                      setFooterConfig(updated);
+                      persistControls({ footerConfig: updated });
+                    }}
+                    className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                      footerConfig.isEnabled 
+                        ? 'bg-emerald-600 text-white shadow-xs' 
+                        : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                    }`}
+                  >
+                    {footerConfig.isEnabled ? 'مفعل 🟢' : 'معطل ⚪'}
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setIsEditingFooter(!isEditingFooter)}
+                    className="px-3 py-1.5 rounded-xl bg-indigo-50 hover:bg-indigo-100 text-indigo-700 text-xs font-bold transition-all cursor-pointer flex items-center gap-1"
+                  >
+                    <Edit2 className="w-3.5 h-3.5" />
+                    <span>تعديل</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const updated = { ...footerConfig, isEnabled: false };
+                      setFooterConfig(updated);
+                      persistControls({ footerConfig: updated });
+                      showToast(isAr ? 'تم إخفاء الفوتر' : 'Footer hidden');
+                    }}
+                    className="p-2 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-600 transition-all cursor-pointer"
+                    title="حذف / إخفاء الفوتر"
+                  >
+                    <Trash2 className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+              </div>
+
+              {/* Footer Edit Drawer */}
+              {isEditingFooter && (
+                <div className="p-4 rounded-xl bg-slate-50 border border-slate-200 space-y-3 text-xs animate-in fade-in duration-200">
+                  <div>
+                    <label className="block text-slate-700 font-bold mb-1">نص حقوق الملكية في الفوتر</label>
+                    <input
+                      type="text"
+                      value={footerConfig.copyrightText}
+                      onChange={(e) => setFooterConfig({ ...footerConfig, copyrightText: e.target.value })}
+                      className="w-full bg-white border border-slate-200 rounded-xl p-2.5 text-xs text-slate-900"
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-slate-700 font-bold mb-1">رقم هاتف المتجر</label>
+                      <input
+                        type="text"
+                        value={footerConfig.contactPhone}
+                        onChange={(e) => setFooterConfig({ ...footerConfig, contactPhone: e.target.value })}
+                        className="w-full bg-white border border-slate-200 rounded-xl p-2.5 text-xs text-slate-900 font-mono"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-slate-700 font-bold mb-1">البريد الإلكتروني</label>
+                      <input
+                        type="email"
+                        value={footerConfig.contactEmail}
+                        onChange={(e) => setFooterConfig({ ...footerConfig, contactEmail: e.target.value })}
+                        className="w-full bg-white border border-slate-200 rounded-xl p-2.5 text-xs text-slate-900"
+                      />
+                    </div>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      persistControls({ footerConfig: footerConfig });
+                      setIsEditingFooter(false);
+                    }}
+                    className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs"
+                  >
+                    حفظ تعديلات الفوتر ✓
+                  </button>
+                </div>
+              )}
+            </div>
+
+            {/* 4. Currencies List with 3 Buttons (العملات) */}
+            <div className="bg-white rounded-2xl border border-slate-200 p-5 shadow-xs space-y-4">
+              <div className="border-b border-slate-100 pb-3">
+                <h4 className="font-bold text-slate-900 text-sm flex items-center gap-2">
+                  <CreditCard className="w-4 h-4 text-emerald-600" />
+                  <span>4. إدارة العملات في المتجر (نظام الـ 3 أزرار)</span>
+                </h4>
+                <p className="text-xs text-slate-500">تمكين، تعديل أسعار الصرف، أو حذف العملات المتاحة للمشترين</p>
+              </div>
+
+              <div className="overflow-x-auto">
+                <table className="w-full text-right border-collapse text-xs min-w-[550px]">
+                  <thead>
+                    <tr className="bg-slate-50 text-slate-500 font-bold border-b border-slate-200">
+                      <th className="py-2.5 px-3">الرمز الكودي</th>
+                      <th className="py-2.5 px-3">اسم العملة</th>
+                      <th className="py-2.5 px-3">الرمز المعروض</th>
+                      <th className="py-2.5 px-3">سعر التحويل مقابل د.ج</th>
+                      <th className="py-2.5 px-3 text-center">أزرار التحكم (تمكين / تعديل / حذف)</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100">
+                    {storeCurrencies.map(curr => (
+                      <tr key={curr.code} className={curr.isDeleted ? 'opacity-40' : ''}>
+                        <td className="py-3 px-3 font-mono font-bold text-slate-900">{curr.code}</td>
+                        <td className="py-3 px-3 font-bold text-slate-800">{curr.name}</td>
+                        <td className="py-3 px-3 font-bold text-emerald-600 font-mono">{curr.symbolAr}</td>
+                        <td className="py-3 px-3 font-mono text-slate-600">{curr.rate}</td>
+                        <td className="py-3 px-3">
+                          <div className="flex items-center justify-center gap-2">
+                            {/* Button 1: Toggle */}
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setStoreCurrencies(storeCurrencies.map(c => c.code === curr.code ? { ...c, isEnabled: !c.isEnabled } : c));
+                                showToast(isAr ? `تم تعديل حالة تفعيل عملة ${curr.name}` : 'Currency toggled');
+                              }}
+                              className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                                curr.isEnabled ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-100 text-slate-600'
+                              }`}
+                            >
+                              {curr.isEnabled ? 'مفعل 🟢' : 'معطل ⚪'}
+                            </button>
+
+                            {/* Button 2: Edit */}
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setEditingCurrencyCode(curr.code);
+                                setEditCurrRate(curr.rate);
+                                setEditCurrSymbol(curr.symbolAr);
+                              }}
+                              className="px-2.5 py-1 rounded-lg bg-indigo-50 hover:bg-indigo-100 text-indigo-700 text-xs font-bold"
+                            >
+                              تعديل
+                            </button>
+
+                            {/* Button 3: Delete */}
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setStoreCurrencies(storeCurrencies.map(c => c.code === curr.code ? { ...c, isDeleted: true, isEnabled: false } : c));
+                                showToast(isAr ? `تم حذف عملة ${curr.name}` : 'Currency removed');
+                              }}
+                              className="p-1 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-600"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+
+              {/* Currency Edit Mini Drawer */}
+              {editingCurrencyCode && (
+                <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200 flex items-center gap-3 text-xs">
+                  <span>تعديل ({editingCurrencyCode}):</span>
+                  <input
+                    type="number"
+                    step="0.0001"
+                    value={editCurrRate}
+                    onChange={(e) => setEditCurrRate(Number(e.target.value))}
+                    className="w-24 bg-white border border-slate-200 rounded-lg p-1.5 font-mono"
+                    placeholder="سعر التحويل"
+                  />
+                  <input
+                    type="text"
+                    value={editCurrSymbol}
+                    onChange={(e) => setEditCurrSymbol(e.target.value)}
+                    className="w-20 bg-white border border-slate-200 rounded-lg p-1.5"
+                    placeholder="الرمز"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setStoreCurrencies(storeCurrencies.map(c => c.code === editingCurrencyCode ? { ...c, rate: editCurrRate, symbolAr: editCurrSymbol } : c));
+                      setEditingCurrencyCode(null);
+                      showToast(isAr ? 'تم حفظ سعر صرف العملة' : 'Currency updated');
+                    }}
+                    className="px-3 py-1.5 rounded-lg bg-emerald-600 text-white font-bold"
+                  >
+                    حفظ ✓
+                  </button>
+                </div>
+              )}
+            </div>
+
+            {/* 5. Languages List with 3 Buttons (اللغات) */}
+            <div className="bg-white rounded-2xl border border-slate-200 p-5 shadow-xs space-y-4">
+              <div className="border-b border-slate-100 pb-3">
+                <h4 className="font-bold text-slate-900 text-sm flex items-center gap-2">
+                  <Globe className="w-4 h-4 text-teal-600" />
+                  <span>5. إدارة اللغات المتاحة في المتجر (نظام الـ 3 أزرار)</span>
+                </h4>
+                <p className="text-xs text-slate-500">تمكين، تعديل، أو حذف اللغات المتاحة للمشترين</p>
+              </div>
+
+              <div className="overflow-x-auto">
+                <table className="w-full text-right border-collapse text-xs min-w-[550px]">
+                  <thead>
+                    <tr className="bg-slate-50 text-slate-500 font-bold border-b border-slate-200">
+                      <th className="py-2.5 px-3">الكود</th>
+                      <th className="py-2.5 px-3">اسم اللغة</th>
+                      <th className="py-2.5 px-3">اتجاه النص</th>
+                      <th className="py-2.5 px-3 text-center">أزرار التحكم (تمكين / تعديل / حذف)</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100">
+                    {storeLanguages.map(lang => (
+                      <tr key={lang.code} className={lang.isDeleted ? 'opacity-40' : ''}>
+                        <td className="py-3 px-3 font-mono font-bold text-slate-900 uppercase">{lang.code}</td>
+                        <td className="py-3 px-3 font-bold text-slate-800">{lang.name}</td>
+                        <td className="py-3 px-3 font-mono text-slate-500 uppercase">{lang.dir}</td>
+                        <td className="py-3 px-3">
+                          <div className="flex items-center justify-center gap-2">
+                            {/* Button 1: Toggle */}
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setStoreLanguages(storeLanguages.map(l => l.code === lang.code ? { ...l, isEnabled: !l.isEnabled } : l));
+                                showToast(isAr ? `تم تعديل حالة تفعيل لغة ${lang.name}` : 'Language toggled');
+                              }}
+                              className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                                lang.isEnabled ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-100 text-slate-600'
+                              }`}
+                            >
+                              {lang.isEnabled ? 'مفعل 🟢' : 'معطل ⚪'}
+                            </button>
+
+                            {/* Button 2: Edit */}
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setEditingLangCode(lang.code);
+                                setEditLangName(lang.name);
+                              }}
+                              className="px-2.5 py-1 rounded-lg bg-indigo-50 hover:bg-indigo-100 text-indigo-700 text-xs font-bold"
+                            >
+                              تعديل
+                            </button>
+
+                            {/* Button 3: Delete */}
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setStoreLanguages(storeLanguages.map(l => l.code === lang.code ? { ...l, isDeleted: true, isEnabled: false } : l));
+                                showToast(isAr ? `تم حذف لغة ${lang.name}` : 'Language removed');
+                              }}
+                              className="p-1 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-600"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+
+              {/* Language Edit Drawer */}
+              {editingLangCode && (
+                <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200 flex items-center gap-3 text-xs">
+                  <span>تعديل اسم اللغة ({editingLangCode}):</span>
+                  <input
+                    type="text"
+                    value={editLangName}
+                    onChange={(e) => setEditLangName(e.target.value)}
+                    className="flex-1 bg-white border border-slate-200 rounded-lg p-1.5"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setStoreLanguages(storeLanguages.map(l => l.code === editingLangCode ? { ...l, name: editLangName } : l));
+                      setEditingLangCode(null);
+                      showToast(isAr ? 'تم حفظ تعديل اسم اللغة' : 'Language updated');
+                    }}
+                    className="px-3 py-1.5 rounded-lg bg-emerald-600 text-white font-bold"
+                  >
+                    حفظ ✓
+                  </button>
+                </div>
+              )}
+            </div>
+
+          </div>
+        )}
+
+        {/* ─────────────────────────────────────────────────────────────
+            TAB 7: CUSTOMERS
         ───────────────────────────────────────────────────────────── */}
         {activeTab === 'customers' && (
-          <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-xs space-y-4">
-            <h3 className="text-base font-bold text-slate-900">سجل الزبائن وقائمة الاتصال</h3>
+          <div className="bg-white rounded-2xl border border-slate-200 shadow-xs overflow-hidden">
+            <div className="p-4 sm:p-5 border-b border-slate-100 flex items-center justify-between">
+              <div>
+                <h3 className="text-base font-bold text-slate-900">سجل الزبائن وقاعدة البيانات</h3>
+                <p className="text-xs text-slate-500">متابعة الزبائن المتكررين وقيمة المشتريات الإجمالية</p>
+              </div>
+            </div>
+
             <div className="overflow-x-auto">
-              <table className="w-full text-right border-collapse text-xs">
+              <table className="w-full text-right border-collapse text-xs min-w-[600px]">
                 <thead>
                   <tr className="bg-slate-50 text-slate-500 font-bold border-b border-slate-200">
                     <th className="py-3 px-4">اسم الزبون</th>
-                    <th className="py-3 px-4">الهاتف</th>
+                    <th className="py-3 px-4">الهاتف والبريد</th>
                     <th className="py-3 px-4">المدينة / الولاية</th>
-                    <th className="py-3 px-4">إجمالي الطلبات</th>
+                    <th className="py-3 px-4">عدد الطلبات</th>
                     <th className="py-3 px-4">إجمالي المشتريات</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
-                  {customers.map(cust => (
-                    <tr key={cust.id} className="hover:bg-slate-50">
-                      <td className="py-3 px-4 font-bold text-slate-800">{cust.name}</td>
-                      <td className="py-3 px-4 font-mono" dir="ltr">{cust.phone}</td>
-                      <td className="py-3 px-4">{cust.city}</td>
-                      <td className="py-3 px-4 font-mono">{cust.totalOrders} طلبات</td>
-                      <td className="py-3 px-4 font-mono font-bold text-emerald-600">{formatPrice(cust.totalSpent)}</td>
+                  {customers.map(c => (
+                    <tr key={c.id} className="hover:bg-slate-50/80 transition-colors">
+                      <td className="py-3.5 px-4 font-bold text-slate-900">{c.name}</td>
+                      <td className="py-3.5 px-4">
+                        <div className="font-mono text-slate-800" dir="ltr">{c.phone}</div>
+                        <div className="text-[11px] text-slate-400">{c.email}</div>
+                      </td>
+                      <td className="py-3.5 px-4 font-medium text-slate-700">{c.city}</td>
+                      <td className="py-3.5 px-4 font-mono font-bold text-slate-900">{c.totalOrders} طلب</td>
+                      <td className="py-3.5 px-4 font-mono font-bold text-emerald-600">{formatPrice(c.totalSpent)}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -806,41 +1762,34 @@ export const StoreDashboardView: React.FC<StoreDashboardViewProps> = ({
         )}
 
         {/* ─────────────────────────────────────────────────────────────
-            TAB 6: SETTINGS
+            TAB 8: STORE SETTINGS & PAYOUTS
         ───────────────────────────────────────────────────────────── */}
         {activeTab === 'settings' && (
-          <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-xs space-y-6 max-w-3xl">
-            <h3 className="text-base font-bold text-slate-900">إعدادات متجر الجزائر (WaslaDZ COD)</h3>
-            
-            <div className="space-y-4 text-xs">
-              <div>
-                <label className="block text-slate-700 font-bold mb-1">اسم المتجر بالعربية</label>
-                <input 
-                  type="text" 
-                  defaultValue={store.nameAr}
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-slate-900 focus:outline-none focus:border-emerald-600"
-                />
+          <div className="space-y-6">
+            <div className="bg-white rounded-2xl border border-slate-200 p-5 sm:p-6 shadow-xs space-y-4">
+              <div className="border-b border-slate-100 pb-3">
+                <h3 className="text-base font-bold text-slate-900">إعدادات الدفع والحسابات البنكية (BaridiMob / CCP)</h3>
+                <p className="text-xs text-slate-500">بيانات تحويل أرباح مبيعات الدفع عند الاستلام لحساب التاجر</p>
               </div>
 
-              <div>
-                <label className="block text-slate-700 font-bold mb-1">حساب بريد الجزائر BaridiMob / CCP لاستلام الأرباح</label>
-                <input 
-                  type="text" 
-                  defaultValue={store.settings?.payoutBank || '00799999000123456789 (RIP BaridiMob)'}
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-slate-900 font-mono focus:outline-none focus:border-emerald-600"
-                />
-              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
+                <div>
+                  <label className="block text-slate-700 font-bold mb-1">طريقة استلام الأرباح</label>
+                  <input
+                    type="text"
+                    defaultValue={store.settings?.payoutBank || 'بريد الجزائر (BaridiMob / CCP) / بنك BNA'}
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-slate-900 font-bold"
+                  />
+                </div>
 
-              <div>
-                <label className="block text-slate-700 font-bold mb-1">شركة التوصيل الافتراضية</label>
-                <select 
-                  defaultValue={store.settings?.activeCarrier || 'yalidine'}
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-slate-900 focus:outline-none focus:border-emerald-600"
-                >
-                  <option value="yalidine">ياليدين إكسبريس (Yalidine Delivery)</option>
-                  <option value="zrexpress">زد آر إكسبريس (ZR Express)</option>
-                  <option value="maystro">مايسترو دليفري (Maystro)</option>
-                </select>
+                <div>
+                  <label className="block text-slate-700 font-bold mb-1">رقم الحساب الجاري / RIP BaridiMob</label>
+                  <input
+                    type="text"
+                    defaultValue={store.settings?.payoutIban || '00799999000123456789 (RIP BaridiMob)'}
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-slate-900 font-mono font-bold"
+                  />
+                </div>
               </div>
             </div>
           </div>
@@ -908,16 +1857,17 @@ export const StoreDashboardView: React.FC<StoreDashboardViewProps> = ({
       )}
 
       {/* ─────────────────────────────────────────────────────────────
-          MODAL: ADD PRODUCT WITH 10 IMAGES & COLORS
+          MODAL: ADD & EDIT PRODUCT (UP TO 10 IMAGES, SIZES, COLORS, COST)
       ───────────────────────────────────────────────────────────── */}
       {isAddProductOpen && (
-        <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="max-w-2xl w-full bg-white rounded-3xl p-6 shadow-2xl space-y-4 text-right max-h-[90vh] flex flex-col">
+        <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4">
+          <div className="max-w-2xl w-full bg-white rounded-3xl p-5 sm:p-7 shadow-2xl space-y-4 text-right max-h-[92vh] flex flex-col">
+            
             <div className="flex items-center justify-between border-b border-slate-100 pb-3">
               <div className="flex items-center gap-2">
                 <Package className="w-5 h-5 text-emerald-600" />
                 <h3 className="text-base font-bold text-slate-900">
-                  إضافة منتج جديد (مع تحميل 10 صور وألوان متعددة)
+                  {editingProduct ? 'تعديل بيانات المنتج والمخزون' : 'إضافة منتج جديد (مع 10 صور وألوان ومقاسات)'}
                 </h3>
               </div>
               <button onClick={() => setIsAddProductOpen(false)} className="text-slate-400 hover:text-slate-600">
@@ -925,49 +1875,62 @@ export const StoreDashboardView: React.FC<StoreDashboardViewProps> = ({
               </button>
             </div>
 
-            <form onSubmit={handleCreateProductSubmit} className="space-y-4 text-xs overflow-y-auto flex-1 p-1">
+            <form onSubmit={handleSaveProductSubmit} className="space-y-4 text-xs overflow-y-auto flex-1 p-1">
               
-              <div className="grid grid-cols-2 gap-3">
+              {/* Product Names (Arabic & English) */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <label className="block text-slate-700 font-bold mb-1">اسم المنتج بالعربية *</label>
                   <input
                     type="text"
                     required
-                    value={newProdNameAr}
-                    onChange={(e) => setNewProdNameAr(e.target.value)}
-                    placeholder="مثال: ساعة يد كلاسيكية مقاومة للماء"
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-slate-900 focus:outline-none focus:border-emerald-600"
+                    value={prodNameAr}
+                    onChange={(e) => setProdNameAr(e.target.value)}
+                    placeholder="مثال: طقم ساعة يد وإكسسوار فاخر"
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-slate-900 focus:outline-none focus:border-emerald-600 font-bold"
                   />
                 </div>
                 <div>
-                  <label className="block text-slate-700 font-bold mb-1">الاسم بالإنجليزية</label>
+                  <label className="block text-slate-700 font-bold mb-1">الاسم بالإنجليزية (Latin)</label>
                   <input
                     type="text"
-                    value={newProdNameEn}
-                    onChange={(e) => setNewProdNameEn(e.target.value)}
-                    placeholder="e.g. Classic Waterproof Watch"
+                    value={prodNameEn}
+                    onChange={(e) => setProdNameEn(e.target.value)}
+                    placeholder="e.g. Luxury Watch Set"
                     className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-slate-900 focus:outline-none focus:border-emerald-600"
                   />
                 </div>
               </div>
 
-              <div className="grid grid-cols-3 gap-3">
+              {/* Pricing, Cost & Stock */}
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                 <div>
                   <label className="block text-slate-700 font-bold mb-1">سعر البيع (د.ج) *</label>
                   <input
                     type="number"
                     required
-                    value={newProdPrice}
-                    onChange={(e) => setNewProdPrice(Number(e.target.value))}
+                    value={prodPrice}
+                    onChange={(e) => setProdPrice(Number(e.target.value))}
                     className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-slate-900 font-mono font-bold focus:outline-none focus:border-emerald-600"
                   />
                 </div>
                 <div>
-                  <label className="block text-slate-700 font-bold mb-1">سعر الشطب (قبل الخصم)</label>
+                  <label className="block text-slate-700 font-bold mb-1">السعر قبل الخصم</label>
                   <input
                     type="number"
-                    value={newProdComparePrice}
-                    onChange={(e) => setNewProdComparePrice(Number(e.target.value))}
+                    value={prodComparePrice}
+                    onChange={(e) => setProdComparePrice(Number(e.target.value))}
+                    placeholder="شطب السعر"
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-slate-900 font-mono focus:outline-none focus:border-emerald-600"
+                  />
+                </div>
+                <div>
+                  <label className="block text-slate-700 font-bold mb-1">سعر التكلفة (Cost)</label>
+                  <input
+                    type="number"
+                    value={prodCostPrice}
+                    onChange={(e) => setProdCostPrice(Number(e.target.value))}
+                    placeholder="لحساب الأرباح"
                     className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-slate-900 font-mono focus:outline-none focus:border-emerald-600"
                   />
                 </div>
@@ -975,121 +1938,209 @@ export const StoreDashboardView: React.FC<StoreDashboardViewProps> = ({
                   <label className="block text-slate-700 font-bold mb-1">الكمية بالمخزون</label>
                   <input
                     type="number"
-                    value={newProdStock}
-                    onChange={(e) => setNewProdStock(Number(e.target.value))}
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-slate-900 font-mono focus:outline-none focus:border-emerald-600"
+                    value={prodStock}
+                    onChange={(e) => setProdStock(Number(e.target.value))}
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-slate-900 font-mono font-bold focus:outline-none focus:border-emerald-600"
                   />
                 </div>
               </div>
 
-              {/* 10 Images Upload Section */}
-              <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200 space-y-2.5">
+              {/* Profit Margin Indicator */}
+              {prodPrice > 0 && prodCostPrice > 0 && (
+                <div className="p-2.5 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 flex items-center justify-between font-bold text-[11px]">
+                  <span>صافي الربح المتوقع لكل قطعة:</span>
+                  <span className="font-mono text-xs font-black">
+                    +{(prodPrice - prodCostPrice).toLocaleString()} د.ج ({Math.round(((prodPrice - prodCostPrice) / prodPrice) * 100)}% هامش ربح)
+                  </span>
+                </div>
+              )}
+
+              {/* 10 Images Upload Section with Primary Selector */}
+              <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-3">
                 <div className="flex items-center justify-between">
                   <span className="font-bold text-slate-800 flex items-center gap-1.5">
                     <ImageIcon className="w-4 h-4 text-emerald-600" />
-                    <span>صور المنتج (حتى 10 صور) - حالياً {newProdImages.length}/10</span>
+                    <span>صور المنتج (حتى 10 صور) — حالياً {prodImages.length} من 10</span>
                   </span>
+                  <span className="text-[11px] text-slate-500">انقر على أي صورة لتعيينها كرئيسية ⭐</span>
                 </div>
 
+                {/* Input to add Image URL */}
                 <div className="flex items-center gap-2">
                   <input
                     type="url"
-                    value={newImageUrlInput}
-                    onChange={(e) => setNewImageUrlInput(e.target.value)}
-                    placeholder="أدخل رابط صورة المنتج (URL)..."
-                    className="flex-1 bg-white border border-slate-200 rounded-xl p-2 text-xs focus:outline-none focus:border-emerald-600"
+                    value={imageUrlInput}
+                    onChange={(e) => setImageUrlInput(e.target.value)}
+                    placeholder="ألصق رابط صورة إضافية (URL)..."
+                    className="flex-1 bg-white border border-slate-200 rounded-xl p-2.5 text-xs text-slate-900 focus:outline-none focus:border-emerald-600"
                   />
                   <button
                     type="button"
                     onClick={handleAddImageUrl}
-                    className="px-3 py-2 rounded-xl bg-slate-900 text-white font-bold text-xs"
+                    className="px-4 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs cursor-pointer"
                   >
                     إضافة صورة
                   </button>
                 </div>
 
-                {/* Images Preview Grid */}
-                <div className="grid grid-cols-5 gap-2 pt-1">
-                  {newProdImages.map((img, idx) => (
-                    <div key={idx} className="relative group rounded-xl overflow-hidden border border-slate-200 h-16 bg-white">
+                {/* Images Preview Grid with Primary Badge */}
+                <div className="grid grid-cols-5 gap-2.5 pt-1">
+                  {prodImages.map((img, idx) => (
+                    <div 
+                      key={idx} 
+                      onClick={() => setPrimaryImageIdx(idx)}
+                      className={`relative group rounded-xl overflow-hidden border-2 h-20 bg-white cursor-pointer transition-all ${
+                        primaryImageIdx === idx ? 'border-emerald-600 ring-2 ring-emerald-500/30' : 'border-slate-200 hover:border-slate-400'
+                      }`}
+                    >
                       <img src={img} alt="preview" className="w-full h-full object-cover" />
+                      
+                      {primaryImageIdx === idx && (
+                        <span className="absolute top-1 start-1 bg-emerald-600 text-white rounded text-[9px] font-black px-1.5 py-0.5 shadow">
+                          رئيسية ⭐
+                        </span>
+                      )}
+
                       <button
                         type="button"
-                        onClick={() => handleRemoveImage(idx)}
-                        className="absolute inset-0 bg-black/60 text-white opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleRemoveImage(idx);
+                        }}
+                        className="absolute bottom-1 end-1 p-1 bg-black/75 hover:bg-rose-600 text-white rounded opacity-0 group-hover:opacity-100 transition-opacity"
+                        title="حذف الصورة"
                       >
-                        <Trash2 className="w-4 h-4 text-rose-400" />
+                        <Trash2 className="w-3 h-3" />
                       </button>
                     </div>
                   ))}
                 </div>
               </div>
 
-              {/* Product Colors Section */}
-              <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200 space-y-2.5">
+              {/* Color Variants with Hex Picker */}
+              <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-3">
                 <div className="flex items-center justify-between">
                   <span className="font-bold text-slate-800 flex items-center gap-1.5">
                     <Palette className="w-4 h-4 text-indigo-600" />
-                    <span>خيارات ألوان المنتج المتاحة للزبون</span>
+                    <span>خيارات الألوان المتاحة للمشتري</span>
                   </span>
                 </div>
 
                 <div className="flex items-center gap-2">
                   <input
                     type="color"
-                    value={newColorHex}
-                    onChange={(e) => setNewColorHex(e.target.value)}
+                    value={colorHex}
+                    onChange={(e) => setColorHex(e.target.value)}
                     className="w-10 h-9 p-0.5 rounded-xl border border-slate-200 bg-white cursor-pointer"
                   />
                   <input
                     type="text"
-                    value={newColorNameAr}
-                    onChange={(e) => setNewColorNameAr(e.target.value)}
-                    placeholder="اسم اللون (مثال: أزرق ملكي، أسود، فضي)..."
-                    className="flex-1 bg-white border border-slate-200 rounded-xl p-2 text-xs focus:outline-none focus:border-indigo-600"
+                    value={colorNameAr}
+                    onChange={(e) => setColorNameAr(e.target.value)}
+                    placeholder="اسم اللون (مثال: أزرق كحلي، أحمر ياقوتي)..."
+                    className="flex-1 bg-white border border-slate-200 rounded-xl p-2.5 text-xs text-slate-900 focus:outline-none focus:border-indigo-600"
                   />
                   <button
                     type="button"
                     onClick={handleAddColor}
-                    className="px-3 py-2 rounded-xl bg-indigo-600 text-white font-bold text-xs"
+                    className="px-3 py-2 rounded-xl bg-indigo-600 text-white font-bold text-xs cursor-pointer"
                   >
-                    إضافة اللون
+                    + إضافة لون
                   </button>
                 </div>
 
+                {/* Colors List */}
                 <div className="flex flex-wrap items-center gap-2 pt-1">
-                  {newProdColors.map((c, idx) => (
-                    <div 
-                      key={idx} 
-                      className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-white border border-slate-200 shadow-2xs text-xs font-bold"
+                  {prodColors.map((c, i) => (
+                    <span 
+                      key={i} 
+                      className="px-2.5 py-1 rounded-lg bg-white border border-slate-200 flex items-center gap-2 text-xs font-bold shadow-2xs"
                     >
-                      <span className="w-3.5 h-3.5 rounded-full border border-slate-300" style={{ backgroundColor: c.hex }} />
+                      <span className="w-3 h-3 rounded-full border" style={{ backgroundColor: c.hex }} />
                       <span>{c.nameAr || c.name}</span>
-                      <button
-                        type="button"
+                      <button 
+                        type="button" 
                         onClick={() => handleRemoveColor(c.hex)}
-                        className="text-slate-400 hover:text-rose-500 ms-1"
+                        className="text-slate-400 hover:text-rose-600 ms-1 font-bold"
                       >
-                        <X className="w-3.5 h-3.5" />
+                        ×
                       </button>
-                    </div>
+                    </span>
                   ))}
                 </div>
               </div>
 
+              {/* Size Variants (S, M, L, XL, 38, 39, 40...) */}
+              <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className="font-bold text-slate-800 flex items-center gap-1.5">
+                    <Tag className="w-4 h-4 text-amber-600" />
+                    <span>المقاسات المتوفرة (Sizes)</span>
+                  </span>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <input
+                    type="text"
+                    value={sizeInput}
+                    onChange={(e) => setSizeInput(e.target.value)}
+                    placeholder="أدخل مقاس (مثال: M, L, XL, 42, 43)..."
+                    className="flex-1 bg-white border border-slate-200 rounded-xl p-2.5 text-xs text-slate-900"
+                  />
+                  <button
+                    type="button"
+                    onClick={handleAddSize}
+                    className="px-3 py-2 rounded-xl bg-amber-600 text-white font-bold text-xs cursor-pointer"
+                  >
+                    + إضافة مقاس
+                  </button>
+                </div>
+
+                <div className="flex flex-wrap items-center gap-2 pt-1">
+                  {prodSizes.map((sz, i) => (
+                    <span 
+                      key={i} 
+                      className="px-3 py-1 rounded-lg bg-white border border-slate-200 text-slate-800 font-bold text-xs flex items-center gap-2 shadow-2xs"
+                    >
+                      <span>{sz}</span>
+                      <button 
+                        type="button" 
+                        onClick={() => handleRemoveSize(sz)}
+                        className="text-slate-400 hover:text-rose-600 ms-1 font-bold"
+                      >
+                        ×
+                      </button>
+                    </span>
+                  ))}
+                </div>
+              </div>
+
+              {/* Description */}
+              <div>
+                <label className="block text-slate-700 font-bold mb-1">وصف المنتج ومميزاته للزبون</label>
+                <textarea
+                  rows={3}
+                  value={prodDescAr}
+                  onChange={(e) => setProdDescAr(e.target.value)}
+                  placeholder="اكتب وصفاً جذاباً للمنتج..."
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-slate-900 resize-none focus:outline-none focus:border-emerald-600"
+                />
+              </div>
+
+              {/* Submit CTA */}
               <div className="flex items-center justify-end gap-2 pt-3 border-t border-slate-100">
                 <button
                   type="button"
                   onClick={() => setIsAddProductOpen(false)}
-                  className="px-4 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold"
+                  className="px-4 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold cursor-pointer"
                 >
                   إلغاء
                 </button>
                 <button
                   type="submit"
-                  className="px-6 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-sm"
+                  className="px-6 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-black shadow-md cursor-pointer"
                 >
-                  حفظ ونشر المنتج 🚀
+                  {editingProduct ? 'حفظ التعديلات ✓' : 'حفظ ونشر المنتج 🚀'}
                 </button>
               </div>
 

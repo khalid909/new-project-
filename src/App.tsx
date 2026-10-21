@@ -307,7 +307,16 @@ export default function App() {
           onRemoveStoreFeature={() => {}}
           onRestoreStoreFeature={() => {}}
           onUpdateStoreFeature={() => {}}
-          onUpdateStore={() => {}}
+          onUpdateStore={(updated) => {
+            setStores((prev) => prev.map((s) => s.id === activeStore.id ? { 
+              ...s, 
+              ...updated,
+              settings: {
+                ...s.settings,
+                ...(updated.settings || {})
+              }
+            } : s));
+          }}
           onResetDefaultStoreFeatures={() => {}}
           onEnableAllStoreFeatures={() => {}}
           isOnlinePaymentsEnabled={true}
@@ -325,6 +334,8 @@ export default function App() {
         language={language}
         currency={currency}
         onRegisterStore={handleRegisterNewStore}
+        onOpenDashboard={() => switchMode('dashboard')}
+        onOpenStore={() => switchMode('store')}
       />
     );
   }
@@ -338,31 +349,31 @@ export default function App() {
       
       {/* ─── PRIVATE MERCHANT STORE HEADER (NO PLATFORM LINKS / BRANDING) ─── */}
       <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-slate-200/90 shadow-2xs">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between gap-4 h-16">
+        <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between gap-2 sm:gap-4 h-16">
             
             {/* Merchant's Store Identity */}
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2 sm:gap-3 min-w-0">
               <div
-                className="w-10 h-10 rounded-2xl flex items-center justify-center text-white font-black text-base shadow-sm"
+                className="w-9 h-9 sm:w-10 sm:h-10 rounded-2xl flex items-center justify-center text-white font-black text-sm sm:text-base shadow-sm shrink-0"
                 style={{ backgroundColor: activeStore?.accentColor || '#059669' }}
               >
                 {(activeStore.nameAr || activeStore.name).charAt(0)}
               </div>
-              <div className="flex flex-col">
-                <div className="flex items-center gap-2">
-                  <span className="font-black text-sm sm:text-base text-slate-900">
+              <div className="flex flex-col min-w-0">
+                <div className="flex items-center gap-1.5 sm:gap-2">
+                  <span className="font-black text-xs sm:text-base text-slate-900 truncate">
                     {isAr ? activeStore.nameAr : activeStore.name}
                   </span>
-                  <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200 flex items-center gap-1">
+                  <span className="px-1.5 sm:px-2 py-0.5 rounded-full text-[9px] sm:text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200 shrink-0 flex items-center gap-1">
                     <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                    <span>متجر نشط</span>
+                    <span>نشط</span>
                   </span>
                 </div>
-                <div className="flex items-center gap-2 text-[11px] text-slate-500 font-mono">
-                  <span>{activeStore.settings?.subdomain || `${activeStore.slug}.wasladz.app`}</span>
+                <div className="flex items-center gap-2 text-[10px] sm:text-[11px] text-slate-500 font-mono truncate">
+                  <span className="truncate">{activeStore.settings?.subdomain || `${activeStore.slug}.wasladz.app`}</span>
                   {activeStore.wilaya && (
-                    <span className="text-slate-400 font-sans">
+                    <span className="text-slate-400 font-sans hidden sm:inline">
                       • 📍 {activeStore.wilaya}
                     </span>
                   )}
@@ -371,22 +382,25 @@ export default function App() {
             </div>
 
             {/* Merchant Actions ONLY: View Live Store & Logout of Store */}
-            <div className="flex items-center gap-2.5">
+            <div className="flex items-center gap-1.5 sm:gap-2.5 shrink-0">
               <button
                 onClick={() => switchMode('store')}
-                className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold flex items-center gap-1.5 shadow-sm transition-all cursor-pointer"
+                className="px-2.5 py-1.5 sm:px-4 sm:py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold flex items-center gap-1.5 shadow-sm transition-all cursor-pointer"
+                title="معاينة المتجر المباشر"
               >
-                <ShoppingBag className="w-3.5 h-3.5" />
-                <span>معاينة متجري المباشر للزبائن 🛍️</span>
+                <ShoppingBag className="w-3.5 h-3.5 shrink-0" />
+                <span className="hidden sm:inline">معاينة متجري المباشر للزبائن 🛍️</span>
+                <span className="sm:hidden">متجري 🛍️</span>
               </button>
 
               <button
                 onClick={() => switchMode('platform')}
-                className="px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold flex items-center gap-1.5 transition-colors cursor-pointer"
+                className="px-2.5 py-1.5 sm:px-3.5 sm:py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold flex items-center gap-1.5 transition-colors cursor-pointer"
                 title="تسجيل الخروج من لوحة تحكم المتجر"
               >
-                <LogOut className="w-3.5 h-3.5" />
-                <span>تسجيل الخروج</span>
+                <LogOut className="w-3.5 h-3.5 shrink-0" />
+                <span className="hidden sm:inline">تسجيل الخروج</span>
+                <span className="sm:hidden">خروج</span>
               </button>
             </div>
 

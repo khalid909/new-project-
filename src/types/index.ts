@@ -52,9 +52,21 @@ export interface PixelConfig {
   isEnabled: boolean;
 }
 
+export interface DnsRecord {
+  type: 'CNAME' | 'A' | 'TXT';
+  host: string;
+  value: string;
+  ttl: string;
+  status: 'verified' | 'pending' | 'error';
+}
+
 export interface StoreSettings {
   subdomain: string;
   customDomain?: string;
+  customDomainStatus?: 'connected' | 'verifying' | 'pending' | 'unlinked';
+  customDomainSsl?: 'active' | 'generating' | 'inactive';
+  customDomainDnsRecords?: DnsRecord[];
+  customDomainAddedAt?: string;
   themeColor: string;
   shippingRate: number;
   freeShippingThreshold: number;
@@ -73,6 +85,59 @@ export interface StoreSettings {
   zrExpressKey?: string;
   facebookPixel?: string;
   tiktokPixel?: string;
+  // 3-Button Customizable Store Features (التمكين / التعديل / الحذف)
+  maintenanceMode?: {
+    isEnabled: boolean;
+    title: string;
+    message: string;
+    estimatedEndTime?: string;
+    estimatedReturn?: string;
+    contactPhone?: string;
+    allowAdminBypass: boolean;
+    isDeleted?: boolean;
+    isRemoved?: boolean;
+  };
+  bannerConfig?: {
+    isEnabled: boolean;
+    text: string;
+    link?: string;
+    bgColor: string;
+    textColor: string;
+    hasCountdown?: boolean;
+    countdownHours?: number;
+    isDeleted?: boolean;
+    isRemoved?: boolean;
+  };
+  footerConfig?: {
+    isEnabled: boolean;
+    copyrightText: string;
+    copyright?: string;
+    aboutText?: string;
+    contactPhone?: string;
+    contactEmail?: string;
+    showSocialLinks: boolean;
+    showWilayasNotice: boolean;
+    isDeleted?: boolean;
+    isRemoved?: boolean;
+  };
+  availableCurrencies?: {
+    code: Currency;
+    name: string;
+    nameAr: string;
+    symbol: string;
+    symbolAr: string;
+    rate: number;
+    isEnabled: boolean;
+    isDeleted?: boolean;
+  }[];
+  availableLanguages?: {
+    code: Language;
+    name: string;
+    nameAr: string;
+    dir: 'rtl' | 'ltr';
+    isEnabled: boolean;
+    isDeleted?: boolean;
+  }[];
 }
 
 export interface Store {
@@ -120,12 +185,16 @@ export interface Product {
   costPrice?: number;
   compareAtPrice?: number;
   category: string;
+  categoryAr?: string;
   stock: number;
   sku: string;
   isPublished: boolean;
   imageUrl?: string;
   images?: string[]; // Up to 10 product images
   colors?: (string | ProductColor)[]; // Available color options
+  sizes?: string[]; // S, M, L, XL, 38, 39, 40...
+  featuresList?: string[]; // Bullet features
+  weightKg?: number;
   isFeatured?: boolean;
 }
 

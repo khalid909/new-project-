@@ -277,6 +277,9 @@ export const PublicStoreView: React.FC<PublicStoreViewProps> = ({
   const [trackingNumberInput, setTrackingNumberInput] = useState<string>('');
   const [trackedOrderResult, setTrackedOrderResult] = useState<string | null>(null);
   
+  // Maintenance Mode admin bypass state
+  const [maintenanceBypassed, setMaintenanceBypassed] = useState<boolean>(false);
+  
   // Independent Top Simulator Bar
   const [showSimulatorBar, setShowSimulatorBar] = useState<boolean>(true);
   const [copiedLink, setCopiedLink] = useState<boolean>(false);
@@ -481,8 +484,108 @@ export const PublicStoreView: React.FC<PublicStoreViewProps> = ({
   const storeSubdomain = store.settings?.subdomain || `${store.slug}.wasladz.app`;
 
   // Render Inner Content
-  const renderStoreContent = () => (
-    <div className="min-h-screen bg-[#F8FAFC] text-slate-800 flex flex-col selection:bg-indigo-100 selection:text-indigo-900">
+  const renderStoreContent = () => {
+    const isMaintenanceActive = store.settings?.maintenanceMode?.isEnabled || false;
+
+    // Full Maintenance Screen for regular shoppers
+    if (isMaintenanceActive && !maintenanceBypassed && !isMerchantMode) {
+      return (
+        <div className="min-h-screen bg-slate-950 text-white flex flex-col justify-between p-6 sm:p-12 relative overflow-hidden" dir="rtl">
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,_var(--tw-gradient-stops))] from-amber-500/10 via-slate-950 to-slate-950 pointer-events-none" />
+          
+          {/* Top Brand */}
+          <div className="max-w-4xl mx-auto w-full flex items-center justify-between z-10">
+            <div className="flex items-center gap-3">
+              <div 
+                className="w-12 h-12 rounded-2xl flex items-center justify-center text-white font-black text-xl shadow-lg"
+                style={{ backgroundColor: store.accentColor || '#059669' }}
+              >
+                {(store.nameAr || store.name).charAt(0)}
+              </div>
+              <div>
+                <h1 className="text-xl font-black text-white">{store.nameAr || store.name}</h1>
+                <span className="text-xs text-amber-400 font-bold flex items-center gap-1.5 mt-0.5">
+                  <span className="w-2 h-2 rounded-full bg-amber-400 animate-ping" />
+                  <span>وضع التحديث والصيانة المؤقتة</span>
+                </span>
+              </div>
+            </div>
+
+            {onBackToDashboard && (
+              <button
+                onClick={onBackToDashboard}
+                className="px-3.5 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-bold text-slate-300 border border-slate-700 transition-colors cursor-pointer"
+              >
+                لوحة التحكم ⚙️
+              </button>
+            )}
+          </div>
+
+          {/* Center Card */}
+          <div className="max-w-xl mx-auto w-full my-auto py-12 text-center space-y-6 z-10">
+            <div className="w-20 h-20 rounded-3xl bg-amber-500/20 border-2 border-amber-500/40 text-amber-400 flex items-center justify-center mx-auto shadow-2xl shadow-amber-500/10">
+              <AlertTriangle className="w-10 h-10 animate-bounce" />
+            </div>
+
+            <div className="space-y-3">
+              <h2 className="text-2xl sm:text-3xl font-black text-white">
+                {isAr ? 'المتجر قيد الصيانة والتحديث المؤقت' : 'Store is Under Scheduled Maintenance'}
+              </h2>
+              <p className="text-sm text-slate-300 leading-relaxed max-w-md mx-auto">
+                {store.settings?.maintenanceMode?.message || (isAr ? 'نعمل حالياً على تحديث المنتجات وتجهيز عروض وتخفيضات مميزة لخدمتكم بشكل أفضل. سنعاود استقبال طلباتكم قريباً جداً!' : 'We are updating our store to serve you better. We will be back soon!')}
+              </p>
+            </div>
+
+            <div className="flex flex-wrap items-center justify-center gap-3 pt-2">
+              <div className="px-4 py-2 rounded-2xl bg-slate-900 border border-slate-800 text-xs text-slate-300 font-mono flex items-center gap-2">
+                <span className="text-amber-400">🕒</span>
+                <span>{store.settings?.maintenanceMode?.estimatedReturn ? `العودة المتوقعة: ${store.settings.maintenanceMode.estimatedReturn}` : (isAr ? 'العودة المتوقعة: خلال ساعات قليلة' : 'Expected: Soon')}</span>
+              </div>
+
+              {(store.settings?.maintenanceMode?.contactPhone || store.ownerPhone) && (
+                <a
+                  href={`https://wa.me/${(store.settings?.maintenanceMode?.contactPhone || store.ownerPhone || '').replace(/\D/g, '')}`}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="px-4 py-2 rounded-2xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold flex items-center gap-2 transition-all shadow-md"
+                >
+                  <MessageCircle className="w-4 h-4" />
+                  <span>{isAr ? `تواصل واتساب: ${store.settings?.maintenanceMode?.contactPhone || store.ownerPhone}` : `WhatsApp: ${store.settings?.maintenanceMode?.contactPhone || store.ownerPhone}`}</span>
+                </a>
+              )}
+            </div>
+
+            {/* Admin Bypass Button */}
+            <div className="pt-6 border-t border-slate-800/80">
+              <button
+                onClick={() => setMaintenanceBypassed(true)}
+                className="text-xs text-slate-400 hover:text-white underline font-medium cursor-pointer"
+              >
+                {isAr ? 'أنا مدير/صاحب هذا المتجر (تخطي للمعاينة والإدارة 🔓)' : 'Store Admin Bypass (Preview Mode 🔓)'}
+              </button>
+            </div>
+          </div>
+
+          {/* Footer */}
+          <div className="max-w-4xl mx-auto w-full text-center text-xs text-slate-500 z-10 pt-8">
+            © 2026 {store.nameAr || store.name}. {isAr ? 'جميع الحقوق محفوظة.' : 'All rights reserved.'}
+          </div>
+        </div>
+      );
+    }
+
+    // Active currencies configured by merchant
+    const enabledCurrencies = (store.settings?.availableCurrencies && store.settings.availableCurrencies.length > 0)
+      ? store.settings.availableCurrencies.filter(c => c.isEnabled)
+      : [
+          { code: 'DZD' as Currency, nameAr: 'دينار جزائري (DZD)', symbol: 'د.ج', isEnabled: true },
+          { code: 'EUR' as Currency, nameAr: 'يورو (EUR)', symbol: '€', isEnabled: true },
+          { code: 'USD' as Currency, nameAr: 'دولار أمريكي (USD)', symbol: '$', isEnabled: true },
+          { code: 'SAR' as Currency, nameAr: 'ريال سعودي (SAR)', symbol: 'ر.س', isEnabled: true }
+        ];
+
+    return (
+      <div className="min-h-screen bg-[#F8FAFC] text-slate-800 flex flex-col selection:bg-indigo-100 selection:text-indigo-900">
       
       {/* ─── Top Merchant 3-in-1 Live Control Hub (Bar for Seller) ─── */}
       {isMerchantMode && (
@@ -630,16 +733,48 @@ export const PublicStoreView: React.FC<PublicStoreViewProps> = ({
         </button>
       )}
       
-      {/* Maintenance Mode Banner (Controlled by maintenanceMode feature) */}
-      {isStoreFeatureActive('maintenanceMode') && (
-        <div className="bg-amber-400 text-slate-950 font-bold px-4 py-2.5 text-xs text-center border-b border-amber-500 shadow-xs flex items-center justify-center gap-2">
+      {/* Maintenance Mode Banner (Controlled by maintenanceMode setting or feature) */}
+      {(isMaintenanceActive || isStoreFeatureActive('maintenanceMode')) && (
+        <div className="bg-amber-400 text-slate-950 font-bold px-4 py-2.5 text-xs text-center border-b border-amber-500 shadow-xs flex flex-wrap items-center justify-center gap-2">
           <AlertTriangle className="w-4 h-4 text-slate-950 shrink-0" />
           <span>
             {isAr
-              ? '⚠️ المتجر في وضع الصيانة والتحديث المؤقت حالياً. يمكنك تصفح المنتجات وسنعاود قبول الطلبات قريباً!'
-              : '⚠️ Store is temporarily in maintenance mode. Browsing is active, checkout will resume shortly!'}
+              ? '⚠️ المتجر في وضع الصيانة والتحديث المؤقت حالياً (الزبائن العاديون يرون صفحة الصيانة). يمكنك الاستمرار بالتصفح والمعاينة كمدير.'
+              : '⚠️ Store is in maintenance mode (regular visitors see maintenance screen). Viewing in admin preview mode.'}
           </span>
+          {onBackToDashboard && (
+            <button
+              onClick={onBackToDashboard}
+              className="ms-2 px-2.5 py-0.5 rounded-lg bg-slate-950 text-amber-300 font-bold text-[11px] hover:bg-slate-900 cursor-pointer"
+            >
+              لوحة التحكم ⚙️
+            </button>
+          )}
         </div>
+      )}
+
+      {/* Custom Promotional Banner from store.settings.bannerConfig */}
+      {store.settings?.bannerConfig?.isEnabled && !store.settings?.bannerConfig?.isRemoved && (
+        <aside
+          aria-label="Store Promotional Banner"
+          className="py-2.5 px-4 text-center font-black text-xs flex items-center justify-center gap-2 shadow-xs transition-colors"
+          style={{
+            backgroundColor: store.settings.bannerConfig.bgColor || '#0F172A',
+            color: store.settings.bannerConfig.textColor || '#FFFFFF'
+          }}
+        >
+          <Sparkles className="w-4 h-4 text-amber-300 shrink-0 animate-pulse" />
+          <span>{store.settings.bannerConfig.text || (isAr ? '🔥 تخفيضات كبرى لفترة محدودة على كافة المنتجات!' : '🔥 Special offers!')}</span>
+          {store.settings.bannerConfig.link && (
+            <a
+              href={store.settings.bannerConfig.link}
+              className="ms-2 underline opacity-95 hover:opacity-100 flex items-center gap-1 font-bold"
+            >
+              <span>{isAr ? 'تسوق الآن' : 'Shop Now'}</span>
+              <ArrowLeft className="w-3.5 h-3.5" />
+            </a>
+          )}
+        </aside>
       )}
 
       {/* ─── 1. INDEPENDENT STORE HEADER ─── */}
@@ -738,18 +873,19 @@ export const PublicStoreView: React.FC<PublicStoreViewProps> = ({
             {/* Store Header Right Actions */}
             <div className="flex items-center gap-3">
               
-              {/* Currency Selector for buyer (Controlled by buyerCurrency feature) */}
+              {/* Currency Selector for buyer (Controlled by buyerCurrency feature & merchant settings) */}
               {isStoreFeatureActive('buyerCurrency') && (
                 <select
                   value={currency}
                   onChange={(e) => setCurrency(e.target.value as Currency)}
-                  className="bg-slate-50 border border-slate-200 text-xs font-bold rounded-xl px-2.5 py-2 text-slate-700 focus:outline-none focus:border-indigo-600 cursor-pointer"
+                  className="bg-slate-50 border border-slate-200 text-xs font-bold rounded-xl px-2.5 py-2 text-slate-700 focus:outline-none focus:border-emerald-600 cursor-pointer"
                   aria-label="Buyer currency"
                 >
-                  <option value="SAR">ر.س (SAR)</option>
-                  <option value="USD">$ (USD)</option>
-                  <option value="AED">د.إ (AED)</option>
-                  <option value="EUR">€ (EUR)</option>
+                  {enabledCurrencies.map((c) => (
+                    <option key={c.code} value={c.code}>
+                      {c.symbol} ({c.code})
+                    </option>
+                  ))}
                 </select>
               )}
 
@@ -1233,7 +1369,7 @@ export const PublicStoreView: React.FC<PublicStoreViewProps> = ({
 
       {/* ─── 4. INDEPENDENT STORE FOOTER ─── */}
       {renderSectionControlStrip('storeFooterLinks', 'تذييل المتجر وروابط السياسات والدعم', 'عرض سياسة الاسترجاع والضمان والشروط وحقوق النشر', 'جميع الحقوق محفوظة')}
-      {isStoreFeatureActive('storeFooterLinks') && (
+      {isStoreFeatureActive('storeFooterLinks') && (store.settings?.footerConfig?.isEnabled !== false) && (!store.settings?.footerConfig?.isRemoved) && (
       <footer className="bg-white border-t border-slate-200 mt-16 pt-12 pb-8">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
           
@@ -1244,16 +1380,16 @@ export const PublicStoreView: React.FC<PublicStoreViewProps> = ({
               <div className="flex items-center gap-2.5">
                 <div
                   className="w-9 h-9 rounded-xl flex items-center justify-center text-white font-extrabold text-lg shadow-sm"
-                  style={{ backgroundColor: store.accentColor || '#4F46E5' }}
+                  style={{ backgroundColor: store.accentColor || '#059669' }}
                 >
-                  {store.name.charAt(0)}
+                  {(store.nameAr || store.name).charAt(0)}
                 </div>
                 <h4 className="font-extrabold text-slate-900 text-base">
                   {isAr ? store.nameAr : store.name}
                 </h4>
               </div>
               <p className="text-xs text-slate-500 leading-relaxed max-w-sm">
-                {isAr ? store.descriptionAr : store.description}
+                {store.settings?.footerConfig?.aboutText || (isAr ? store.descriptionAr : store.description)}
               </p>
               <div className="flex items-center gap-4 text-xs text-slate-600 pt-1 font-mono">
                 <span className="flex items-center gap-1">
@@ -1262,7 +1398,7 @@ export const PublicStoreView: React.FC<PublicStoreViewProps> = ({
                 </span>
                 <span className="flex items-center gap-1">
                   <Phone className="w-3.5 h-3.5 text-slate-400" />
-                  <span>+966 50 123 4567</span>
+                  <span>{store.ownerPhone || '0550 12 34 56'}</span>
                 </span>
               </div>
             </div>
@@ -1273,10 +1409,10 @@ export const PublicStoreView: React.FC<PublicStoreViewProps> = ({
                 {isAr ? 'روابط المتجر' : 'Store Links'}
               </h5>
               <ul className="space-y-2">
-                <li><a href="#products" className="hover:text-indigo-600 transition-colors">{isAr ? 'جميع المنتجات' : 'All Products'}</a></li>
-                <li><button onClick={() => setIsTrackingModalOpen(true)} className="hover:text-indigo-600 transition-colors cursor-pointer">{isAr ? 'تتبع حالة الشحنة' : 'Track Order'}</button></li>
-                <li><a href="#about" className="hover:text-indigo-600 transition-colors">{isAr ? 'من نحن' : 'About Us'}</a></li>
-                <li><a href="#contact" className="hover:text-indigo-600 transition-colors">{isAr ? 'خدمة العملاء' : 'Customer Support'}</a></li>
+                <li><a href="#products" className="hover:text-emerald-600 transition-colors">{isAr ? 'جميع المنتجات' : 'All Products'}</a></li>
+                <li><button onClick={() => setIsTrackingModalOpen(true)} className="hover:text-emerald-600 transition-colors cursor-pointer">{isAr ? 'تتبع حالة الشحنة' : 'Track Order'}</button></li>
+                <li><a href="#about" className="hover:text-emerald-600 transition-colors">{isAr ? 'من نحن' : 'About Us'}</a></li>
+                <li><a href="#contact" className="hover:text-emerald-600 transition-colors">{isAr ? 'خدمة العملاء' : 'Customer Support'}</a></li>
               </ul>
             </div>
 
@@ -1286,12 +1422,12 @@ export const PublicStoreView: React.FC<PublicStoreViewProps> = ({
                 {isAr ? 'السياسات والضمان' : 'Policies & Trust'}
               </h5>
               <ul className="space-y-2">
-                <li><span className="hover:text-indigo-600">{isAr ? 'سياسة الاستبدال والاسترجاع' : 'Refund Policy'}</span></li>
-                <li><span className="hover:text-indigo-600">{isAr ? 'سياسة الخصوصية وسرية البيانات' : 'Privacy Policy'}</span></li>
-                <li><span className="hover:text-indigo-600">{isAr ? 'الشروط والأحكام' : 'Terms of Service'}</span></li>
+                <li><span className="hover:text-emerald-600 cursor-pointer">{isAr ? 'سياسة الاستبدال والاسترجاع' : 'Refund Policy'}</span></li>
+                <li><span className="hover:text-emerald-600 cursor-pointer">{isAr ? 'سياسة الخصوصية وسرية البيانات' : 'Privacy Policy'}</span></li>
+                <li><span className="hover:text-emerald-600 cursor-pointer">{isAr ? 'الشروط والأحكام' : 'Terms of Service'}</span></li>
                 <li>
                   <span className="inline-block bg-slate-100 text-slate-700 font-mono text-[10px] px-2 py-0.5 rounded border border-slate-200">
-                    {isAr ? 'الرقم الضريبي: 30092837400003' : 'VAT: 30092837400003'}
+                    {isAr ? 'سجل تجاري إلكتروني: DZ-COMM-2026' : 'Reg: DZ-COMM-2026'}
                   </span>
                 </li>
               </ul>
@@ -1301,22 +1437,13 @@ export const PublicStoreView: React.FC<PublicStoreViewProps> = ({
 
           <div className="pt-6 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-500">
             <div>
-              © 2026 {isAr ? store.nameAr : store.name}. {isAr ? 'جميع الحقوق محفوظة.' : 'All rights reserved.'}
+              {store.settings?.footerConfig?.copyright || `© 2026 ${isAr ? store.nameAr : store.name}. ${isAr ? 'جميع الحقوق محفوظة.' : 'All rights reserved.'}`}
             </div>
             <div className="flex flex-wrap items-center gap-4">
               <div className="flex items-center gap-2">
                 <ShieldCheck className="w-4 h-4 text-emerald-600" />
-                <span>{isAr ? 'متجر سحابي مستقل يعمل بنظام التجارة الإلكترونية' : 'Independent Cloud Storefront'}</span>
+                <span>{isAr ? 'متجر مستقل معتمد - شحن 58 ولاية ودفع عند الاستلام' : 'Independent Store - 58 Wilayas COD'}</span>
               </div>
-              {onBackToPlatform && (
-                <button
-                  onClick={onBackToPlatform}
-                  className="text-xs text-indigo-600 hover:text-indigo-800 font-extrabold flex items-center gap-1 cursor-pointer"
-                >
-                  <Globe className="w-3.5 h-3.5" />
-                  <span>{isAr ? 'زيارة المنصة الرئيسية (AVANTO)' : 'Visit Main Platform'}</span>
-                </button>
-              )}
             </div>
           </div>
 
@@ -2212,7 +2339,8 @@ export const PublicStoreView: React.FC<PublicStoreViewProps> = ({
       )}
 
     </div>
-  );
+    );
+  };
 
   // If this is a standalone independent page (not a modal popup):
   if (isStandalonePage) {
@@ -2282,26 +2410,12 @@ export const PublicStoreView: React.FC<PublicStoreViewProps> = ({
               {onBackToDashboard && (
                 <button
                   onClick={onBackToDashboard}
-                  className="flex items-center gap-1 px-2.5 py-1 rounded-md bg-indigo-600 hover:bg-indigo-700 text-white text-[11px] font-bold transition-colors cursor-pointer"
+                  className="flex items-center gap-1 px-2.5 py-1 rounded-md bg-emerald-600 hover:bg-emerald-700 text-white text-[11px] font-bold transition-colors cursor-pointer"
                 >
                   <ArrowRight className="w-3 h-3" />
                   <span>{isAr ? 'لوحة تحكم المتجر (Admin)' : 'Store Dashboard'}</span>
                 </button>
               )}
-              <button
-                type="button"
-                onClick={() => {
-                  const portalUrl = typeof window !== 'undefined' ? `${window.location.origin}${window.location.pathname}?portal=platform` : 'https://wasladz.app/?portal=platform';
-                  navigator.clipboard?.writeText(portalUrl);
-                  showToast(isAr ? 'تم نسخ رابط المنصة المستقل بنجاح!' : 'Platform link copied!');
-                }}
-                className="px-2.5 py-1 rounded-md bg-slate-800 hover:bg-slate-700 text-slate-300 text-[11px] font-bold cursor-pointer transition-colors"
-                title={isAr ? 'نسخ رابط المنصة المستقل (?portal=platform)' : 'Copy Platform Portal Link'}
-              >
-                <span>{isAr ? 'رابط المنصة 🏢' : 'Platform Link 🏢'}</span>
-              </button>
-
-
 
               <button
                 onClick={() => setShowSimulatorBar(false)}
