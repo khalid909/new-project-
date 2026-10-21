@@ -22,7 +22,7 @@ export default function App() {
   const [language, setLanguage] = useState<Language>('ar');
   const [currency, setCurrency] = useState<Currency>('DZD');
   
-  // بيانات دخول المؤسس الرسمية للمنصة المغلقة
+  // بيانات دخول المؤسس الرسمية
   const FOUNDER_EMAIL = "founder@wasladz.app";
   const FOUNDER_PIN = "WASLADZ2026";
 
@@ -30,10 +30,11 @@ export default function App() {
   const [founderPinInput, setFounderPinInput] = useState('');
   const [founderLoginError, setFounderLoginError] = useState(false);
 
-  // حالة النظام: هل المؤسس مسجل الدخول؟ (تخزين محلي ليبقى مسجلاً)
+  // جعل الحالة الافتراضية مقفلة تماماً (false) في أي متصفح جديد حتى يتم تسجيل الدخول الصحيح
   const [isFounderAuthenticated, setIsFounderAuthenticated] = useState<boolean>(() => {
     try {
-      return localStorage.getItem('wasladz_founder_auth') === 'true';
+      const auth = sessionStorage.getItem('wasladz_founder_session');
+      return auth === 'true';
     } catch (e) {}
     return false;
   });
@@ -52,7 +53,6 @@ export default function App() {
   const [currentUser, setCurrentUser] = useState<SellerUser | null>(INITIAL_SELLER_USER);
   const [isFeaturesModalOpen, setIsFeaturesModalOpen] = useState<boolean>(false);
 
-  // المتاجر والبيانات
   const [stores, setStores] = useState<Store[]>(() => {
     try {
       const saved = localStorage.getItem('avanto_stores');
@@ -97,7 +97,8 @@ export default function App() {
     if (founderEmailInput.trim() === FOUNDER_EMAIL && founderPinInput.trim() === FOUNDER_PIN) {
       setIsFounderAuthenticated(true);
       try {
-        localStorage.setItem('wasladz_founder_auth', 'true');
+        // استخدام sessionStorage لضمان إبقاء الجلسة في المتصفح الحالي فقط أو قفلها عند إغلاق المتصفح
+        sessionStorage.setItem('wasladz_founder_session', 'true');
       } catch (e) {}
       setFounderLoginError(false);
     } else {
@@ -108,11 +109,11 @@ export default function App() {
   const handleFounderLogout = () => {
     setIsFounderAuthenticated(false);
     try {
-      localStorage.removeItem('wasladz_founder_auth');
+      sessionStorage.removeItem('wasladz_founder_session');
     } catch (e) {}
   };
 
-  // إذا لم يتم تسجيل الدخول بحساب المؤسس، تظهر صفحة تسجيل الدخول المغلقة حصراً
+  // شاشة قفل المنصة: تظهر في أي متصفح أو جهاز جديد تلقائياً
   if (!isFounderAuthenticated) {
     return (
       <div className="min-h-screen bg-slate-950 text-slate-100 flex items-center justify-center p-4 font-sans" dir="rtl">
@@ -123,7 +124,7 @@ export default function App() {
             </div>
             <h1 className="text-2xl font-black text-white">المنصة مغلقة (خاصة بالمؤسس)</h1>
             <p className="text-xs text-slate-400">
-              هذه المنصة محمية. يرجى إدخال البريد الإلكتروني ورمز السر الخاص بالمؤسس للوصول.
+              هذه المنصة محمية بالكامل. يرجى إدخال بيانات المؤسس للوصول إلى النظام.
             </p>
           </div>
 
@@ -172,9 +173,8 @@ export default function App() {
             </button>
           </form>
 
-          {/* تلميح سريع للاختبار */}
           <div className="p-3.5 rounded-xl bg-slate-950/60 border border-slate-800 text-[11px] text-slate-400 space-y-1 font-mono">
-            <div className="text-emerald-400 font-bold">بيانات الدخول الافتراضية للمؤسس:</div>
+            <div className="text-emerald-400 font-bold">بيانات الدخول:</div>
             <div>البريد: <span className="text-white">founder@wasladz.app</span></div>
             <div>الرمز: <span className="text-white">WASLADZ2026</span></div>
           </div>
@@ -283,7 +283,6 @@ export default function App() {
             </div>
 
             <div className="flex items-center gap-2.5">
-              {/* زر لوحة تحكم المؤسس العامة */}
               <button
                 onClick={() => switchMode('admin')}
                 className="px-3.5 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold flex items-center gap-1.5 shadow-sm cursor-pointer"
@@ -308,7 +307,6 @@ export default function App() {
                 <span>تسجيل متجر جديد</span>
               </button>
 
-              {/* زر خروج المؤسس وإغلاق الجلسة */}
               <button
                 onClick={handleFounderLogout}
                 className="p-2 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-600 cursor-pointer transition-colors"
@@ -369,6 +367,5 @@ export default function App() {
   );
 }
 
-// تعريفات افتراضية سريعة لمنع أي نقص في الـ Configs
 const SUPABASE_CONFIG_DEFAULT = { projectUrl: 'https://xyz.supabase.co', anonKey: 'public-key' };
 const GITHUB_CONFIG_DEFAULT = { repoUrl: 'https://github.com/user/store', branch: 'main' };
