@@ -2,28 +2,21 @@ import React, { useState } from 'react';
 import { Store, Language, Currency } from '../types';
 import { DEFAULT_WILAYAS_69 } from '../data/wilayasData';
 import { 
-  Store as StoreIcon, Sparkles, ArrowRight, ArrowLeft, 
-  ShieldCheck, Globe, Zap, CheckCircle2, Sliders,
-  ShoppingBag, BarChart2, Truck, CreditCard, Lock,
-  ChevronRight, Building2, UserCheck, Smartphone, Layers
+  Store as StoreIcon, Sparkles, ArrowLeft, 
+  ShieldCheck, Globe, Zap, CheckCircle2,
+  Truck, CreditCard, Layers, UserCheck
 } from 'lucide-react';
 
 interface PlatformPortalViewProps {
-  stores: Store[];
   language: Language;
   currency: Currency;
   onRegisterStore: (newStore: Store) => void;
-  onSelectExistingStore: (storeId: string) => void;
-  onGoToFounderPortal: () => void;
 }
 
 export const PlatformPortalView: React.FC<PlatformPortalViewProps> = ({
-  stores,
   language,
   currency,
-  onRegisterStore,
-  onSelectExistingStore,
-  onGoToFounderPortal
+  onRegisterStore
 }) => {
   const isAr = language === 'ar';
 
@@ -37,7 +30,6 @@ export const PlatformPortalView: React.FC<PlatformPortalViewProps> = ({
   const [ownerPhone, setOwnerPhone] = useState('');
   const [wilayaCode, setWilayaCode] = useState('16');
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [activeTab, setActiveTab] = useState<'register' | 'existing'>('register');
 
   const selectedWilayaObj = DEFAULT_WILAYAS_69.find(w => w.code === wilayaCode) || DEFAULT_WILAYAS_69[15];
 
@@ -112,7 +104,7 @@ export const PlatformPortalView: React.FC<PlatformPortalViewProps> = ({
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-900 via-slate-950 to-slate-900 text-slate-100 font-sans" dir="rtl">
       
-      {/* ─── PLATFORM TOP NAVBAR ─── */}
+      {/* ─── PLATFORM TOP NAVBAR (CLEAN - NO FOUNDER LINK OR REGISTERED MERCHANTS) ─── */}
       <header className="sticky top-0 z-40 bg-slate-900/90 backdrop-blur-md border-b border-slate-800">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16 sm:h-20">
@@ -135,34 +127,15 @@ export const PlatformPortalView: React.FC<PlatformPortalViewProps> = ({
               </div>
             </div>
 
-            {/* Quick Actions */}
-            <div className="flex items-center gap-2.5 sm:gap-3">
-              <button
-                onClick={() => setActiveTab('existing')}
-                className={`px-3.5 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
-                  activeTab === 'existing' 
-                    ? 'bg-slate-800 text-emerald-400 border border-slate-700' 
-                    : 'text-slate-300 hover:text-white hover:bg-slate-800/60'
-                }`}
-              >
-                <span>دخول التجار المسجلين ({stores.length})</span>
-              </button>
-
-              <button
-                onClick={() => setActiveTab('register')}
+            {/* Platform CTA */}
+            <div className="flex items-center gap-3">
+              <a
+                href="#register-section"
                 className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-black shadow-lg shadow-emerald-600/25 transition-all cursor-pointer flex items-center gap-1.5"
               >
                 <Sparkles className="w-3.5 h-3.5" />
                 <span>سجل متجرك الجديد 🚀</span>
-              </button>
-
-              <button
-                onClick={onGoToFounderPortal}
-                className="p-2 rounded-xl bg-slate-800/80 hover:bg-slate-800 text-amber-400 border border-amber-500/20 hover:border-amber-500/40 transition-colors cursor-pointer"
-                title="بوابة المؤسس المستقلة (Founder Command Tower)"
-              >
-                <Lock className="w-4 h-4" />
-              </button>
+              </a>
             </div>
 
           </div>
@@ -214,302 +187,188 @@ export const PlatformPortalView: React.FC<PlatformPortalViewProps> = ({
         </div>
       </section>
 
-      {/* ─── MAIN INTERACTIVE INTERFACE (REGISTER VS EXISTING STORES) ─── */}
-      <section className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-16">
+      {/* ─── REGISTRATION SECTION (ONLY REGISTRATION - ZERO MERCHANT LISTS) ─── */}
+      <section id="register-section" className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-16">
         
-        {/* Tab Switcher */}
-        <div className="flex items-center justify-center gap-3 mb-8">
-          <button
-            onClick={() => setActiveTab('register')}
-            className={`px-5 py-3 rounded-2xl text-xs sm:text-sm font-black flex items-center gap-2 transition-all cursor-pointer ${
-              activeTab === 'register'
-                ? 'bg-emerald-600 text-white shadow-xl shadow-emerald-600/30'
-                : 'bg-slate-900 text-slate-400 hover:text-white border border-slate-800'
-            }`}
-          >
-            <Sparkles className="w-4 h-4" />
-            <span>تسجيل متجر جديد الآن</span>
-          </button>
+        <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6 sm:p-10 shadow-2xl space-y-8 animate-in fade-in duration-300">
+          
+          <div className="border-b border-slate-800 pb-5 text-center sm:text-start space-y-1">
+            <h2 className="text-xl sm:text-2xl font-black text-white flex items-center justify-center sm:justify-start gap-2">
+              <span>نموذج تسجيل متجر جديد</span>
+              <span className="text-xs bg-emerald-500/20 text-emerald-400 font-bold px-2.5 py-0.5 rounded-full border border-emerald-500/30">
+                فوري ومجاني
+              </span>
+            </h2>
+            <p className="text-xs text-slate-400">
+              بمجرد إكمال النموذج، ستنتقل مباشرةً إلى لوحة تحكم متجرك المستقل لبدء إضافة المنتجات وضبط الشحن.
+            </p>
+          </div>
 
-          <button
-            onClick={() => setActiveTab('existing')}
-            className={`px-5 py-3 rounded-2xl text-xs sm:text-sm font-black flex items-center gap-2 transition-all cursor-pointer ${
-              activeTab === 'existing'
-                ? 'bg-emerald-600 text-white shadow-xl shadow-emerald-600/30'
-                : 'bg-slate-900 text-slate-400 hover:text-white border border-slate-800'
-            }`}
-          >
-            <StoreIcon className="w-4 h-4" />
-            <span>دخول التجار المسجلين ({stores.length} متاجر)</span>
-          </button>
-        </div>
-
-        {/* ─── TAB 1: REGISTER NEW STORE FORM ─── */}
-        {activeTab === 'register' && (
-          <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6 sm:p-10 shadow-2xl space-y-8 animate-in fade-in duration-300">
+          <form onSubmit={handleRegisterSubmit} className="space-y-6 text-xs">
             
-            <div className="border-b border-slate-800 pb-5 text-center sm:text-start space-y-1">
-              <h2 className="text-xl sm:text-2xl font-black text-white flex items-center justify-center sm:justify-start gap-2">
-                <span>نموذج تسجيل متجر جديد</span>
-                <span className="text-xs bg-emerald-500/20 text-emerald-400 font-bold px-2.5 py-0.5 rounded-full border border-emerald-500/30">
-                  فوري ومجاني
-                </span>
-              </h2>
-              <p className="text-xs text-slate-400">
-                بمجرد إكمال النموذج، ستنتقل مباشرةً إلى لوحة تحكم متجرك المستقل لبدء إضافة المنتجات وضبط الشحن.
-              </p>
-            </div>
-
-            <form onSubmit={handleRegisterSubmit} className="space-y-6 text-xs">
-              
-              {/* Section 1: Store Details */}
-              <div className="space-y-4">
-                <div className="flex items-center gap-2 text-emerald-400 font-bold text-sm">
-                  <StoreIcon className="w-4 h-4" />
-                  <span>1. بيانات المتجر</span>
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div className="space-y-1.5">
-                    <label className="block text-slate-300 font-bold">اسم المتجر بالعربية *</label>
-                    <input
-                      type="text"
-                      required
-                      value={storeNameAr}
-                      onChange={(e) => setStoreNameAr(e.target.value)}
-                      placeholder="مثال: متجر إليغانس دزاير"
-                      className="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-white placeholder-slate-600 focus:outline-none focus:border-emerald-500 transition-colors"
-                    />
-                  </div>
-
-                  <div className="space-y-1.5">
-                    <label className="block text-slate-300 font-bold">اسم المتجر باللاتينية (English) *</label>
-                    <input
-                      type="text"
-                      required
-                      value={storeName}
-                      onChange={(e) => handleStoreNameChange(e.target.value)}
-                      placeholder="e.g. Elegance DZ"
-                      className="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-white placeholder-slate-600 focus:outline-none focus:border-emerald-500 transition-colors"
-                    />
-                  </div>
-
-                  <div className="space-y-1.5">
-                    <label className="block text-slate-300 font-bold">رابط النطاق المخصص لمتجرك *</label>
-                    <div className="flex items-center">
-                      <input
-                        type="text"
-                        required
-                        value={subdomain}
-                        onChange={(e) => setSubdomain(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ''))}
-                        placeholder="elegance-dz"
-                        className="w-full bg-slate-950 border border-slate-800 rounded-s-xl p-3 text-white font-mono placeholder-slate-600 focus:outline-none focus:border-emerald-500"
-                        dir="ltr"
-                      />
-                      <span className="bg-slate-800 border border-slate-700 px-3 py-3 rounded-e-xl text-slate-300 font-mono text-[11px] font-bold">
-                        .wasladz.app
-                      </span>
-                    </div>
-                  </div>
-
-                  <div className="space-y-1.5">
-                    <label className="block text-slate-300 font-bold">تصنيف ونشاط المتجر *</label>
-                    <select
-                      value={category}
-                      onChange={(e) => setCategory(e.target.value)}
-                      className="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-white focus:outline-none focus:border-emerald-500 cursor-pointer"
-                    >
-                      <option value="Fashion & Apparel">أزياء وملابس وأحذية</option>
-                      <option value="Electronics & Tech">إلكترونيات وهواتف وإكسسوارات</option>
-                      <option value="Perfumes & Cosmetics">عطور ومستحضرات تجميل</option>
-                      <option value="Home & Kitchen">أثاث ومستلزمات منزلية</option>
-                      <option value="Watches & Jewelry">ساعات ومجوهرات</option>
-                      <option value="General Store">متجر شامل وتجارة عامة</option>
-                    </select>
-                  </div>
-                </div>
+            {/* Section 1: Store Details */}
+            <div className="space-y-4">
+              <div className="flex items-center gap-2 text-emerald-400 font-bold text-sm">
+                <StoreIcon className="w-4 h-4" />
+                <span>1. بيانات المتجر</span>
               </div>
 
-              {/* Section 2: Merchant Contact & Wilaya */}
-              <div className="space-y-4 pt-4 border-t border-slate-800">
-                <div className="flex items-center gap-2 text-emerald-400 font-bold text-sm">
-                  <UserCheck className="w-4 h-4" />
-                  <span>2. بيانات التاجر ومقر النشاط</span>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="space-y-1.5">
+                  <label className="block text-slate-300 font-bold">اسم المتجر بالعربية *</label>
+                  <input
+                    type="text"
+                    required
+                    value={storeNameAr}
+                    onChange={(e) => setStoreNameAr(e.target.value)}
+                    placeholder="مثال: متجر إليغانس دزاير"
+                    className="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-white placeholder-slate-600 focus:outline-none focus:border-emerald-500 transition-colors"
+                  />
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                  <div className="space-y-1.5">
-                    <label className="block text-slate-300 font-bold">الاسم الكامل للتاجر *</label>
+                <div className="space-y-1.5">
+                  <label className="block text-slate-300 font-bold">اسم المتجر باللاتينية (English) *</label>
+                  <input
+                    type="text"
+                    required
+                    value={storeName}
+                    onChange={(e) => handleStoreNameChange(e.target.value)}
+                    placeholder="e.g. Elegance DZ"
+                    className="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-white placeholder-slate-600 focus:outline-none focus:border-emerald-500 transition-colors"
+                  />
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="block text-slate-300 font-bold">رابط النطاق المخصص لمتجرك *</label>
+                  <div className="flex items-center">
                     <input
                       type="text"
                       required
-                      value={ownerName}
-                      onChange={(e) => setOwnerName(e.target.value)}
-                      placeholder="مثال: محمد العمري"
-                      className="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-white placeholder-slate-600 focus:outline-none focus:border-emerald-500"
-                    />
-                  </div>
-
-                  <div className="space-y-1.5">
-                    <label className="block text-slate-300 font-bold">رقم الهاتف الجزائري *</label>
-                    <input
-                      type="tel"
-                      required
-                      value={ownerPhone}
-                      onChange={(e) => setOwnerPhone(e.target.value)}
-                      placeholder="0550 12 34 56"
-                      className="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-white placeholder-slate-600 focus:outline-none focus:border-emerald-500 font-mono"
+                      value={subdomain}
+                      onChange={(e) => setSubdomain(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ''))}
+                      placeholder="elegance-dz"
+                      className="w-full bg-slate-950 border border-slate-800 rounded-s-xl p-3 text-white font-mono placeholder-slate-600 focus:outline-none focus:border-emerald-500"
                       dir="ltr"
                     />
-                  </div>
-
-                  <div className="space-y-1.5">
-                    <label className="block text-slate-300 font-bold">الولاية (من بين 69 ولاية جزائرية) *</label>
-                    <select
-                      value={wilayaCode}
-                      onChange={(e) => setWilayaCode(e.target.value)}
-                      className="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-white focus:outline-none focus:border-emerald-500 cursor-pointer"
-                    >
-                      {DEFAULT_WILAYAS_69.map(w => (
-                        <option key={w.code} value={w.code}>
-                          {w.code} - {w.nameAr} ({w.name})
-                        </option>
-                      ))}
-                    </select>
+                    <span className="bg-slate-800 border border-slate-700 px-3 py-3 rounded-e-xl text-slate-300 font-mono text-[11px] font-bold">
+                      .wasladz.app
+                    </span>
                   </div>
                 </div>
 
                 <div className="space-y-1.5">
-                  <label className="block text-slate-300 font-bold">البريد الإلكتروني للتاجر *</label>
+                  <label className="block text-slate-300 font-bold">تصنيف ونشاط المتجر *</label>
+                  <select
+                    value={category}
+                    onChange={(e) => setCategory(e.target.value)}
+                    className="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-white focus:outline-none focus:border-emerald-500 cursor-pointer"
+                  >
+                    <option value="Fashion & Apparel">أزياء وملابس وأحذية</option>
+                    <option value="Electronics & Tech">إلكترونيات وهواتف وإكسسوارات</option>
+                    <option value="Perfumes & Cosmetics">عطور ومستحضرات تجميل</option>
+                    <option value="Home & Kitchen">أثاث ومستلزمات منزلية</option>
+                    <option value="Watches & Jewelry">ساعات ومجوهرات</option>
+                    <option value="General Store">متجر شامل وتجارة عامة</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            {/* Section 2: Merchant Contact & Wilaya */}
+            <div className="space-y-4 pt-4 border-t border-slate-800">
+              <div className="flex items-center gap-2 text-emerald-400 font-bold text-sm">
+                <UserCheck className="w-4 h-4" />
+                <span>2. بيانات التاجر ومقر النشاط</span>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div className="space-y-1.5">
+                  <label className="block text-slate-300 font-bold">الاسم الكامل للتاجر *</label>
                   <input
-                    type="email"
+                    type="text"
                     required
-                    value={ownerEmail}
-                    onChange={(e) => setOwnerEmail(e.target.value)}
-                    placeholder="merchant@example.com"
+                    value={ownerName}
+                    onChange={(e) => setOwnerName(e.target.value)}
+                    placeholder="مثال: محمد العمري"
                     className="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-white placeholder-slate-600 focus:outline-none focus:border-emerald-500"
                   />
                 </div>
+
+                <div className="space-y-1.5">
+                  <label className="block text-slate-300 font-bold">رقم الهاتف الجزائري *</label>
+                  <input
+                    type="tel"
+                    required
+                    value={ownerPhone}
+                    onChange={(e) => setOwnerPhone(e.target.value)}
+                    placeholder="0550 12 34 56"
+                    className="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-white placeholder-slate-600 focus:outline-none focus:border-emerald-500 font-mono"
+                    dir="ltr"
+                  />
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="block text-slate-300 font-bold">الولاية (من بين 69 ولاية جزائرية) *</label>
+                  <select
+                    value={wilayaCode}
+                    onChange={(e) => setWilayaCode(e.target.value)}
+                    className="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-white focus:outline-none focus:border-emerald-500 cursor-pointer"
+                  >
+                    {DEFAULT_WILAYAS_69.map(w => (
+                      <option key={w.code} value={w.code}>
+                        {w.code} - {w.nameAr} ({w.name})
+                      </option>
+                    ))}
+                  </select>
+                </div>
               </div>
 
-              {/* Submit CTA Button */}
-              <div className="pt-4">
-                <button
-                  type="submit"
-                  disabled={isSubmitting}
-                  className="w-full py-4 rounded-2xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-black text-sm shadow-xl shadow-emerald-600/30 flex items-center justify-center gap-2 transition-all cursor-pointer disabled:opacity-50"
-                >
-                  {isSubmitting ? (
-                    <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                  ) : (
-                    <>
-                      <span>إنشاء المتجر والدخول المباشر إلى لوحة التحكم 🚀</span>
-                      <ArrowLeft className="w-4 h-4" />
-                    </>
-                  )}
-                </button>
-                <p className="text-center text-[11px] text-slate-400 mt-2.5">
-                  ✨ فور الضغط، ستدخل إلى لوحة تحكم متجرك الخاص بالكامل دون أن ترى أي رابط أو أزرار للمنصة.
-                </p>
+              <div className="space-y-1.5">
+                <label className="block text-slate-300 font-bold">البريد الإلكتروني للتاجر *</label>
+                <input
+                  type="email"
+                  required
+                  value={ownerEmail}
+                  onChange={(e) => setOwnerEmail(e.target.value)}
+                  placeholder="merchant@example.com"
+                  className="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-white placeholder-slate-600 focus:outline-none focus:border-emerald-500"
+                />
               </div>
+            </div>
 
-            </form>
-
-          </div>
-        )}
-
-        {/* ─── TAB 2: EXISTING STORES DIRECT LOGIN ─── */}
-        {activeTab === 'existing' && (
-          <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6 sm:p-10 shadow-2xl space-y-6 animate-in fade-in duration-300">
-            
-            <div className="border-b border-slate-800 pb-4 text-center sm:text-start space-y-1">
-              <h2 className="text-xl sm:text-2xl font-black text-white flex items-center justify-center sm:justify-start gap-2">
-                <span>المتاجر المسجلة حالياً على المنصة</span>
-                <span className="text-xs bg-emerald-500/20 text-emerald-400 font-bold px-2.5 py-0.5 rounded-full border border-emerald-500/30">
-                  {stores.length} تاجر
-                </span>
-              </h2>
-              <p className="text-xs text-slate-400">
-                اختر متجرك المسجل للدخول المباشر إلى لوحة تحكمه الخاصة والبدء في تعديل الإعدادات والمنتجات.
+            {/* Submit CTA Button */}
+            <div className="pt-4">
+              <button
+                type="submit"
+                disabled={isSubmitting}
+                className="w-full py-4 rounded-2xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-black text-sm shadow-xl shadow-emerald-600/30 flex items-center justify-center gap-2 transition-all cursor-pointer disabled:opacity-50"
+              >
+                {isSubmitting ? (
+                  <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                ) : (
+                  <>
+                    <span>إنشاء المتجر والدخول المباشر إلى لوحة التحكم 🚀</span>
+                    <ArrowLeft className="w-4 h-4" />
+                  </>
+                )}
+              </button>
+              <p className="text-center text-[11px] text-slate-400 mt-2.5">
+                ✨ فور الضغط، ستدخل إلى لوحة تحكم متجرك الخاص بالكامل دون أن ترى أي رابط أو أزرار للمنصة.
               </p>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {stores.map((s) => (
-                <div
-                  key={s.id}
-                  className="p-5 rounded-2xl bg-slate-950 border border-slate-800 hover:border-emerald-500/50 transition-all space-y-4 flex flex-col justify-between group"
-                >
-                  <div className="space-y-3">
-                    <div className="flex items-start justify-between gap-3">
-                      <div className="flex items-center gap-3">
-                        <div
-                          className="w-11 h-11 rounded-xl flex items-center justify-center text-white font-extrabold text-base shadow-sm"
-                          style={{ backgroundColor: s.accentColor || '#059669' }}
-                        >
-                          {(s.nameAr || s.name).charAt(0)}
-                        </div>
-                        <div>
-                          <div className="font-bold text-white text-sm group-hover:text-emerald-400 transition-colors">
-                            {s.nameAr || s.name}
-                          </div>
-                          <div className="text-[11px] text-slate-400 font-mono">
-                            {s.settings?.subdomain || `${s.slug}.wasladz.app`}
-                          </div>
-                        </div>
-                      </div>
+          </form>
 
-                      <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-                        {s.status === 'active' ? 'نشط 🟢' : s.status}
-                      </span>
-                    </div>
-
-                    <div className="grid grid-cols-3 gap-2 text-[11px] pt-1">
-                      <div className="p-2 rounded-lg bg-slate-900 border border-slate-800">
-                        <span className="text-slate-500 block">التاجر</span>
-                        <span className="text-slate-200 font-bold truncate block">{s.ownerName || 'تاجر'}</span>
-                      </div>
-                      <div className="p-2 rounded-lg bg-slate-900 border border-slate-800">
-                        <span className="text-slate-500 block">الولاية</span>
-                        <span className="text-slate-200 font-bold truncate block">{s.wilaya || 'الجزائر'}</span>
-                      </div>
-                      <div className="p-2 rounded-lg bg-slate-900 border border-slate-800">
-                        <span className="text-slate-500 block">المبيعات</span>
-                        <span className="text-emerald-400 font-bold font-mono block">{(s.totalSales || 0).toLocaleString()} د.ج</span>
-                      </div>
-                    </div>
-                  </div>
-
-                  <button
-                    onClick={() => onSelectExistingStore(s.id)}
-                    className="w-full py-2.5 rounded-xl bg-slate-800 hover:bg-emerald-600 text-white font-bold text-xs flex items-center justify-center gap-2 transition-all cursor-pointer group-hover:shadow-lg group-hover:shadow-emerald-600/20"
-                  >
-                    <span>الدخول إلى لوحة تحكم المتجر ⚙️</span>
-                    <ArrowLeft className="w-3.5 h-3.5" />
-                  </button>
-                </div>
-              ))}
-            </div>
-
-          </div>
-        )}
+        </div>
 
       </section>
 
-      {/* ─── PLATFORM FOOTER ─── */}
-      <footer className="border-t border-slate-800/80 py-8 px-4 text-center text-xs text-slate-400 space-y-3">
-        <div className="flex flex-wrap items-center justify-center gap-4">
+      {/* ─── PLATFORM FOOTER (CLEAN - NO FOUNDER LINK OR BUTTON) ─── */}
+      <footer className="border-t border-slate-800/80 py-8 px-4 text-center text-xs text-slate-400 space-y-2">
+        <div className="flex items-center justify-center gap-2">
           <span>منصة وصلة ديزاد (WaslaDZ) — جميع الحقوق محفوظة {new Date().getFullYear()}</span>
-          <span>•</span>
-          <button
-            onClick={onGoToFounderPortal}
-            className="text-amber-400 hover:text-amber-300 font-bold flex items-center gap-1 cursor-pointer transition-colors"
-          >
-            <Lock className="w-3.5 h-3.5" />
-            <span>بوابة المؤسس المستقلة (Founder Command Tower)</span>
-          </button>
         </div>
-        <p className="text-[11px] text-slate-400">
+        <p className="text-[11px] text-slate-500">
           تعتمد المنصة معايير المتاجر العالمية الكبرى لضمان استقلالية كل تاجر جزائري في متجره الخاص.
         </p>
       </footer>

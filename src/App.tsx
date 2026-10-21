@@ -322,15 +322,9 @@ export default function App() {
   if (appMode === 'platform') {
     return (
       <PlatformPortalView
-        stores={stores}
         language={language}
         currency={currency}
         onRegisterStore={handleRegisterNewStore}
-        onSelectExistingStore={(storeId) => {
-          setActiveStoreId(storeId);
-          switchMode('dashboard', storeId);
-        }}
-        onGoToFounderPortal={() => switchMode('founder')}
       />
     );
   }

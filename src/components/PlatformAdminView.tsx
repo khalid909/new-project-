@@ -9,7 +9,8 @@ import {
   AlertTriangle, Filter, Download, ChevronRight, SlidersHorizontal, 
   RefreshCw, Package, Check, X, Building, Clock, Activity, 
   Award, Sparkles, UserCheck, ArrowUpRight, TrendingUp,
-  LayoutGrid, Table as TableIcon, Copy, Smartphone, CreditCard
+  LayoutGrid, Table as TableIcon, Copy, Smartphone, CreditCard,
+  Palette, Sliders, Monitor, Bell, Save, RotateCcw, Paintbrush, Compass, Type, Truck
 } from 'lucide-react';
 
 interface PlatformAdminViewProps {
@@ -36,6 +37,66 @@ export const PlatformAdminView: React.FC<PlatformAdminViewProps> = ({
   onBackToPlatform
 }) => {
   const isAr = language === 'ar';
+
+  // Top Admin Tabs: 'merchants' | 'platform_appearance' | 'store_appearance'
+  const [adminTab, setAdminTab] = useState<'merchants' | 'platform_appearance' | 'store_appearance'>('merchants');
+
+  // Toast Notification
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const showToast = (msg: string) => {
+    setToastMessage(msg);
+    setTimeout(() => setToastMessage(null), 3000);
+  };
+
+  // 1. Platform Master Appearance (Exterior & Interior)
+  const [platformSettings, setPlatformSettings] = useState(() => {
+    try {
+      const saved = localStorage.getItem('wasladz_platform_theme_settings');
+      if (saved) return JSON.parse(saved);
+    } catch (e) {}
+    return {
+      heroTitle: 'أنشئ متجرك الإلكتروني الجزائري المستقل بالكامل في ثوانٍ',
+      heroSubtitle: 'سجّل متجرك اليوم وادخل مباشرةً إلى لوحة تحكمك الخاصة. متجرك مستقل تماماً بدون أي عمولة وبدون علامة المنصة، مع دعم 69 ولاية جزائرية وتقارير مبيعات Recharts.',
+      brandName: 'وصلة ديزاد (WaslaDZ)',
+      brandTagline: 'منصة التجارة الإلكترونية السحابية للمتاجر المستقلة في الجزائر',
+      primaryColor: '#059669', // Emerald
+      secondaryColor: '#0d9488', // Teal
+      gradientStyle: 'emerald_teal',
+      showAnnouncement: true,
+      announcementText: '🚀 مرحباً بكم في منصة وصلة ديزاد — انضم لأكثر من 500+ تاجر جزائري مع 0% عمولة!',
+      showMetricsPills: true,
+      showWilayasBadge: true,
+      adminTheme: 'dark_obsidian',
+      density: 'comfortable',
+    };
+  });
+
+  // 2. Merchant Store Master Appearance & Defaults (Exterior & Interior)
+  const [storeAppearanceSettings, setStoreAppearanceSettings] = useState(() => {
+    try {
+      const saved = localStorage.getItem('wasladz_merchant_master_appearance');
+      if (saved) return JSON.parse(saved);
+    } catch (e) {}
+    return {
+      // Interior: Merchant Dashboard Defaults
+      dashboardTheme: 'emerald_standard',
+      showDashboardRecharts: true,
+      showOrdersManagement: true,
+      showProductsManagement: true,
+      showShipping69Wilayas: true,
+      showCustomersTab: true,
+      showSettingsTab: true,
+      merchantNoticeEnabled: true,
+      merchantNoticeText: 'تنبيه للإدارة: يرجى التحقق من أسعار التوصيل للمكتب والمنزل لـ 69 ولاية وتحديث رقم BaridiMob.',
+      // Exterior: Customer Storefront Defaults
+      storeTemplate: 'modern_cod',
+      defaultButtonText: 'اطلب الآن والدفع عند الاستلام 🚚',
+      enableFakeOrderShield: true,
+      enableDeliveryBadge: true,
+      primaryFont: 'Cairo',
+      headerStyle: 'sticky_blurred',
+    };
+  });
 
   // Filters & Search
   const [searchQuery, setSearchQuery] = useState('');
@@ -271,13 +332,64 @@ export const PlatformAdminView: React.FC<PlatformAdminViewProps> = ({
             </div>
 
           </div>
+
+          {/* Founder Command Tower Navigation Tabs */}
+          <div className="flex items-center gap-2 border-t border-slate-800/80 pt-3 pb-1 overflow-x-auto">
+            <button
+              onClick={() => setAdminTab('merchants')}
+              className={`px-4 py-2.5 rounded-xl text-xs font-black flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap ${
+                adminTab === 'merchants'
+                  ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-600/20'
+                  : 'text-slate-400 hover:text-white hover:bg-slate-800/60'
+              }`}
+            >
+              <Users className="w-4 h-4" />
+              <span>دليل ومتابعة التجار ({totalStoresCount})</span>
+            </button>
+
+            <button
+              onClick={() => setAdminTab('platform_appearance')}
+              className={`px-4 py-2.5 rounded-xl text-xs font-black flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap ${
+                adminTab === 'platform_appearance'
+                  ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/20'
+                  : 'text-slate-400 hover:text-white hover:bg-slate-800/60'
+              }`}
+            >
+              <Palette className="w-4 h-4" />
+              <span>مظهر المنصة (داخلي وخارجي) 🎨</span>
+            </button>
+
+            <button
+              onClick={() => setAdminTab('store_appearance')}
+              className={`px-4 py-2.5 rounded-xl text-xs font-black flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap ${
+                adminTab === 'store_appearance'
+                  ? 'bg-amber-600 text-slate-950 font-black shadow-lg shadow-amber-600/20'
+                  : 'text-slate-400 hover:text-white hover:bg-slate-800/60'
+              }`}
+            >
+              <Sliders className="w-4 h-4" />
+              <span>مظهر المتجر للبائعين (داخلي وخارجي) 🏬</span>
+            </button>
+          </div>
+
         </div>
       </header>
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 space-y-8">
         
-        {/* 2. Global Platform KPI Cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5">
+        {/* Toast Notification */}
+        {toastMessage && (
+          <div className="fixed bottom-6 start-6 z-50 bg-slate-900 text-white px-5 py-3 rounded-2xl shadow-2xl flex items-center gap-2.5 text-xs font-bold border border-emerald-500/50 animate-in fade-in slide-in-from-bottom-4">
+            <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+            <span>{toastMessage}</span>
+          </div>
+        )}
+
+        {/* ─── TAB 1: MERCHANTS DIRECTORY & ANALYTICS ─── */}
+        {adminTab === 'merchants' && (
+          <div className="space-y-8 animate-in fade-in duration-200">
+            {/* 2. Global Platform KPI Cards */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5">
           
           {/* Total Stores */}
           <div className="p-5 rounded-2xl bg-slate-900/80 border border-slate-800 shadow-lg relative overflow-hidden group hover:border-emerald-500/40 transition-all">
@@ -916,6 +1028,644 @@ export const PlatformAdminView: React.FC<PlatformAdminViewProps> = ({
                 </div>
               );
             })}
+          </div>
+        )}
+      </div>
+    )}
+
+        {/* ─── TAB 2: PLATFORM MASTER APPEARANCE (EXTERIOR & INTERIOR) ─── */}
+        {adminTab === 'platform_appearance' && (
+          <div className="space-y-8 animate-in fade-in duration-200">
+            {/* Header Banner */}
+            <div className="p-6 rounded-3xl bg-gradient-to-r from-indigo-950/60 via-slate-900 to-slate-900 border border-indigo-500/30 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div>
+                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-bold bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 mb-2">
+                  <Palette className="w-3.5 h-3.5" />
+                  <span>لوحة تحكم المؤسس • التخصيص الشامل للمنصة</span>
+                </div>
+                <h2 className="text-xl sm:text-2xl font-black text-white">تخصيص المظهر الرئيسي للمنصة (داخلي وخارجي)</h2>
+                <p className="text-xs text-slate-400 mt-1 max-w-2xl leading-relaxed">
+                  تحكم كامل في الهوية البصرية لصفحة المنصة الخارجية (Hero، العناوين، الألوان، الشريط الإعلاني)، بالإضافة إلى مظهر لوحة إدارة المؤسس الداخلية.
+                </p>
+              </div>
+
+              <div className="flex items-center gap-2.5">
+                <button
+                  type="button"
+                  onClick={() => {
+                    const defaults = {
+                      heroTitle: 'أنشئ متجرك الإلكتروني الجزائري المستقل بالكامل في ثوانٍ',
+                      heroSubtitle: 'سجّل متجرك اليوم وادخل مباشرةً إلى لوحة تحكمك الخاصة. متجرك مستقل تماماً بدون أي عمولة وبدون علامة المنصة، مع دعم 69 ولاية جزائرية وتقارير مبيعات Recharts.',
+                      brandName: 'وصلة ديزاد (WaslaDZ)',
+                      brandTagline: 'منصة التجارة الإلكترونية السحابية للمتاجر المستقلة في الجزائر',
+                      primaryColor: '#059669',
+                      secondaryColor: '#0d9488',
+                      gradientStyle: 'emerald_teal',
+                      showAnnouncement: true,
+                      announcementText: '🚀 مرحباً بكم في منصة وصلة ديزاد — انضم لأكثر من 500+ تاجر جزائري مع 0% عمولة!',
+                      showMetricsPills: true,
+                      showWilayasBadge: true,
+                      adminTheme: 'dark_obsidian',
+                      density: 'comfortable',
+                    };
+                    setPlatformSettings(defaults);
+                    localStorage.setItem('wasladz_platform_theme_settings', JSON.stringify(defaults));
+                    showToast('تمت استعادة إعدادات مظهر المنصة الافتراضية بنجاح 🔄');
+                  }}
+                  className="px-3.5 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer"
+                >
+                  <RotateCcw className="w-3.5 h-3.5" />
+                  <span>استعادة الافتراضي</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    localStorage.setItem('wasladz_platform_theme_settings', JSON.stringify(platformSettings));
+                    showToast('تم حفظ وتطبيق مظهر المنصة بنجاح 💾✨');
+                  }}
+                  className="px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-black shadow-lg shadow-indigo-600/30 flex items-center gap-2 transition-all cursor-pointer"
+                >
+                  <Save className="w-4 h-4" />
+                  <span>حفظ وتطبيق التغييرات</span>
+                </button>
+              </div>
+            </div>
+
+            {/* Customization Grid */}
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+              
+              {/* Left Column: Form Controls (7 cols) */}
+              <div className="lg:col-span-7 space-y-6">
+                
+                {/* 1. Exterior: Hero & Branding */}
+                <div className="p-6 rounded-3xl bg-slate-900 border border-slate-800 space-y-4">
+                  <div className="flex items-center gap-2 text-indigo-400 font-bold text-sm border-b border-slate-800 pb-3">
+                    <Paintbrush className="w-4 h-4" />
+                    <span>1. المظهر الخارجي: العناوين والنصوص التسويقية</span>
+                  </div>
+
+                  <div className="space-y-3 text-xs">
+                    <div className="space-y-1">
+                      <label className="block text-slate-300 font-bold">عنوان الهيرو الترويجي الرئيسي</label>
+                      <input
+                        type="text"
+                        value={platformSettings.heroTitle}
+                        onChange={(e) => setPlatformSettings({ ...platformSettings, heroTitle: e.target.value })}
+                        className="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-white focus:outline-none focus:border-indigo-500"
+                      />
+                    </div>
+
+                    <div className="space-y-1">
+                      <label className="block text-slate-300 font-bold">الوصف التسويقي لصفحة الهبوط</label>
+                      <textarea
+                        rows={3}
+                        value={platformSettings.heroSubtitle}
+                        onChange={(e) => setPlatformSettings({ ...platformSettings, heroSubtitle: e.target.value })}
+                        className="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-white focus:outline-none focus:border-indigo-500 resize-none"
+                      />
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <div className="space-y-1">
+                        <label className="block text-slate-300 font-bold">اسم المنصة الرسمي</label>
+                        <input
+                          type="text"
+                          value={platformSettings.brandName}
+                          onChange={(e) => setPlatformSettings({ ...platformSettings, brandName: e.target.value })}
+                          className="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-white focus:outline-none focus:border-indigo-500"
+                        />
+                      </div>
+                      <div className="space-y-1">
+                        <label className="block text-slate-300 font-bold">شعار المنصة (Tagline)</label>
+                        <input
+                          type="text"
+                          value={platformSettings.brandTagline}
+                          onChange={(e) => setPlatformSettings({ ...platformSettings, brandTagline: e.target.value })}
+                          className="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-white focus:outline-none focus:border-indigo-500"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* 2. Exterior: Colors & Announcement Bar */}
+                <div className="p-6 rounded-3xl bg-slate-900 border border-slate-800 space-y-4">
+                  <div className="flex items-center gap-2 text-indigo-400 font-bold text-sm border-b border-slate-800 pb-3">
+                    <Palette className="w-4 h-4" />
+                    <span>2. ألوان الهوية والشريط الإعلاني</span>
+                  </div>
+
+                  <div className="space-y-4 text-xs">
+                    {/* Color Presets */}
+                    <div className="space-y-2">
+                      <label className="block text-slate-300 font-bold">اللون الأساسي لهوية المنصة (Primary Accent Color)</label>
+                      <div className="flex flex-wrap items-center gap-2">
+                        {[
+                          { color: '#059669', name: 'زمردي جزائري' },
+                          { color: '#4F46E5', name: 'نيلي ملكي' },
+                          { color: '#7C3AED', name: 'موف حديث' },
+                          { color: '#0D9488', name: 'تيل سايبر' },
+                          { color: '#E11D48', name: 'ياقوتي' },
+                          { color: '#D97706', name: 'عنبر ذهبي' },
+                          { color: '#2563EB', name: 'أزرق كلاسيك' },
+                        ].map((c) => (
+                          <button
+                            key={c.color}
+                            type="button"
+                            onClick={() => setPlatformSettings({ ...platformSettings, primaryColor: c.color })}
+                            className={`px-3 py-1.5 rounded-xl border flex items-center gap-2 transition-all cursor-pointer ${
+                              platformSettings.primaryColor === c.color 
+                                ? 'border-white bg-slate-800 shadow-md ring-2 ring-indigo-500' 
+                                : 'border-slate-800 bg-slate-950 hover:border-slate-700'
+                            }`}
+                          >
+                            <span className="w-3.5 h-3.5 rounded-full" style={{ backgroundColor: c.color }} />
+                            <span className="text-[11px] font-bold text-slate-200">{c.name}</span>
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Announcement Bar Toggle & Text */}
+                    <div className="p-4 rounded-2xl bg-slate-950 border border-slate-800 space-y-3">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <Bell className="w-4 h-4 text-amber-400" />
+                          <span className="font-bold text-white">الشريط الإعلاني الترويجي أعلى المنصة</span>
+                        </div>
+                        <label className="relative inline-flex items-center cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={platformSettings.showAnnouncement}
+                            onChange={(e) => setPlatformSettings({ ...platformSettings, showAnnouncement: e.target.checked })}
+                            className="sr-only peer"
+                          />
+                          <div className="w-11 h-6 bg-slate-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-indigo-600"></div>
+                        </label>
+                      </div>
+
+                      {platformSettings.showAnnouncement && (
+                        <input
+                          type="text"
+                          value={platformSettings.announcementText}
+                          onChange={(e) => setPlatformSettings({ ...platformSettings, announcementText: e.target.value })}
+                          placeholder="نص الإعلان الترويجي..."
+                          className="w-full bg-slate-900 border border-slate-800 rounded-xl p-2.5 text-white focus:outline-none focus:border-indigo-500 font-sans"
+                        />
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                {/* 3. Interior: Founder Tower Theme */}
+                <div className="p-6 rounded-3xl bg-slate-900 border border-slate-800 space-y-4">
+                  <div className="flex items-center gap-2 text-indigo-400 font-bold text-sm border-b border-slate-800 pb-3">
+                    <Monitor className="w-4 h-4" />
+                    <span>3. المظهر الداخلي: ثيم لوحة المؤسس (Founder Tower)</span>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+                    {[
+                      { id: 'dark_obsidian', label: 'Dark Obsidian Luxury', desc: 'داكن فخم فاحم مريح للعين' },
+                      { id: 'midnight_slate', label: 'Midnight Slate', desc: 'رمادي ليلي عصري عالي التباين' },
+                      { id: 'royal_emerald', label: 'Imperial Emerald', desc: 'زمردي أنيق مخصص للتجارة' },
+                      { id: 'deep_navy', label: 'Deep Blue Command', desc: 'أزرق كحلي برمجيات سحابية' },
+                    ].map(theme => (
+                      <button
+                        key={theme.id}
+                        type="button"
+                        onClick={() => setPlatformSettings({ ...platformSettings, adminTheme: theme.id })}
+                        className={`p-3.5 rounded-2xl border text-start transition-all cursor-pointer ${
+                          platformSettings.adminTheme === theme.id
+                            ? 'bg-indigo-950/40 border-indigo-500 ring-2 ring-indigo-500/30'
+                            : 'bg-slate-950 border-slate-800 hover:border-slate-700'
+                        }`}
+                      >
+                        <div className="font-bold text-white text-xs">{theme.label}</div>
+                        <div className="text-[11px] text-slate-400 mt-0.5">{theme.desc}</div>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+              </div>
+
+              {/* Right Column: Live Interactive Preview (5 cols) */}
+              <div className="lg:col-span-5 space-y-4">
+                <div className="sticky top-24 space-y-3">
+                  <div className="flex items-center justify-between text-xs text-slate-400 font-bold">
+                    <span className="flex items-center gap-1.5">
+                      <Sparkles className="w-3.5 h-3.5 text-indigo-400" />
+                      <span>معاينة حية فورية لصفحة المنصة الخارجية</span>
+                    </span>
+                    <span className="text-[10px] bg-indigo-500/20 text-indigo-300 px-2 py-0.5 rounded-full font-mono">Live Preview</span>
+                  </div>
+
+                  {/* Browser Mockup Window */}
+                  <div className="rounded-3xl border border-slate-800 bg-slate-950 overflow-hidden shadow-2xl">
+                    {/* Browser Address Bar */}
+                    <div className="bg-slate-900 border-b border-slate-800 px-4 py-2.5 flex items-center gap-2">
+                      <div className="flex items-center gap-1.5">
+                        <div className="w-2.5 h-2.5 rounded-full bg-rose-500/80"></div>
+                        <div className="w-2.5 h-2.5 rounded-full bg-amber-500/80"></div>
+                        <div className="w-2.5 h-2.5 rounded-full bg-emerald-500/80"></div>
+                      </div>
+                      <div className="flex-1 bg-slate-950 border border-slate-800 rounded-lg px-3 py-1 text-[10px] text-slate-400 font-mono text-center truncate">
+                        https://wasladz.app
+                      </div>
+                    </div>
+
+                    {/* Announcement Banner in Preview */}
+                    {platformSettings.showAnnouncement && (
+                      <div className="bg-gradient-to-r from-amber-600 to-amber-700 text-slate-950 text-[10px] font-bold py-1.5 px-3 text-center truncate">
+                        {platformSettings.announcementText}
+                      </div>
+                    )}
+
+                    {/* Mockup Content */}
+                    <div className="p-6 text-center space-y-4 bg-gradient-to-b from-slate-900 via-slate-950 to-slate-900 min-h-[380px] flex flex-col justify-center">
+                      <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold mx-auto border"
+                           style={{ color: platformSettings.primaryColor, borderColor: `${platformSettings.primaryColor}40`, backgroundColor: `${platformSettings.primaryColor}15` }}>
+                        <Sparkles className="w-3 h-3" />
+                        <span>منصة التجارة السحابية الأولى</span>
+                      </div>
+
+                      <h3 className="text-base sm:text-lg font-black text-white leading-snug">
+                        {platformSettings.heroTitle}
+                      </h3>
+
+                      <p className="text-[11px] text-slate-400 line-clamp-3 max-w-sm mx-auto leading-relaxed">
+                        {platformSettings.heroSubtitle}
+                      </p>
+
+                      <div className="pt-2">
+                        <button
+                          type="button"
+                          className="px-5 py-2.5 rounded-xl text-white font-black text-xs shadow-lg mx-auto flex items-center gap-1.5 transition-transform hover:scale-105 cursor-pointer"
+                          style={{ backgroundColor: platformSettings.primaryColor }}
+                        >
+                          <Sparkles className="w-3.5 h-3.5" />
+                          <span>إنشاء متجر جديد 🚀</span>
+                        </button>
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-2 text-[10px] font-bold pt-3 max-w-xs mx-auto">
+                        <div className="p-2 rounded-xl bg-slate-900 border border-slate-800 text-slate-300">
+                          0% عمولة على المبيعات
+                        </div>
+                        <div className="p-2 rounded-xl bg-slate-900 border border-slate-800 text-slate-300">
+                          شحن لـ 69 ولاية جزائرية
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <p className="text-[11px] text-slate-500 text-center">
+                    💡 التغييرات تُحفظ في النظام وتنعكس على المنصة العامة فور الضغط على زر الحفظ.
+                  </p>
+                </div>
+              </div>
+
+            </div>
+
+          </div>
+        )}
+
+        {/* ─── TAB 3: MERCHANT STORE MASTER APPEARANCE & DEFAULTS ─── */}
+        {adminTab === 'store_appearance' && (
+          <div className="space-y-8 animate-in fade-in duration-200">
+            {/* Header Banner */}
+            <div className="p-6 rounded-3xl bg-gradient-to-r from-amber-950/60 via-slate-900 to-slate-900 border border-amber-500/30 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div>
+                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-bold bg-amber-500/10 text-amber-400 border border-amber-500/20 mb-2">
+                  <Sliders className="w-3.5 h-3.5" />
+                  <span>لوحة تحكم المؤسس • مظهر المتاجر للبائعين</span>
+                </div>
+                <h2 className="text-xl sm:text-2xl font-black text-white">تخصيص مظهر المتجر للبائعين (داخلي وخارجي)</h2>
+                <p className="text-xs text-slate-400 mt-1 max-w-2xl leading-relaxed">
+                  تحكم كامل في كيفية ظهور لوحة تحكم المتجر للبائعين من الداخل (الأقسام المصرح بها، الثيم، إشعار الإدارة)، والمظهر الافتراضي للمتجر للزبائن من الخارج.
+                </p>
+              </div>
+
+              <div className="flex items-center gap-2.5">
+                <button
+                  type="button"
+                  onClick={() => {
+                    const defaults = {
+                      dashboardTheme: 'emerald_standard',
+                      showDashboardRecharts: true,
+                      showOrdersManagement: true,
+                      showProductsManagement: true,
+                      showShipping69Wilayas: true,
+                      showCustomersTab: true,
+                      showSettingsTab: true,
+                      merchantNoticeEnabled: true,
+                      merchantNoticeText: 'تنبيه للإدارة: يرجى التحقق من أسعار التوصيل للمكتب والمنزل لـ 69 ولاية وتحديث رقم BaridiMob.',
+                      storeTemplate: 'modern_cod',
+                      defaultButtonText: 'اطلب الآن والدفع عند الاستلام 🚚',
+                      enableFakeOrderShield: true,
+                      enableDeliveryBadge: true,
+                      primaryFont: 'Cairo',
+                      headerStyle: 'sticky_blurred',
+                    };
+                    setStoreAppearanceSettings(defaults);
+                    localStorage.setItem('wasladz_merchant_master_appearance', JSON.stringify(defaults));
+                    showToast('تمت استعادة إعدادات مظهر المتجر للبائعين بنجاح 🔄');
+                  }}
+                  className="px-3.5 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer"
+                >
+                  <RotateCcw className="w-3.5 h-3.5" />
+                  <span>استعادة الافتراضي</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    localStorage.setItem('wasladz_merchant_master_appearance', JSON.stringify(storeAppearanceSettings));
+                    showToast('تم حفظ وتطبيق إعدادات مظهر المتاجر للبائعين بنجاح 💾🏬');
+                  }}
+                  className="px-5 py-2.5 rounded-xl bg-amber-600 hover:bg-amber-500 text-slate-950 font-black text-xs shadow-lg shadow-amber-600/30 flex items-center gap-2 transition-all cursor-pointer"
+                >
+                  <Save className="w-4 h-4" />
+                  <span>حفظ وتطبيق التغييرات</span>
+                </button>
+              </div>
+            </div>
+
+            {/* Customization Grid */}
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+              
+              {/* Left Column: Controls (7 cols) */}
+              <div className="lg:col-span-7 space-y-6">
+                
+                {/* 1. Interior: Merchant Dashboard Defaults */}
+                <div className="p-6 rounded-3xl bg-slate-900 border border-slate-800 space-y-4">
+                  <div className="flex items-center gap-2 text-amber-400 font-bold text-sm border-b border-slate-800 pb-3">
+                    <Monitor className="w-4 h-4" />
+                    <span>1. المظهر الداخلي: لوحة تحكم البائع (Merchant Dashboard)</span>
+                  </div>
+
+                  <div className="space-y-4 text-xs">
+                    {/* Theme selector */}
+                    <div className="space-y-2">
+                      <label className="block text-slate-300 font-bold">الثيم الافتراضي للوحة التاجر</label>
+                      <div className="grid grid-cols-2 gap-2.5">
+                        {[
+                          { id: 'emerald_standard', label: 'Emerald Classic (الجزائر)', color: '#059669' },
+                          { id: 'indigo_pro', label: 'Modern Indigo (تقني عصري)', color: '#4F46E5' },
+                          { id: 'clean_white', label: 'Clean White Minimal (ناصع)', color: '#64748B' },
+                          { id: 'midnight_dark', label: 'Midnight Carbon (داكن أنيق)', color: '#0F172A' },
+                        ].map(t => (
+                          <button
+                            key={t.id}
+                            type="button"
+                            onClick={() => setStoreAppearanceSettings({ ...storeAppearanceSettings, dashboardTheme: t.id })}
+                            className={`p-3 rounded-xl border flex items-center gap-2.5 transition-all cursor-pointer ${
+                              storeAppearanceSettings.dashboardTheme === t.id
+                                ? 'bg-amber-950/30 border-amber-500 text-white font-bold ring-2 ring-amber-500/20'
+                                : 'bg-slate-950 border-slate-800 text-slate-300 hover:border-slate-700'
+                            }`}
+                          >
+                            <span className="w-3.5 h-3.5 rounded-full" style={{ backgroundColor: t.color }} />
+                            <span>{t.label}</span>
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Permitted Tabs in Merchant Dashboard */}
+                    <div className="space-y-2 pt-2">
+                      <label className="block text-slate-300 font-bold">الأقسام المصرح بها للبائع في قائمته الجانبية</label>
+                      <p className="text-[11px] text-slate-500">يمكنك كمسؤول تمكين أو تعطيل أي قسم لجميع البائعين في المنصة:</p>
+                      
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-1">
+                        {[
+                          { key: 'showDashboardRecharts', label: 'لوحة البيانات ورسوم Recharts البيانية' },
+                          { key: 'showOrdersManagement', label: 'إدارة الطلبات والمبيعات' },
+                          { key: 'showProductsManagement', label: 'إدارة المنتجات والمخزون والألوان' },
+                          { key: 'showShipping69Wilayas', label: 'إدارة الشحن لـ 69 ولاية جزائرية' },
+                          { key: 'showCustomersTab', label: 'إدارة وتصدير الزبائن' },
+                          { key: 'showSettingsTab', label: 'إعدادات المتجر وبيانات BaridiMob' },
+                        ].map(module => (
+                          <label
+                            key={module.key}
+                            className={`p-3 rounded-xl border flex items-center justify-between cursor-pointer transition-all ${
+                              (storeAppearanceSettings as any)[module.key]
+                                ? 'bg-slate-950 border-emerald-500/40 text-emerald-300 font-bold'
+                                : 'bg-slate-950/60 border-slate-800 text-slate-400'
+                            }`}
+                          >
+                            <span className="text-[11px]">{module.label}</span>
+                            <input
+                              type="checkbox"
+                              checked={(storeAppearanceSettings as any)[module.key]}
+                              onChange={(e) => setStoreAppearanceSettings({ ...storeAppearanceSettings, [module.key]: e.target.checked })}
+                              className="rounded border-slate-700 text-emerald-600 focus:ring-emerald-500"
+                            />
+                          </label>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Merchant Broadcast Banner */}
+                    <div className="p-4 rounded-2xl bg-slate-950 border border-slate-800 space-y-3 pt-3">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <Bell className="w-4 h-4 text-amber-400" />
+                          <span className="font-bold text-white">إشعار المؤسس المثبت لجميع البائعين</span>
+                        </div>
+                        <label className="relative inline-flex items-center cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={storeAppearanceSettings.merchantNoticeEnabled}
+                            onChange={(e) => setStoreAppearanceSettings({ ...storeAppearanceSettings, merchantNoticeEnabled: e.target.checked })}
+                            className="sr-only peer"
+                          />
+                          <div className="w-11 h-6 bg-slate-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-amber-600"></div>
+                        </label>
+                      </div>
+
+                      {storeAppearanceSettings.merchantNoticeEnabled && (
+                        <textarea
+                          rows={2}
+                          value={storeAppearanceSettings.merchantNoticeText}
+                          onChange={(e) => setStoreAppearanceSettings({ ...storeAppearanceSettings, merchantNoticeText: e.target.value })}
+                          placeholder="اكتب التنبيه الذي سيظهر لجميع التجار..."
+                          className="w-full bg-slate-900 border border-slate-800 rounded-xl p-2.5 text-white focus:outline-none focus:border-amber-500 resize-none font-sans"
+                        />
+                      )}
+                    </div>
+
+                  </div>
+                </div>
+
+                {/* 2. Exterior: Storefront & Customer Experience Defaults */}
+                <div className="p-6 rounded-3xl bg-slate-900 border border-slate-800 space-y-4">
+                  <div className="flex items-center gap-2 text-amber-400 font-bold text-sm border-b border-slate-800 pb-3">
+                    <StoreIcon className="w-4 h-4" />
+                    <span>2. المظهر الخارجي: كيفية ظهور المتجر للزبائن (Storefront)</span>
+                  </div>
+
+                  <div className="space-y-4 text-xs">
+                    {/* Storefront Template */}
+                    <div className="space-y-1.5">
+                      <label className="block text-slate-300 font-bold">قالب المتجر الافتراضي للواجهة</label>
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+                        {[
+                          { id: 'modern_cod', title: 'Modern COD Store', desc: 'شبكة منتجات مع طلب سريع' },
+                          { id: 'luxury_boutique', title: 'Luxury Boutique', desc: 'ماركات فخمة وعطور' },
+                          { id: 'express_landing', title: 'Express Landing', desc: 'صفحة شراء مباشر سريعة' },
+                        ].map(tpl => (
+                          <button
+                            key={tpl.id}
+                            type="button"
+                            onClick={() => setStoreAppearanceSettings({ ...storeAppearanceSettings, storeTemplate: tpl.id })}
+                            className={`p-3 rounded-xl border text-start transition-all cursor-pointer ${
+                              storeAppearanceSettings.storeTemplate === tpl.id
+                                ? 'bg-amber-950/30 border-amber-500 text-white font-bold ring-2 ring-amber-500/20'
+                                : 'bg-slate-950 border-slate-800 text-slate-400 hover:border-slate-700'
+                            }`}
+                          >
+                            <div className="text-white font-bold text-xs">{tpl.title}</div>
+                            <div className="text-[10px] text-slate-500 mt-0.5">{tpl.desc}</div>
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Quick CTA Button text */}
+                    <div className="space-y-1.5">
+                      <label className="block text-slate-300 font-bold">نص زر الشراء السريع بالدفع عند الاستلام (Default COD Button)</label>
+                      <input
+                        type="text"
+                        value={storeAppearanceSettings.defaultButtonText}
+                        onChange={(e) => setStoreAppearanceSettings({ ...storeAppearanceSettings, defaultButtonText: e.target.value })}
+                        className="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-white focus:outline-none focus:border-amber-500 font-bold"
+                      />
+                    </div>
+
+                    {/* Trust & Fraud Shield Defaults */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+                      <label className="p-3.5 rounded-2xl bg-slate-950 border border-slate-800 flex items-center justify-between cursor-pointer">
+                        <div>
+                          <div className="font-bold text-white text-xs">درع كشف الطلبات الوهمية</div>
+                          <div className="text-[10px] text-slate-400">Fake Order Shield افتراضياً</div>
+                        </div>
+                        <input
+                          type="checkbox"
+                          checked={storeAppearanceSettings.enableFakeOrderShield}
+                          onChange={(e) => setStoreAppearanceSettings({ ...storeAppearanceSettings, enableFakeOrderShield: e.target.checked })}
+                          className="rounded border-slate-700 text-amber-500 focus:ring-amber-500"
+                        />
+                      </label>
+
+                      <label className="p-3.5 rounded-2xl bg-slate-950 border border-slate-800 flex items-center justify-between cursor-pointer">
+                        <div>
+                          <div className="font-bold text-white text-xs">شارة توصيل لـ 69 ولاية</div>
+                          <div className="text-[10px] text-slate-400">عرض ضمان الشحن في المتجر</div>
+                        </div>
+                        <input
+                          type="checkbox"
+                          checked={storeAppearanceSettings.enableDeliveryBadge}
+                          onChange={(e) => setStoreAppearanceSettings({ ...storeAppearanceSettings, enableDeliveryBadge: e.target.checked })}
+                          className="rounded border-slate-700 text-amber-500 focus:ring-amber-500"
+                        />
+                      </label>
+                    </div>
+
+                  </div>
+                </div>
+
+              </div>
+
+              {/* Right Column: Live Mockup Preview (5 cols) */}
+              <div className="lg:col-span-5 space-y-4">
+                <div className="sticky top-24 space-y-3">
+                  <div className="flex items-center justify-between text-xs text-slate-400 font-bold">
+                    <span className="flex items-center gap-1.5">
+                      <Sparkles className="w-3.5 h-3.5 text-amber-400" />
+                      <span>معاينة حية لكيفية ظهور المتجر للزبائن</span>
+                    </span>
+                    <span className="text-[10px] bg-amber-500/20 text-amber-300 px-2 py-0.5 rounded-full font-mono">Storefront Live</span>
+                  </div>
+
+                  {/* Store Mockup Window */}
+                  <div className="rounded-3xl border border-slate-800 bg-slate-950 overflow-hidden shadow-2xl">
+                    <div className="bg-slate-900 border-b border-slate-800 px-4 py-2.5 flex items-center gap-2">
+                      <div className="flex items-center gap-1.5">
+                        <div className="w-2.5 h-2.5 rounded-full bg-rose-500/80"></div>
+                        <div className="w-2.5 h-2.5 rounded-full bg-amber-500/80"></div>
+                        <div className="w-2.5 h-2.5 rounded-full bg-emerald-500/80"></div>
+                      </div>
+                      <div className="flex-1 bg-slate-950 border border-slate-800 rounded-lg px-3 py-1 text-[10px] text-emerald-400 font-mono text-center truncate">
+                        https://elegance-dz.wasladz.app
+                      </div>
+                    </div>
+
+                    {/* Merchant Notice Banner Preview */}
+                    {storeAppearanceSettings.merchantNoticeEnabled && (
+                      <div className="bg-amber-500/15 border-b border-amber-500/30 text-amber-300 text-[10px] font-bold p-2 text-center flex items-center justify-center gap-1.5">
+                        <Bell className="w-3 h-3 text-amber-400 flex-shrink-0" />
+                        <span className="truncate">{storeAppearanceSettings.merchantNoticeText}</span>
+                      </div>
+                    )}
+
+                    {/* Mockup Store Product & Checkout */}
+                    <div className="p-5 space-y-4 bg-slate-900/60">
+                      <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+                        <div className="flex items-center gap-2">
+                          <div className="w-8 h-8 rounded-lg bg-emerald-600 text-white font-bold flex items-center justify-center text-xs">
+                            إ
+                          </div>
+                          <div>
+                            <div className="text-xs font-bold text-white">متجر إليغانس دزاير</div>
+                            <div className="text-[10px] text-slate-400">متجر إلكتروني مستقل</div>
+                          </div>
+                        </div>
+                        <span className="text-[10px] text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full font-bold">
+                          COD 🇩🇿
+                        </span>
+                      </div>
+
+                      {/* Fake Product Card */}
+                      <div className="p-3 rounded-2xl bg-slate-950 border border-slate-800 space-y-2.5">
+                        <div className="h-28 rounded-xl bg-slate-800/80 flex items-center justify-center text-slate-600 text-xs font-bold">
+                          معاينة صورة المنتج
+                        </div>
+                        <div className="flex items-center justify-between">
+                          <div className="font-bold text-white text-xs">طقم ساعه وإكسسوار فاخر</div>
+                          <div className="font-mono text-emerald-400 font-bold text-xs">4,800 د.ج</div>
+                        </div>
+
+                        {/* CTA Order Button */}
+                        <button
+                          type="button"
+                          className="w-full py-2.5 rounded-xl bg-emerald-600 text-white text-xs font-black shadow-md flex items-center justify-center gap-1.5 cursor-pointer"
+                        >
+                          <ShoppingCart className="w-3.5 h-3.5" />
+                          <span>{storeAppearanceSettings.defaultButtonText}</span>
+                        </button>
+                      </div>
+
+                      {/* Delivery Badge Preview */}
+                      {storeAppearanceSettings.enableDeliveryBadge && (
+                        <div className="p-2.5 rounded-xl bg-slate-950/80 border border-slate-800 flex items-center gap-2 text-[10px] text-slate-300">
+                          <Truck className="w-3.5 h-3.5 text-emerald-400 flex-shrink-0" />
+                          <span>توصيل متوفر لـ 69 ولاية جزائرية (للمكتب أو المنزل)</span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  <p className="text-[11px] text-slate-500 text-center">
+                    💡 هذه الإعدادات تطبق على قوالب ومظهر المتاجر التي يديرها البائعون.
+                  </p>
+                </div>
+              </div>
+
+            </div>
+
           </div>
         )}
 
