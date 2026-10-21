@@ -364,114 +364,47 @@ export default function App() {
   // "ثم لا يزيد يرى اي رابط أو اي زر للمنصة لانه الان في متجره الخاص"
   // ─────────────────────────────────────────────────────────────
   return (
-    <div className="min-h-screen bg-[#F8FAFC] flex flex-col text-slate-800" dir="rtl">
-      
-      {/* ─── PRIVATE MERCHANT STORE HEADER (NO PLATFORM LINKS / BRANDING) ─── */}
-      <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-slate-200/90 shadow-2xs">
-        <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between gap-2 sm:gap-4 h-16">
-            
-            {/* Merchant's Store Identity */}
-            <div className="flex items-center gap-2 sm:gap-3 min-w-0">
-              <div
-                className="w-9 h-9 sm:w-10 sm:h-10 rounded-2xl flex items-center justify-center text-white font-black text-sm sm:text-base shadow-sm shrink-0"
-                style={{ backgroundColor: activeStore?.accentColor || '#059669' }}
-              >
-                {(activeStore.nameAr || activeStore.name).charAt(0)}
-              </div>
-              <div className="flex flex-col min-w-0">
-                <div className="flex items-center gap-1.5 sm:gap-2">
-                  <span className="font-black text-xs sm:text-base text-slate-900 truncate">
-                    {isAr ? activeStore.nameAr : activeStore.name}
-                  </span>
-                  <span className="px-1.5 sm:px-2 py-0.5 rounded-full text-[9px] sm:text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200 shrink-0 flex items-center gap-1">
-                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                    <span>نشط</span>
-                  </span>
-                </div>
-                <div className="flex items-center gap-2 text-[10px] sm:text-[11px] text-slate-500 font-mono truncate">
-                  <span className="truncate">{activeStore.settings?.subdomain || `${activeStore.slug}.wasladz.app`}</span>
-                  {activeStore.wilaya && (
-                    <span className="text-slate-400 font-sans hidden sm:inline">
-                      • 📍 {activeStore.wilaya}
-                    </span>
-                  )}
-                </div>
-              </div>
-            </div>
-
-            {/* Merchant Actions ONLY: View Live Store & Logout of Store */}
-            <div className="flex items-center gap-1.5 sm:gap-2.5 shrink-0">
-              <button
-                onClick={() => switchMode('store')}
-                className="px-2.5 py-1.5 sm:px-4 sm:py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold flex items-center gap-1.5 shadow-sm transition-all cursor-pointer"
-                title="معاينة المتجر المباشر"
-              >
-                <ShoppingBag className="w-3.5 h-3.5 shrink-0" />
-                <span className="hidden sm:inline">معاينة متجري المباشر للزبائن 🛍️</span>
-                <span className="sm:hidden">متجري 🛍️</span>
-              </button>
-
-              <button
-                onClick={() => switchMode('platform')}
-                className="px-2.5 py-1.5 sm:px-3.5 sm:py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold flex items-center gap-1.5 transition-colors cursor-pointer"
-                title="تسجيل الخروج من لوحة تحكم المتجر"
-              >
-                <LogOut className="w-3.5 h-3.5 shrink-0" />
-                <span className="hidden sm:inline">تسجيل الخروج</span>
-                <span className="sm:hidden">خروج</span>
-              </button>
-            </div>
-
-          </div>
-        </div>
-      </header>
-
-      {/* ─── MERCHANT STORE BODY (Dashboard, Orders, Products, 69 Wilayas, Recharts) ─── */}
-      <main className="flex-1">
-        <StoreDashboardView
-          store={activeStore}
-          products={products}
-          orders={orders}
-          customers={customers}
-          coupons={coupons}
-          currentUser={currentUser}
-          currency={currency}
-          language={language}
-          supabaseConfig={SUPABASE_CONFIG_DEFAULT}
-          gitHubConfig={GITHUB_CONFIG_DEFAULT}
-          features={features}
-          storeFeatures={storeFeatures}
-          onToggleFeature={() => {}}
-          onRemoveFeature={() => {}}
-          onRestoreFeature={() => {}}
-          onOpenFeaturesModal={() => {}}
-          onToggleStoreFeature={() => {}}
-          onRemoveStoreFeature={() => {}}
-          onRestoreStoreFeature={() => {}}
-          onEnableAllStoreFeatures={() => {}}
-          onResetDefaultStoreFeatures={() => {}}
-          onAddStoreFeature={() => {}}
-          onUpdateStoreFeature={() => {}}
-          onUpdateStoreSettings={(settings) => {
-            setStores(stores.map(s => s.id === activeStore.id ? { ...s, settings: { ...s.settings, ...settings } } : s));
-          }}
-          onUpdateStorePlan={(plan) => {
-            setStores(stores.map(s => s.id === activeStore.id ? { ...s, plan } : s));
-          }}
-          onAddProduct={(prod) => setProducts([prod, ...products])}
-          onDeleteProduct={(id) => setProducts(products.filter(p => p.id !== id))}
-          onUpdateProductStock={(id, stock) => setProducts(products.map(p => p.id === id ? { ...p, stock } : p))}
-          onUpdateOrderStatus={(id, status) => setOrders(orders.map(o => o.id === id ? { ...o, status } : o))}
-          onAddCoupon={(cpn) => setCoupons([cpn, ...coupons])}
-          onToggleCoupon={(id) => setCoupons(coupons.map(c => c.id === id ? { ...c, isActive: !c.isActive } : c))}
-          onOpenLivePreview={() => switchMode('store')}
-          onOpenStandaloneStore={() => switchMode('store')}
-          onOpenCreateNewStore={() => switchMode('platform')}
-          onLogout={() => switchMode('platform')}
-        />
-      </main>
-    </div>
+    <StoreDashboardView
+      store={activeStore}
+      products={products}
+      orders={orders}
+      customers={customers}
+      coupons={coupons}
+      currentUser={currentUser}
+      currency={currency}
+      language={language}
+      supabaseConfig={SUPABASE_CONFIG_DEFAULT}
+      gitHubConfig={GITHUB_CONFIG_DEFAULT}
+      features={features}
+      storeFeatures={storeFeatures}
+      onToggleFeature={() => {}}
+      onRemoveFeature={() => {}}
+      onRestoreFeature={() => {}}
+      onOpenFeaturesModal={() => {}}
+      onToggleStoreFeature={() => {}}
+      onRemoveStoreFeature={() => {}}
+      onRestoreStoreFeature={() => {}}
+      onEnableAllStoreFeatures={() => {}}
+      onResetDefaultStoreFeatures={() => {}}
+      onAddStoreFeature={() => {}}
+      onUpdateStoreFeature={() => {}}
+      onUpdateStoreSettings={(settings) => {
+        setStores(stores.map(s => s.id === activeStore.id ? { ...s, settings: { ...s.settings, ...settings } } : s));
+      }}
+      onUpdateStorePlan={(plan) => {
+        setStores(stores.map(s => s.id === activeStore.id ? { ...s, plan } : s));
+      }}
+      onAddProduct={(prod) => setProducts([prod, ...products])}
+      onDeleteProduct={(id) => setProducts(products.filter(p => p.id !== id))}
+      onUpdateProductStock={(id, stock) => setProducts(products.map(p => p.id === id ? { ...p, stock } : p))}
+      onUpdateOrderStatus={(id, status) => setOrders(orders.map(o => o.id === id ? { ...o, status } : o))}
+      onAddCoupon={(cpn) => setCoupons([cpn, ...coupons])}
+      onToggleCoupon={(id) => setCoupons(coupons.map(c => c.id === id ? { ...c, isActive: !c.isActive } : c))}
+      onOpenLivePreview={() => switchMode('store')}
+      onOpenStandaloneStore={() => switchMode('store')}
+      onOpenCreateNewStore={() => switchMode('platform')}
+      onLogout={() => switchMode('platform')}
+    />
   );
 }
 

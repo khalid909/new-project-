@@ -19,7 +19,9 @@ import {
   AlertTriangle, Filter, Building, CreditCard, Globe,
   SlidersHorizontal, Lock, Copy, Layers, Power, Clock,
   HelpCircle, Monitor, Wrench, Shield, CheckSquare, Tag,
-  Link2, Save, RotateCcw
+  Link2, Save, RotateCcw, Home, Ticket, LayoutGrid, Share2, 
+  Headphones, ChevronDown, ChevronUp, Menu, Bell, Percent, Send,
+  Store as StoreIcon, FileText
 } from 'lucide-react';
 
 interface StoreDashboardViewProps {
@@ -65,6 +67,7 @@ export const StoreDashboardView: React.FC<StoreDashboardViewProps> = ({
   products,
   orders,
   customers,
+  coupons = [],
   currency,
   language,
   onUpdateStoreSettings,
@@ -76,8 +79,76 @@ export const StoreDashboardView: React.FC<StoreDashboardViewProps> = ({
 }) => {
   const isAr = language === 'ar';
   
-  // Navigation Tabs: Overview | Orders | Products | Shipping 69 | Custom Domains | 3-Button Store Controls | Customers | Settings
-  const [activeTab, setActiveTab] = useState<'overview' | 'orders' | 'products' | 'shipping' | 'domains' | 'store_controls' | 'customers' | 'settings'>('overview');
+  // Navigation Tabs matching user reference sidebar:
+  // لوحة التحكم | الطلبيات | المنتجات | Up Sells | كوبون | العملاء | متجر | إحصائيات | الفواتير | التطبيقات | التسويق بالعمولة | الدعم | إعدادات
+  type DashboardTab = 
+    | 'overview' 
+    | 'orders' 
+    | 'products' 
+    | 'upsells' 
+    | 'upsells_all' 
+    | 'upsells_new' 
+    | 'coupons' 
+    | 'customers' 
+    | 'store' 
+    | 'analytics' 
+    | 'invoices' 
+    | 'apps' 
+    | 'affiliate' 
+    | 'support' 
+    | 'settings'
+    | 'shipping'
+    | 'domains'
+    | 'store_controls';
+
+  const [activeTab, setActiveTab] = useState<DashboardTab>('overview');
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [isUpsellsMenuOpen, setIsUpsellsMenuOpen] = useState(true);
+
+  // Up Sells State
+  const [upsellsList, setUpsellsList] = useState([
+    {
+      id: 'upsell_1',
+      title: 'عرض القطعتين + 1 مجاناً (3 بسعر 2)',
+      productId: products[0]?.id || 'p1',
+      productName: products[0]?.nameAr || 'المنتج المميز',
+      type: 'buy_x_get_y',
+      discountPercentage: 33,
+      triggerType: 'cart_popup',
+      status: 'active',
+      viewsCount: 420,
+      conversionsCount: 78,
+      extraRevenue: 156000
+    },
+    {
+      id: 'upsell_2',
+      title: 'تخفيض 25% على الإكسسوار عند الشراء',
+      productId: products[1]?.id || 'p2',
+      productName: products[1]?.nameAr || 'حزام جلدي فاخر',
+      type: 'discount',
+      discountPercentage: 25,
+      triggerType: 'product_page',
+      status: 'active',
+      viewsCount: 290,
+      conversionsCount: 45,
+      extraRevenue: 89000
+    }
+  ]);
+  const [newUpsellTitle, setNewUpsellTitle] = useState('');
+  const [newUpsellProdId, setNewUpsellProdId] = useState(products[0]?.id || '');
+  const [newUpsellDiscount, setNewUpsellDiscount] = useState(20);
+  const [newUpsellType, setNewUpsellType] = useState('discount');
+  const [newUpsellTrigger, setNewUpsellTrigger] = useState('cart_popup');
+
+  // Affiliate State
+  const [affiliateCommission, setAffiliateCommission] = useState(10);
+  const [affiliateCopied, setAffiliateCopied] = useState(false);
+
+  // Support Ticket State
+  const [supportSubject, setSupportSubject] = useState('');
+  const [supportMessage, setSupportMessage] = useState('');
+  const [supportSubmitted, setSupportSubmitted] = useState(false);
+
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
   const showToast = (msg: string) => {
@@ -474,7 +545,7 @@ export const StoreDashboardView: React.FC<StoreDashboardViewProps> = ({
   const totalOrdersCount = orders.length > 0 ? orders.length : store.ordersCount || 0;
 
   return (
-    <div className="min-h-screen bg-[#F8FAFC] text-slate-800 font-sans selection:bg-emerald-500 selection:text-white" dir="rtl">
+    <div className="min-h-screen bg-[#F0F3F7] text-slate-800 font-sans flex flex-col lg:flex-row relative selection:bg-emerald-500 selection:text-white" dir="rtl">
       
       {/* Toast Notification */}
       {toastMessage && (
@@ -484,58 +555,311 @@ export const StoreDashboardView: React.FC<StoreDashboardViewProps> = ({
         </div>
       )}
 
-      {/* Main Container - Fully Responsive on Mobile & Desktop */}
-      <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-6 space-y-6">
-        
-        {/* Navigation Tabs Bar - Horizontally Scrollable on Mobile Phones */}
-        <div className="bg-white rounded-2xl border border-slate-200 p-2 shadow-xs flex items-center justify-between gap-2 overflow-x-auto scrollbar-none">
-          <div className="flex items-center gap-1.5 flex-nowrap min-w-max">
-            {[
-              { id: 'overview', label: 'لوحة البيانات والرسم البياني', icon: LayoutDashboard },
-              { id: 'orders', label: `الطلبات (${totalOrdersCount})`, icon: ShoppingCart },
-              { id: 'products', label: `المنتجات (${products.length})`, icon: Package },
-              { id: 'shipping', label: 'الشحن لـ 69 ولاية', icon: Truck, highlight: true },
-              { id: 'domains', label: 'النطاق المخصص (Domain)', icon: Globe, highlight: true },
-              { id: 'store_controls', label: 'التحكم بالمتجر (3 أزرار)', icon: SlidersHorizontal },
-              { id: 'customers', label: `الزبائن (${customers.length})`, icon: Users },
-              { id: 'settings', label: 'إعدادات المتجر والدفع', icon: Settings }
-            ].map(tab => {
-              const Icon = tab.icon;
-              const isActive = activeTab === tab.id;
-              return (
+      {/* Mobile Backdrop Overlay */}
+      {isSidebarOpen && (
+        <div 
+          onClick={() => setIsSidebarOpen(false)}
+          className="fixed inset-0 z-40 bg-black/60 backdrop-blur-xs lg:hidden"
+        />
+      )}
+
+      {/* ─── SLEEK DARK NAVY SIDEBAR (EXACT MATCH TO REFERENCE IMAGE) ─── */}
+      <aside className={`
+        fixed lg:sticky top-0 right-0 z-50 h-screen w-64 bg-[#172132] text-slate-300 
+        flex flex-col border-s border-slate-800/80 shadow-2xl lg:shadow-none
+        transition-transform duration-300 ease-in-out shrink-0
+        ${isSidebarOpen ? 'translate-x-0' : 'translate-x-full lg:translate-x-0'}
+      `}>
+        {/* Top Header: Store Name on Left, Hamburger on Right */}
+        <div className="flex items-center justify-between px-5 h-16 border-b border-slate-800/80 shrink-0">
+          <div className="flex items-center gap-2 overflow-hidden">
+            <span className="font-extrabold text-white text-base tracking-tight truncate">
+              {store.name || store.nameAr || 'InYourBest'}
+            </span>
+          </div>
+          <button
+            type="button"
+            onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+            className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800/60 transition-colors cursor-pointer"
+            title="القائمة"
+          >
+            <Menu className="w-5 h-5" />
+          </button>
+        </div>
+
+        {/* Scrollable Navigation List */}
+        <nav className="flex-1 overflow-y-auto py-2 px-0 space-y-0.5 scrollbar-thin scrollbar-thumb-slate-700">
+          
+          {/* 1. لوحة التحكم */}
+          <button
+            type="button"
+            onClick={() => { setActiveTab('overview'); setIsSidebarOpen(false); }}
+            className={`w-full flex items-center justify-between px-4 py-3 transition-colors cursor-pointer text-xs font-semibold ${
+              activeTab === 'overview' ? 'bg-[#243046] text-white' : 'text-slate-300 hover:bg-[#1f2b3f] hover:text-white'
+            }`}
+          >
+            <span className="ms-2">لوحة التحكم</span>
+            <Home className="w-5 h-5 text-current shrink-0" />
+          </button>
+
+          {/* 2. الطلبيات (مع دائرة رقم 1 الزرقاء الدائرية الفاقعة) */}
+          <button
+            type="button"
+            onClick={() => { setActiveTab('orders'); setIsSidebarOpen(false); }}
+            className={`w-full flex items-center justify-between px-4 py-3 transition-colors cursor-pointer text-xs font-semibold ${
+              activeTab === 'orders' ? 'bg-[#243046] text-white' : 'text-slate-300 hover:bg-[#1f2b3f] hover:text-white'
+            }`}
+          >
+            <div className="flex items-center gap-2">
+              <span className="w-5 h-5 rounded-full bg-[#0ea5e9] text-white text-[11px] font-black flex items-center justify-center font-mono shadow-xs">
+                {totalOrdersCount || 1}
+              </span>
+            </div>
+            <div className="flex items-center gap-2.5">
+              <span>الطلبيات</span>
+              <Package className="w-5 h-5 text-current shrink-0" />
+            </div>
+          </button>
+
+          {/* 3. المنتجات */}
+          <button
+            type="button"
+            onClick={() => { setActiveTab('products'); setIsSidebarOpen(false); }}
+            className={`w-full flex items-center justify-between px-4 py-3 transition-colors cursor-pointer text-xs font-semibold ${
+              activeTab === 'products' ? 'bg-[#243046] text-white' : 'text-slate-300 hover:bg-[#1f2b3f] hover:text-white'
+            }`}
+          >
+            <span className="ms-2">المنتجات</span>
+            <Tag className="w-5 h-5 text-current shrink-0" />
+          </button>
+
+          {/* 4. Up Sells (قائمة منسدلة مفتوحة كما في الصورة) */}
+          <div className="space-y-0.5">
+            <button
+              type="button"
+              onClick={() => setIsUpsellsMenuOpen(!isUpsellsMenuOpen)}
+              className={`w-full flex items-center justify-between px-4 py-3 transition-colors cursor-pointer text-xs font-semibold ${
+                (activeTab === 'upsells' || activeTab === 'upsells_all' || activeTab === 'upsells_new' || isUpsellsMenuOpen)
+                  ? 'bg-[#243046] text-white'
+                  : 'text-slate-300 hover:bg-[#1f2b3f] hover:text-white'
+              }`}
+            >
+              <span className="font-bold tracking-wide">Up Sells</span>
+              {isUpsellsMenuOpen ? (
+                <ChevronUp className="w-4 h-4 text-slate-300 shrink-0" />
+              ) : (
+                <ChevronDown className="w-4 h-4 text-slate-300 shrink-0" />
+              )}
+            </button>
+
+            {/* Up Sells Submenu */}
+            {isUpsellsMenuOpen && (
+              <div className="bg-[#1b2638] py-1 border-y border-slate-800/40 space-y-0.5">
                 <button
-                  key={tab.id}
-                  onClick={() => setActiveTab(tab.id as any)}
-                  className={`px-3 py-2 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer whitespace-nowrap ${
-                    isActive 
-                      ? 'bg-emerald-600 text-white shadow-sm' 
-                      : tab.highlight 
-                        ? 'bg-amber-50 text-amber-800 hover:bg-amber-100 border border-amber-200' 
-                        : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
+                  type="button"
+                  onClick={() => { setActiveTab('upsells_all'); setIsSidebarOpen(false); }}
+                  className={`w-full text-end pe-10 py-2 text-xs transition-colors cursor-pointer font-medium block ${
+                    activeTab === 'upsells_all' || activeTab === 'upsells'
+                      ? 'text-white font-bold bg-[#25334c]'
+                      : 'text-slate-400 hover:text-white hover:bg-[#1f2b3f]'
                   }`}
                 >
-                  <Icon className="w-3.5 h-3.5" />
-                  <span>{tab.label}</span>
+                  جميع Up Sells
                 </button>
-              );
-            })}
+                <button
+                  type="button"
+                  onClick={() => { setActiveTab('upsells_new'); setIsSidebarOpen(false); }}
+                  className={`w-full text-end pe-10 py-2 text-xs transition-colors cursor-pointer font-medium block ${
+                    activeTab === 'upsells_new'
+                      ? 'text-white font-bold bg-[#25334c]'
+                      : 'text-slate-400 hover:text-white hover:bg-[#1f2b3f]'
+                  }`}
+                >
+                  Up Sell جديد
+                </button>
+              </div>
+            )}
           </div>
 
-          <div className="flex items-center gap-2 flex-shrink-0">
+          {/* 5. كوبون */}
+          <button
+            type="button"
+            onClick={() => { setActiveTab('coupons'); setIsSidebarOpen(false); }}
+            className={`w-full flex items-center justify-between px-4 py-3 transition-colors cursor-pointer text-xs font-semibold ${
+              activeTab === 'coupons' ? 'bg-[#243046] text-white' : 'text-slate-300 hover:bg-[#1f2b3f] hover:text-white'
+            }`}
+          >
+            <span className="ms-2">كوبون</span>
+            <Ticket className="w-5 h-5 text-current shrink-0" />
+          </button>
+
+          {/* 6. العملاء */}
+          <button
+            type="button"
+            onClick={() => { setActiveTab('customers'); setIsSidebarOpen(false); }}
+            className={`w-full flex items-center justify-between px-4 py-3 transition-colors cursor-pointer text-xs font-semibold ${
+              activeTab === 'customers' ? 'bg-[#243046] text-white' : 'text-slate-300 hover:bg-[#1f2b3f] hover:text-white'
+            }`}
+          >
+            <span className="ms-2">العملاء</span>
+            <Users className="w-5 h-5 text-current shrink-0" />
+          </button>
+
+          {/* 7. متجر */}
+          <button
+            type="button"
+            onClick={() => { setActiveTab('store'); setIsSidebarOpen(false); }}
+            className={`w-full flex items-center justify-between px-4 py-3 transition-colors cursor-pointer text-xs font-semibold ${
+              activeTab === 'store' || activeTab === 'store_controls' ? 'bg-[#243046] text-white' : 'text-slate-300 hover:bg-[#1f2b3f] hover:text-white'
+            }`}
+          >
+            <span className="ms-2">متجر</span>
+            <StoreIcon className="w-5 h-5 text-current shrink-0" />
+          </button>
+
+          {/* 8. إحصائيات */}
+          <button
+            type="button"
+            onClick={() => { setActiveTab('analytics'); setIsSidebarOpen(false); }}
+            className={`w-full flex items-center justify-between px-4 py-3 transition-colors cursor-pointer text-xs font-semibold ${
+              activeTab === 'analytics' ? 'bg-[#243046] text-white' : 'text-slate-300 hover:bg-[#1f2b3f] hover:text-white'
+            }`}
+          >
+            <span className="ms-2">إحصائيات</span>
+            <TrendingUp className="w-5 h-5 text-current shrink-0" />
+          </button>
+
+          {/* 9. الفواتير */}
+          <button
+            type="button"
+            onClick={() => { setActiveTab('invoices'); setIsSidebarOpen(false); }}
+            className={`w-full flex items-center justify-between px-4 py-3 transition-colors cursor-pointer text-xs font-semibold ${
+              activeTab === 'invoices' ? 'bg-[#243046] text-white' : 'text-slate-300 hover:bg-[#1f2b3f] hover:text-white'
+            }`}
+          >
+            <span className="ms-2">الفواتير</span>
+            <FileText className="w-5 h-5 text-current shrink-0" />
+          </button>
+
+          {/* 10. التطبيقات */}
+          <button
+            type="button"
+            onClick={() => { setActiveTab('apps'); setIsSidebarOpen(false); }}
+            className={`w-full flex items-center justify-between px-4 py-3 transition-colors cursor-pointer text-xs font-semibold ${
+              activeTab === 'apps' || activeTab === 'shipping' || activeTab === 'domains' ? 'bg-[#243046] text-white' : 'text-slate-300 hover:bg-[#1f2b3f] hover:text-white'
+            }`}
+          >
+            <span className="ms-2">التطبيقات</span>
+            <LayoutGrid className="w-5 h-5 text-current shrink-0" />
+          </button>
+
+          {/* 11. التسويق بالعمولة */}
+          <button
+            type="button"
+            onClick={() => { setActiveTab('affiliate'); setIsSidebarOpen(false); }}
+            className={`w-full flex items-center justify-between px-4 py-3 transition-colors cursor-pointer text-xs font-semibold ${
+              activeTab === 'affiliate' ? 'bg-[#243046] text-white' : 'text-slate-300 hover:bg-[#1f2b3f] hover:text-white'
+            }`}
+          >
+            <span className="ms-2">التسويق بالعمولة</span>
+            <Share2 className="w-5 h-5 text-current shrink-0" />
+          </button>
+
+          {/* 12. الدعم */}
+          <button
+            type="button"
+            onClick={() => { setActiveTab('support'); setIsSidebarOpen(false); }}
+            className={`w-full flex items-center justify-between px-4 py-3 transition-colors cursor-pointer text-xs font-semibold ${
+              activeTab === 'support' ? 'bg-[#243046] text-white' : 'text-slate-300 hover:bg-[#1f2b3f] hover:text-white'
+            }`}
+          >
+            <span className="ms-2">الدعم</span>
+            <Headphones className="w-5 h-5 text-current shrink-0" />
+          </button>
+
+          {/* 13. إعدادات */}
+          <button
+            type="button"
+            onClick={() => { setActiveTab('settings'); setIsSidebarOpen(false); }}
+            className={`w-full flex items-center justify-between px-4 py-3 transition-colors cursor-pointer text-xs font-semibold ${
+              activeTab === 'settings' ? 'bg-[#243046] text-white' : 'text-slate-300 hover:bg-[#1f2b3f] hover:text-white'
+            }`}
+          >
+            <span className="ms-2">إعدادات</span>
+            <Settings className="w-5 h-5 text-current shrink-0" />
+          </button>
+
+        </nav>
+
+        {/* Footer of Sidebar */}
+        <div className="p-3 border-t border-slate-800/80 bg-[#121a28] shrink-0 text-[11px] text-slate-400 flex items-center justify-between">
+          <span className="truncate font-mono">{store.settings?.subdomain || 'wasladz.app'}</span>
+          <span className="w-2 h-2 rounded-full bg-emerald-400"></span>
+        </div>
+      </aside>
+
+      {/* ─── MAIN CONTENT AREA ─── */}
+      <main className="flex-1 flex flex-col min-w-0 min-h-screen overflow-y-auto">
+        
+        {/* Modern Top Header */}
+        <header className="sticky top-0 z-30 bg-white border-b border-slate-200/80 px-4 sm:px-6 h-16 flex items-center justify-between shadow-2xs">
+          <div className="flex items-center gap-3">
+            {/* Mobile Hamburger Button */}
             <button
+              type="button"
+              onClick={() => setIsSidebarOpen(true)}
+              className="lg:hidden p-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 cursor-pointer"
+              title="فتح القائمة"
+            >
+              <Menu className="w-5 h-5" />
+            </button>
+
+            <div className="flex items-center gap-2">
+              <h1 className="text-sm sm:text-base font-black text-slate-900 truncate">
+                {store.nameAr || store.name}
+              </h1>
+              <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-full hidden sm:inline-flex items-center gap-1">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                <span>متجر مستقل نشط 🟢</span>
+              </span>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2 sm:gap-3">
+            {/* Quick Add Product */}
+            <button
+              type="button"
               onClick={handleOpenAddProduct}
-              className="px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold flex items-center gap-1.5 shadow-sm cursor-pointer whitespace-nowrap"
+              className="px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold flex items-center gap-1.5 shadow-sm cursor-pointer transition-all"
             >
               <Plus className="w-4 h-4" />
-              <span>إضافة منتج 🚀</span>
+              <span className="hidden sm:inline">إضافة منتج 🚀</span>
+              <span className="sm:hidden">منتج +</span>
             </button>
+
+            {/* Preview Live Store */}
+            {onOpenLivePreview && (
+              <button
+                type="button"
+                onClick={onOpenLivePreview}
+                className="px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-900 text-slate-100 text-xs font-bold flex items-center gap-1.5 cursor-pointer transition-all border border-slate-700"
+                title="معاينة المتجر المباشر"
+              >
+                <ExternalLink className="w-3.5 h-3.5 text-teal-400" />
+                <span className="hidden sm:inline">معاينة المتجر 🛍️</span>
+                <span className="sm:hidden">المتجر 🛍️</span>
+              </button>
+            )}
           </div>
-        </div>
+        </header>
+
+        {/* Content Container */}
+        <div className="flex-1 p-4 sm:p-6 lg:p-8 space-y-6 max-w-7xl w-full mx-auto">
 
         {/* ─────────────────────────────────────────────────────────────
             TAB 1: OVERVIEW & RECHARTS SALES CHARTS
         ───────────────────────────────────────────────────────────── */}
-        {activeTab === 'overview' && (
+        {(activeTab === 'overview' || activeTab === 'analytics') && (
           <div className="space-y-6">
             
             {/* Quick Metrics Cards */}
@@ -1170,7 +1494,7 @@ export const StoreDashboardView: React.FC<StoreDashboardViewProps> = ({
         {/* ─────────────────────────────────────────────────────────────
             TAB 6: THE 3-BUTTON SYSTEM (MAINTENANCE, FOOTER, BANNER, CURRENCIES, LANGUAGES)
         ───────────────────────────────────────────────────────────── */}
-        {activeTab === 'store_controls' && (
+        {(activeTab === 'store' || activeTab === 'store_controls') && (
           <div className="space-y-6">
             
             {/* Header info */}
@@ -1762,6 +2086,70 @@ export const StoreDashboardView: React.FC<StoreDashboardViewProps> = ({
         )}
 
         {/* ─────────────────────────────────────────────────────────────
+            TAB: COUPONS (كوبونات وقسائم التخفيض)
+        ───────────────────────────────────────────────────────────── */}
+        {activeTab === 'coupons' && (
+          <div className="space-y-6">
+            <div className="bg-white p-5 rounded-2xl border border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <div>
+                <h3 className="text-base sm:text-lg font-black text-slate-900 flex items-center gap-2">
+                  <span>قسائم التخفيض وكودات الخصم (Coupons)</span>
+                  <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-purple-50 text-purple-700 border border-purple-200">
+                    {coupons.length} كودات خصم
+                  </span>
+                </h3>
+                <p className="text-xs text-slate-500 mt-1">
+                  إنشاء كودات ترويجية لزبائنك لزيادة المبيعات بنسبة مئوية أو تخفيض ثابت أو شحن مجاني
+                </p>
+              </div>
+            </div>
+
+            <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-2xs">
+              <div className="overflow-x-auto">
+                <table className="w-full text-right border-collapse text-xs min-w-[600px]">
+                  <thead>
+                    <tr className="bg-slate-50 text-slate-500 font-bold border-b border-slate-200">
+                      <th className="py-3 px-4">كود الكوبون</th>
+                      <th className="py-3 px-4">قيمة الخصم</th>
+                      <th className="py-3 px-4">الحد الأدنى للطلب</th>
+                      <th className="py-3 px-4">الاستخدامات</th>
+                      <th className="py-3 px-4">الحالة</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100">
+                    {coupons.map(cpn => (
+                      <tr key={cpn.id} className="hover:bg-slate-50/80 transition-colors">
+                        <td className="py-3.5 px-4 font-mono font-black text-purple-700 text-sm">
+                          <span className="bg-purple-50 border border-purple-200 px-2.5 py-1 rounded-lg">
+                            {cpn.code}
+                          </span>
+                        </td>
+                        <td className="py-3.5 px-4 font-bold text-slate-900">
+                          {cpn.discountType === 'percentage' ? `${cpn.value}% خصم` : `${cpn.value} د.ج خصم ثابت`}
+                        </td>
+                        <td className="py-3.5 px-4 text-slate-600 font-mono">
+                          {cpn.minOrder ? formatPrice(cpn.minOrder) : 'بدون حد أدنى'}
+                        </td>
+                        <td className="py-3.5 px-4 font-mono font-bold text-slate-700">
+                          {cpn.usageCount || 0} مرة
+                        </td>
+                        <td className="py-3.5 px-4">
+                          <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                            cpn.isActive ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-100 text-slate-600'
+                          }`}>
+                            {cpn.isActive ? 'فعال ونشط 🟢' : 'معطل ⚪'}
+                          </span>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* ─────────────────────────────────────────────────────────────
             TAB 8: STORE SETTINGS & PAYOUTS
         ───────────────────────────────────────────────────────────── */}
         {activeTab === 'settings' && (
@@ -1795,7 +2183,577 @@ export const StoreDashboardView: React.FC<StoreDashboardViewProps> = ({
           </div>
         )}
 
-      </div>
+        {/* ─────────────────────────────────────────────────────────────
+            TAB: UP SELLS (جميع Up Sells)
+        ───────────────────────────────────────────────────────────── */}
+        {(activeTab === 'upsells' || activeTab === 'upsells_all') && (
+          <div className="space-y-6">
+            <div className="bg-white p-5 rounded-2xl border border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <div>
+                <h3 className="text-base sm:text-lg font-black text-slate-900 flex items-center gap-2">
+                  <span>عروض الـ Up Sells وزيادة متوسط قيمة السلة (AOV)</span>
+                  <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                    {upsellsList.filter(u => u.status === 'active').length} عروض نشطة
+                  </span>
+                </h3>
+                <p className="text-xs text-slate-500 mt-1">
+                  مضاعفة أرباح متجرك عبر اقتراح عروض إضافية مغرية للزبائن أثناء الشراء في السلة أو صفحة المنتج.
+                </p>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => setActiveTab('upsells_new')}
+                className="px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs flex items-center gap-2 cursor-pointer shadow-sm self-start sm:self-auto transition-all"
+              >
+                <Plus className="w-4 h-4" />
+                <span>إنشاء Up Sell جديد 🚀</span>
+              </button>
+            </div>
+
+            {/* Quick Metrics */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <div className="p-4 rounded-2xl bg-white border border-slate-200 space-y-1">
+                <span className="text-[11px] font-bold text-slate-500 uppercase">إجمالي المبيعات الإضافية من Up Sells</span>
+                <div className="text-xl font-black text-slate-900 font-mono text-emerald-600">
+                  {formatPrice(upsellsList.reduce((acc, u) => acc + (u.extraRevenue || 0), 0))}
+                </div>
+                <div className="text-[10px] text-slate-400">إيرادات إضافية بدون زيادة تكلفة الإعلانات</div>
+              </div>
+
+              <div className="p-4 rounded-2xl bg-white border border-slate-200 space-y-1">
+                <span className="text-[11px] font-bold text-slate-500 uppercase">متوسط نسبة التحويل (Conversion)</span>
+                <div className="text-xl font-black text-indigo-600 font-mono">18.4%</div>
+                <div className="text-[10px] text-indigo-500 font-semibold">1 من كل 5 زبائن يقبلون العرض</div>
+              </div>
+
+              <div className="p-4 rounded-2xl bg-white border border-slate-200 space-y-1">
+                <span className="text-[11px] font-bold text-slate-500 uppercase">العروض المفعلة حالياً</span>
+                <div className="text-xl font-black text-slate-900 font-mono">
+                  {upsellsList.length} عروض
+                </div>
+                <div className="text-[10px] text-emerald-600 font-semibold">تظهر تلقائياً في السلة والصفحة</div>
+              </div>
+            </div>
+
+            {/* Up Sells List Table */}
+            <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-2xs">
+              <div className="p-4 border-b border-slate-100 flex items-center justify-between">
+                <h4 className="font-bold text-slate-900 text-sm">قائمة عروض الـ Up Sells</h4>
+              </div>
+
+              <div className="divide-y divide-slate-100">
+                {upsellsList.map((item) => (
+                  <div key={item.id} className="p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:bg-slate-50/60 transition-colors">
+                    <div className="space-y-1">
+                      <div className="flex items-center gap-2">
+                        <span className="font-bold text-slate-900 text-sm">{item.title}</span>
+                        <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                          item.status === 'active' 
+                            ? 'bg-emerald-100 text-emerald-800' 
+                            : 'bg-slate-100 text-slate-600'
+                        }`}>
+                          {item.status === 'active' ? 'نشط 🟢' : 'معطل ⚪'}
+                        </span>
+                      </div>
+                      <div className="text-xs text-slate-500 flex items-center gap-3">
+                        <span>المنتج المرتبط: <strong className="text-slate-700">{item.productName}</strong></span>
+                        <span>•</span>
+                        <span>الخصم: <strong className="text-emerald-600 font-mono font-bold">-{item.discountPercentage}%</strong></span>
+                        <span>•</span>
+                        <span>الموقع: {item.triggerType === 'cart_popup' ? 'نافذة منبثقة في السلة' : 'صفحة المنتج'}</span>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-4 sm:gap-6 self-end sm:self-auto">
+                      <div className="text-end">
+                        <div className="text-xs font-mono font-bold text-emerald-600">
+                          +{formatPrice(item.extraRevenue)}
+                        </div>
+                        <div className="text-[10px] text-slate-400">
+                          {item.conversionsCount} تحويل / {item.viewsCount} مشاهدة
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-1.5">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setUpsellsList(prev => prev.map(u => u.id === item.id ? { ...u, status: u.status === 'active' ? 'paused' : 'active' } : u));
+                            showToast(isAr ? 'تم تعديل حالة العرض' : 'Status toggled');
+                          }}
+                          className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                            item.status === 'active' ? 'bg-slate-100 hover:bg-slate-200 text-slate-700' : 'bg-emerald-600 text-white'
+                          }`}
+                        >
+                          {item.status === 'active' ? 'إيقاف' : 'تفعيل'}
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setUpsellsList(prev => prev.filter(u => u.id !== item.id));
+                            showToast(isAr ? 'تم حذف العرض بنجاح' : 'Offer deleted');
+                          }}
+                          className="p-1.5 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-600 transition-colors cursor-pointer"
+                          title="حذف العرض"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* ─────────────────────────────────────────────────────────────
+            TAB: UP SELL جديد (NEW UP SELL)
+        ───────────────────────────────────────────────────────────── */}
+        {activeTab === 'upsells_new' && (
+          <div className="space-y-6 max-w-3xl">
+            <div className="bg-white p-5 rounded-2xl border border-slate-200 flex items-center justify-between">
+              <div>
+                <h3 className="text-base sm:text-lg font-black text-slate-900">إنشاء عرض Up Sell ترويجي جديد</h3>
+                <p className="text-xs text-slate-500">ارفع مبيعات كل طلب بعرض قطع إضافية أو خصم على حزمة المنتجات</p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setActiveTab('upsells_all')}
+                className="text-xs text-slate-500 hover:text-slate-800 font-bold"
+              >
+                العودة للقائمة ←
+              </button>
+            </div>
+
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                if (!newUpsellTitle.trim()) return;
+                const selectedProd = products.find(p => p.id === newUpsellProdId) || products[0];
+                const newOffer = {
+                  id: `upsell_${Date.now()}`,
+                  title: newUpsellTitle.trim(),
+                  titleAr: newUpsellTitle.trim(),
+                  productId: selectedProd?.id || 'p1',
+                  productName: selectedProd?.nameAr || 'منتج إضافي',
+                  type: newUpsellType,
+                  discountPercentage: Number(newUpsellDiscount) || 20,
+                  triggerType: newUpsellTrigger,
+                  status: 'active',
+                  viewsCount: 0,
+                  conversionsCount: 0,
+                  extraRevenue: 0
+                };
+                setUpsellsList([newOffer, ...upsellsList]);
+                setNewUpsellTitle('');
+                setActiveTab('upsells_all');
+                showToast(isAr ? 'تم إنشاء ونشر عرض الـ Up Sell بنجاح! 🚀' : 'Up Sell created');
+              }}
+              className="bg-white p-6 rounded-2xl border border-slate-200 space-y-4 text-xs"
+            >
+              <div>
+                <label className="block text-slate-700 font-bold mb-1">عنوان العرض الترويجي (يظهر للزبون) *</label>
+                <input
+                  type="text"
+                  required
+                  value={newUpsellTitle}
+                  onChange={(e) => setNewUpsellTitle(e.target.value)}
+                  placeholder="مثال: احصل على القطعة الثانية بخصم 40% فقط!"
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-slate-900 font-bold focus:outline-none focus:border-emerald-600"
+                />
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-slate-700 font-bold mb-1">المنتج المقترح بالعرض *</label>
+                  <select
+                    value={newUpsellProdId}
+                    onChange={(e) => setNewUpsellProdId(e.target.value)}
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-slate-900 font-bold cursor-pointer"
+                  >
+                    {products.map(p => (
+                      <option key={p.id} value={p.id}>{p.nameAr || p.name} — {formatPrice(p.price)}</option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-slate-700 font-bold mb-1">نوع العرض الترويجي *</label>
+                  <select
+                    value={newUpsellType}
+                    onChange={(e) => setNewUpsellType(e.target.value)}
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-slate-900 font-bold cursor-pointer"
+                  >
+                    <option value="discount">خصم بنسبة مئوية (%)</option>
+                    <option value="buy_x_get_y">اشتري 2 واحصل على 1 مجاناً</option>
+                    <option value="free_shipping">شحن مجاني فوري للطلب</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-slate-700 font-bold mb-1">نسبة التخفيض (%)</label>
+                  <input
+                    type="number"
+                    min="5"
+                    max="90"
+                    value={newUpsellDiscount}
+                    onChange={(e) => setNewUpsellDiscount(Number(e.target.value))}
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-slate-900 font-mono font-bold"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-slate-700 font-bold mb-1">مكان ظهور العرض *</label>
+                  <select
+                    value={newUpsellTrigger}
+                    onChange={(e) => setNewUpsellTrigger(e.target.value)}
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-slate-900 font-bold cursor-pointer"
+                  >
+                    <option value="cart_popup">نافذة منبثقة ذكية في سلة المشتريات (Cart Popup)</option>
+                    <option value="product_page">أسفل صفحة المنتج مباشرة (Product Page)</option>
+                    <option value="checkout">في استمارة الدفع عند الاستلام (Checkout Form)</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="pt-3 border-t border-slate-100 flex items-center justify-end gap-2">
+                <button
+                  type="button"
+                  onClick={() => setActiveTab('upsells_all')}
+                  className="px-4 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold cursor-pointer"
+                >
+                  إلغاء
+                </button>
+                <button
+                  type="submit"
+                  className="px-6 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-black shadow-md cursor-pointer"
+                >
+                  حفظ وتفعيل الـ Up Sell 🚀
+                </button>
+              </div>
+            </form>
+          </div>
+        )}
+
+        {/* ─────────────────────────────────────────────────────────────
+            TAB: الفواتير والأرباح (INVOICES & BARIDIMOB PAYOUTS)
+        ───────────────────────────────────────────────────────────── */}
+        {activeTab === 'invoices' && (
+          <div className="space-y-6">
+            <div className="bg-white p-5 rounded-2xl border border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <div>
+                <h3 className="text-base sm:text-lg font-black text-slate-900">إدارة الفواتير وتحويل الأرباح (BaridiMob / CCP)</h3>
+                <p className="text-xs text-slate-500">متابعة دفعات مبيعات الدفع عند الاستلام (COD) وتحويلها لحسابك البنكي</p>
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  showToast(isAr ? 'تم استلام طلب تحويل الأرباح إلى BaridiMob بنجاح! سيتم التحويل خلال 24 ساعة ⚡' : 'Payout requested');
+                }}
+                className="px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs flex items-center gap-2 cursor-pointer shadow-sm self-start sm:self-auto"
+              >
+                <CreditCard className="w-4 h-4" />
+                <span>طلب سحب الأرباح فوراً 💰</span>
+              </button>
+            </div>
+
+            {/* Balances Cards */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <div className="p-4 rounded-2xl bg-white border border-slate-200 space-y-1">
+                <span className="text-[11px] font-bold text-slate-500 uppercase">الرصيد المتاح للسحب الآن</span>
+                <div className="text-2xl font-black text-emerald-600 font-mono">145,000 د.ج</div>
+                <div className="text-[10px] text-slate-400">جاهز للتحويل الفوري عبر BaridiMob</div>
+              </div>
+              <div className="p-4 rounded-2xl bg-white border border-slate-200 space-y-1">
+                <span className="text-[11px] font-bold text-slate-500 uppercase">أرباح قيد التسوية مع شركة الشحن</span>
+                <div className="text-2xl font-black text-amber-600 font-mono">68,500 د.ج</div>
+                <div className="text-[10px] text-slate-400">طلبات تم تسليمها وتنتظر تحصيل النقد</div>
+              </div>
+              <div className="p-4 rounded-2xl bg-white border border-slate-200 space-y-1">
+                <span className="text-[11px] font-bold text-slate-500 uppercase">إجمالي المسحوبات السابقة</span>
+                <div className="text-2xl font-black text-slate-900 font-mono">920,000 د.ج</div>
+                <div className="text-[10px] text-emerald-600 font-semibold">12 عملية تحويل مكتملة ✓</div>
+              </div>
+            </div>
+
+            {/* Payout Account Box */}
+            <div className="bg-white p-5 rounded-2xl border border-slate-200 space-y-3">
+              <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+                <h4 className="font-bold text-slate-900 text-xs">الحساب المعتمد لتحويل أموالك</h4>
+                <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700">موثق ومفعل</span>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+                <div className="p-3 rounded-xl bg-slate-50 border border-slate-200">
+                  <span className="text-[10px] text-slate-400 block mb-0.5">البنك / الخدمة:</span>
+                  <span className="font-bold text-slate-800">بريد الجزائر (BaridiMob / Algérie Poste)</span>
+                </div>
+                <div className="p-3 rounded-xl bg-slate-50 border border-slate-200">
+                  <span className="text-[10px] text-slate-400 block mb-0.5">رقم الحساب الجاري والـ RIP:</span>
+                  <span className="font-mono font-bold text-slate-800">00799999000123456789</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Recent Payouts Table */}
+            <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-2xs">
+              <div className="p-4 border-b border-slate-100 font-bold text-slate-900 text-xs">سجل الفواتير والتحويلات البنكية الأخيرة</div>
+              <div className="overflow-x-auto">
+                <table className="w-full text-xs text-right">
+                  <thead className="bg-slate-50 text-slate-500 border-b border-slate-200 font-bold">
+                    <tr>
+                      <th className="p-3">رقم الفاتورة</th>
+                      <th className="p-3">التاريخ</th>
+                      <th className="p-3">المبلغ</th>
+                      <th className="p-3">طريقة الدفع</th>
+                      <th className="p-3">الحالة</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100">
+                    <tr className="hover:bg-slate-50">
+                      <td className="p-3 font-mono font-bold text-slate-800">INV-2026-089</td>
+                      <td className="p-3 text-slate-500">2026/10/20</td>
+                      <td className="p-3 font-mono font-bold text-emerald-600">85,000 د.ج</td>
+                      <td className="p-3 text-slate-700">BaridiMob RIP</td>
+                      <td className="p-3"><span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800">مكتمل ومحول ✓</span></td>
+                    </tr>
+                    <tr className="hover:bg-slate-50">
+                      <td className="p-3 font-mono font-bold text-slate-800">INV-2026-088</td>
+                      <td className="p-3 text-slate-500">2026/10/12</td>
+                      <td className="p-3 font-mono font-bold text-emerald-600">120,000 د.ج</td>
+                      <td className="p-3 text-slate-700">BaridiMob RIP</td>
+                      <td className="p-3"><span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800">مكتمل ومحول ✓</span></td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* ─────────────────────────────────────────────────────────────
+            TAB: التطبيقات والميزات (APPS & INTEGRATIONS)
+        ───────────────────────────────────────────────────────────── */}
+        {activeTab === 'apps' && (
+          <div className="space-y-6">
+            <div className="bg-white p-5 rounded-2xl border border-slate-200 space-y-1">
+              <h3 className="text-base sm:text-lg font-black text-slate-900">مركز التطبيقات والربط السحابي</h3>
+              <p className="text-xs text-slate-500">تطبيقات الشحن لـ 69 ولاية، ربط شركات التوصيل الجزائرية، والدومين المخصص</p>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              <div 
+                onClick={() => setActiveTab('shipping')}
+                className="p-5 rounded-2xl bg-white border border-slate-200 hover:border-emerald-500 shadow-2xs hover:shadow-md transition-all cursor-pointer space-y-3"
+              >
+                <div className="w-10 h-10 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center">
+                  <Truck className="w-5 h-5" />
+                </div>
+                <div>
+                  <h4 className="font-bold text-slate-900 text-sm">تطبيق الشحن لـ 69 ولاية جزائرية</h4>
+                  <p className="text-xs text-slate-500 mt-1">تحديد أسعار المكتب والمنزل لكل ولاية جزائرية وحساب التكلفة تلقائياً.</p>
+                </div>
+                <span className="text-xs font-bold text-emerald-600 flex items-center gap-1">
+                  <span>فتح إدارة الشحن</span>
+                  <span>←</span>
+                </span>
+              </div>
+
+              <div 
+                onClick={() => setActiveTab('domains')}
+                className="p-5 rounded-2xl bg-white border border-slate-200 hover:border-indigo-500 shadow-2xs hover:shadow-md transition-all cursor-pointer space-y-3"
+              >
+                <div className="w-10 h-10 rounded-xl bg-indigo-100 text-indigo-700 flex items-center justify-center">
+                  <Globe className="w-5 h-5" />
+                </div>
+                <div>
+                  <h4 className="font-bold text-slate-900 text-sm">تطبيق النطاق المخصص (Custom Domain)</h4>
+                  <p className="text-xs text-slate-500 mt-1">ربط متجرك بنطاق خاص (yourbrand.com أو .dz) مع شهادة SSL مجانية.</p>
+                </div>
+                <span className="text-xs font-bold text-indigo-600 flex items-center gap-1">
+                  <span>إعدادات الدومين</span>
+                  <span>←</span>
+                </span>
+              </div>
+
+              <div className="p-5 rounded-2xl bg-white border border-slate-200 shadow-2xs space-y-3">
+                <div className="w-10 h-10 rounded-xl bg-amber-100 text-amber-700 flex items-center justify-center">
+                  <Package className="w-5 h-5" />
+                </div>
+                <div>
+                  <h4 className="font-bold text-slate-900 text-sm">شركات التوصيل (Yalidine & ZR Express)</h4>
+                  <p className="text-xs text-slate-500 mt-1">مزامنة تتبع الطرود وتوليد بوليصات الشحن تلقائياً عبر API.</p>
+                </div>
+                <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700 inline-block">
+                  مفعل افتراضياً
+                </span>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* ─────────────────────────────────────────────────────────────
+            TAB: التسويق بالعمولة (AFFILIATE MARKETING)
+        ───────────────────────────────────────────────────────────── */}
+        {activeTab === 'affiliate' && (
+          <div className="space-y-6">
+            <div className="bg-white p-5 rounded-2xl border border-slate-200 space-y-1">
+              <h3 className="text-base sm:text-lg font-black text-slate-900">نظام التسويق بالعمولة للمسوقين (Affiliate Program)</h3>
+              <p className="text-xs text-slate-500">تمكين المسوقين وصناع المحتوى من الترويج لمنتجاتك وجلب مبيعات مقابل نسبة محددة</p>
+            </div>
+
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+              <div className="lg:col-span-6 bg-white p-5 rounded-2xl border border-slate-200 space-y-4 text-xs">
+                <h4 className="font-bold text-slate-900 text-sm">رابط التسويق الخاص بالمتجر</h4>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="text"
+                    readOnly
+                    value={`https://${store.settings?.subdomain || 'wasladz.app'}/?ref=partner`}
+                    className="flex-1 bg-slate-50 border border-slate-200 rounded-xl p-3 text-slate-800 font-mono font-bold"
+                    dir="ltr"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => {
+                      navigator.clipboard?.writeText(`https://${store.settings?.subdomain || 'wasladz.app'}/?ref=partner`);
+                      setAffiliateCopied(true);
+                      setTimeout(() => setAffiliateCopied(false), 2000);
+                      showToast(isAr ? 'تم نسخ رابط المسوق بنجاح!' : 'Copied');
+                    }}
+                    className="px-4 py-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-bold cursor-pointer transition-all"
+                  >
+                    {affiliateCopied ? 'تم النسخ ✓' : 'نسخ'}
+                  </button>
+                </div>
+
+                <div className="space-y-2 pt-2 border-t border-slate-100">
+                  <label className="block text-slate-700 font-bold">نسبة عمولة المسوق لكل مبيعة مكتملة: {affiliateCommission}%</label>
+                  <input
+                    type="range"
+                    min="5"
+                    max="35"
+                    step="1"
+                    value={affiliateCommission}
+                    onChange={(e) => setAffiliateCommission(Number(e.target.value))}
+                    className="w-full accent-emerald-600 cursor-pointer"
+                  />
+                  <div className="flex justify-between text-[10px] text-slate-400 font-mono">
+                    <span>5%</span>
+                    <span>10% (موصى بها)</span>
+                    <span>20%</span>
+                    <span>35%</span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="lg:col-span-6 bg-white p-5 rounded-2xl border border-slate-200 space-y-3">
+                <h4 className="font-bold text-slate-900 text-sm">إحصائيات المسوقين الحاليين</h4>
+                <div className="grid grid-cols-2 gap-3 text-xs">
+                  <div className="p-3 rounded-xl bg-slate-50 border border-slate-200 space-y-1">
+                    <span className="text-[10px] text-slate-400">عدد المسوقين النشطين</span>
+                    <div className="text-lg font-black text-slate-900 font-mono">6 مسوقين</div>
+                  </div>
+                  <div className="p-3 rounded-xl bg-slate-50 border border-slate-200 space-y-1">
+                    <span className="text-[10px] text-slate-400">مبيعات المسوقين</span>
+                    <div className="text-lg font-black text-emerald-600 font-mono">182,000 د.ج</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* ─────────────────────────────────────────────────────────────
+            TAB: الدعم الفني (SUPPORT & HELP)
+        ───────────────────────────────────────────────────────────── */}
+        {activeTab === 'support' && (
+          <div className="space-y-6 max-w-4xl">
+            <div className="bg-white p-5 rounded-2xl border border-slate-200 space-y-1">
+              <h3 className="text-base sm:text-lg font-black text-slate-900">مركز الدعم والمساعدة المباشرة للبائع</h3>
+              <p className="text-xs text-slate-500">فريق الدعم الجزائري متاح يومياً لمساعدتك في زيادة مبيعاتك وحل أي استفسار</p>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="p-5 rounded-2xl bg-white border border-slate-200 space-y-3">
+                <div className="w-10 h-10 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center">
+                  <Phone className="w-5 h-5" />
+                </div>
+                <h4 className="font-bold text-slate-900 text-sm">الدعم المباشر عبر واتساب (WhatsApp)</h4>
+                <p className="text-xs text-slate-500">تواصل فوري وسريع مع فريق الدعم لحل المشكلات التقنية وتعديل المتاجر.</p>
+                <a
+                  href="https://wa.me/213550000000"
+                  target="_blank"
+                  rel="noreferrer"
+                  className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow-xs"
+                >
+                  <Send className="w-4 h-4" />
+                  <span>مراسلة واتساب (+213 550 00 00 00)</span>
+                </a>
+              </div>
+
+              <div className="p-5 rounded-2xl bg-white border border-slate-200 space-y-3">
+                <div className="w-10 h-10 rounded-xl bg-indigo-100 text-indigo-700 flex items-center justify-center">
+                  <Headphones className="w-5 h-5" />
+                </div>
+                <h4 className="font-bold text-slate-900 text-sm">مركز الاتصال الهاتفي بالجزائر</h4>
+                <p className="text-xs text-slate-500">متاح من السبت إلى الخميس (08:30 صباحاً إلى 18:00 مساءً).</p>
+                <div className="text-xs font-mono font-bold text-indigo-700 bg-indigo-50 p-2.5 rounded-xl border border-indigo-200 text-center">
+                  الهاتف: 023 45 67 89
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-white p-5 rounded-2xl border border-slate-200 space-y-4 text-xs">
+              <h4 className="font-bold text-slate-900 text-sm">فتح تذكرة مساعدة سريعة</h4>
+              <form
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  setSupportSubmitted(true);
+                  showToast(isAr ? 'تم إرسال تذكرتك بنجاح! سيتم الرد عليك عبر البريد أو الهاتف قريباً' : 'Ticket sent');
+                  setSupportSubject('');
+                  setSupportMessage('');
+                }}
+                className="space-y-3"
+              >
+                <div>
+                  <label className="block text-slate-700 font-bold mb-1">موضوع التذكرة *</label>
+                  <input
+                    type="text"
+                    required
+                    value={supportSubject}
+                    onChange={(e) => setSupportSubject(e.target.value)}
+                    placeholder="مثال: استفسار حول ربط دومين خاص أو تسعير الشحن..."
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-slate-900 focus:outline-none focus:border-emerald-600 font-bold"
+                  />
+                </div>
+                <div>
+                  <label className="block text-slate-700 font-bold mb-1">تفاصيل الرسالة أو المشكلة *</label>
+                  <textarea
+                    rows={4}
+                    required
+                    value={supportMessage}
+                    onChange={(e) => setSupportMessage(e.target.value)}
+                    placeholder="اكتب بالتفصيل ما تحتاجه..."
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-slate-900 resize-none focus:outline-none focus:border-emerald-600"
+                  />
+                </div>
+                <button
+                  type="submit"
+                  className="px-6 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold cursor-pointer"
+                >
+                  إرسال التذكرة ✉️
+                </button>
+              </form>
+            </div>
+          </div>
+        )}
+
+        </div>
+      </main>
 
       {/* ─────────────────────────────────────────────────────────────
           MODAL: EDIT WILAYA PRICES
